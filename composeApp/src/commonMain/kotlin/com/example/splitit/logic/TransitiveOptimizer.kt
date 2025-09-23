@@ -1,13 +1,96 @@
 package com.example.splitit.logic
 
 import com.example.splitit.domain.Participant
+import com.example.splitit.domain.Payment
+import kotlin.math.abs
+import kotlin.uuid.ExperimentalUuidApi
 
-class TransitiveOptimizer: Optimizer<Participant> {
-    override fun canOptimize(elements: Set<Participant>): Boolean {
-        TODO("Not yet implemented")
+class TransitiveOptimizer: Optimizer<Payment> {
+
+    @OptIn(ExperimentalUuidApi::class)
+    override fun canOptimize(elements: Set<Payment>): Boolean {
+        return elements.any { payment ->
+            collectChunk(elements, payment).size == CHUNK_SIZE
+        }
     }
 
-    override fun optimize(elements: Set<Participant>): Set<Participant> {
-        TODO("Not yet implemented")
+    override fun optimize(elements: Set<Payment>): Set<Payment>  {
+        val chunks = createChunks(elements)
+
+        return chunks.map{ optimizeChunk(it)}.flatten().toSet()
+
     }
+
+    private fun createChunks(elements: Set<Payment>): List<Set<Payment>> {
+        val result = mutableListOf<Set<Payment>>()
+        val paymentsToProcess = elements.toMutableSet()
+        while (paymentsToProcess.isNotEmpty()) {
+            val chunk = collectChunk(paymentsToProcess)
+            result.add(chunk)
+            paymentsToProcess.removeAll(chunk)
+        }
+
+        return result
+    }
+
+    private fun collectChunk(payments: Set<Payment>, start: Payment? = null): Set<Payment> {
+        val chain = LinkedHashSet<Payment>()
+        var currentPayment: Payment? = start ?: payments.first()
+        val visitedParticipants = mutableSetOf<Participant>()
+
+        while (currentPayment != null) {
+            val added = visitedParticipants.add(currentPayment.from)
+            if (!added) {
+                break
+            }
+
+            chain.add(currentPayment)
+
+            if (chain.size == CHUNK_SIZE) {
+                break
+            }
+
+            currentPayment = payments.firstOrNull { payment ->
+                payment != currentPayment &&
+                        payment.from == currentPayment.to &&
+                        !chain.contains(payment)
+            }
+        }
+
+        return chain
+    }
+
+    private fun optimizeChunk(chunk: Set<Payment>): Set<Payment> {
+        if (chunk.size < CHUNK_SIZE) return chunk
+
+        val firstPayment = chunk.first()
+        val lastPayment = chunk.last()
+
+        val first = firstPayment.from
+        val second = firstPayment.to
+        val last = lastPayment.to
+
+        val diff = lastPayment.amount - firstPayment.amount
+
+        if (diff > 0) {
+            return hashSetOf(
+                Payment(first, last, diff),
+                Payment(second, last, lastPayment.amount - diff)
+            )
+        } else if(diff < 0) {
+            val absoluteDiff = abs(diff)
+            return hashSetOf(
+                Payment(first, second, firstPayment.amount - absoluteDiff),
+                Payment(first, last, lastPayment.amount )
+            )
+        }
+        else {
+            return hashSetOf(
+                Payment(first, last, firstPayment.amount)
+            )
+        }
+    }
+
 }
+
+private const val CHUNK_SIZE = 2
