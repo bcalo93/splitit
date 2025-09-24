@@ -6,20 +6,21 @@ import kotlin.math.abs
 import kotlin.uuid.ExperimentalUuidApi
 
 class TransitiveOptimizer: Optimizer<Payment> {
-
-    // THIS METHOD IS DEPRECATED, I CAN COMPARE RESULT WITH ORIGINAL
-    @OptIn(ExperimentalUuidApi::class)
-    override fun canOptimize(elements: Set<Payment>): Boolean {
-        return elements.any { payment ->
-            collectChunk(elements, payment).size == CHUNK_SIZE
-        }
-    }
-
-    override fun optimize(elements: Set<Payment>): Set<Payment>  {
+    override fun optimize(elements: Set<Payment>): OptimizerResult<Payment>  {
         val chunks = createChunks(elements)
 
-        return chunks.map{ optimizeChunk(it)}.flatten().toSet()
+        val canOptimize = chunks.any{ it.size == CHUNK_SIZE }
 
+        val result = if (canOptimize) {
+            chunks.map { optimizeChunk(it) }.flatten().toSet()
+        } else {
+            elements
+        }
+
+        return OptimizerResult(
+            optimized = canOptimize,
+            elements = result
+        )
     }
 
     private fun createChunks(elements: Set<Payment>): List<Set<Payment>> {

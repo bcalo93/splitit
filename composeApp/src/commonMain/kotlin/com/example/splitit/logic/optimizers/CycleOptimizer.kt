@@ -5,11 +5,7 @@ import com.example.splitit.domain.Payment
 import kotlin.collections.iterator
 
 class CycleOptimizer : Optimizer<Payment> {
-    override fun canOptimize(elements: Set<Payment>): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun optimize(elements: Set<Payment>): Set<Payment> {
+    override fun optimize(elements: Set<Payment>): OptimizerResult<Payment> {
         TODO("Not yet implemented")
     }
 

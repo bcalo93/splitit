@@ -34,12 +34,14 @@ class TransitiveOptimizerTest {
             Payment(from = participantA, to = participantC, amount = 50)
         )
 
-        assertTrue(optimizer.canOptimize(payments))
+        val result = optimizer.optimize(payments)
 
-        val optimized = optimizer.optimize(payments)
-
-        assertTrue(collectionsAreEquals(expectedResult, optimized, paymentsAreEquals))
-        assertFalse(optimizer.canOptimize(optimized))
+        assertTrue(result.optimized)
+        assertTrue(collectionsAreEquals(
+            expectedResult,
+            result.elements,
+            paymentsAreEquals)
+        )
     }
 
     @Test
@@ -54,12 +56,10 @@ class TransitiveOptimizerTest {
             Payment(from = participantB, to = participantC, amount = 60)
         )
 
-        assertTrue(optimizer.canOptimize(payments))
+        val result = optimizer.optimize(payments)
+        assertTrue(result.optimized)
 
-        val optimized = optimizer.optimize(payments)
-
-        assertTrue(collectionsAreEquals(expectedResult, optimized, paymentsAreEquals))
-        assertFalse(optimizer.canOptimize(optimized))
+        assertTrue(collectionsAreEquals(expectedResult, result.elements, paymentsAreEquals))
     }
 
     @Test
@@ -74,12 +74,14 @@ class TransitiveOptimizerTest {
             Payment(from = participantA, to = participantC, amount = 50)
         )
 
-        assertTrue(optimizer.canOptimize(payments))
+        val result = optimizer.optimize(payments)
+        assertTrue(result.optimized)
 
-        val optimized = optimizer.optimize(payments)
-
-        assertTrue(collectionsAreEquals(expectedResult, optimized, paymentsAreEquals))
-        assertFalse(optimizer.canOptimize(optimized))
+        assertTrue(collectionsAreEquals(
+            expectedResult,
+            result.elements,
+            paymentsAreEquals)
+        )
     }
 
     @Test
@@ -96,12 +98,10 @@ class TransitiveOptimizerTest {
             Payment(from = participantC, participantD, 40)
         )
 
-        assertTrue(optimizer.canOptimize(payments))
+        val result = optimizer.optimize(payments)
+        assertTrue(result.optimized)
 
-        val optimized = optimizer.optimize(payments)
-
-        assertTrue(collectionsAreEquals(expectedResult, optimized, paymentsAreEquals))
-        assertTrue(optimizer.canOptimize(optimized))
+        assertTrue(collectionsAreEquals(expectedResult, result.elements, paymentsAreEquals))
     }
 
     @Test
@@ -116,11 +116,10 @@ class TransitiveOptimizerTest {
 
         val payments = setOf(payment1, payment2)
 
-        assertFalse(optimizer.canOptimize(payments))
+        val result = optimizer.optimize(payments)
 
-        val optimized = optimizer.optimize(payments)
-
-        assertEquals(payments, optimized)
+        assertFalse(result.optimized)
+        assertEquals(payments, result.elements)
     }
 
     @Test
@@ -131,11 +130,10 @@ class TransitiveOptimizerTest {
 
         val payments = setOf(payment1, payment2)
 
-        assertFalse(optimizer.canOptimize(payments))
+        val result = optimizer.optimize(payments)
 
-        val optimized = optimizer.optimize(payments)
-
-        assertEquals(payments, optimized)
+        assertFalse(result.optimized)
+        assertEquals(payments, result.elements)
     }
 
     @Test
@@ -155,11 +153,9 @@ class TransitiveOptimizerTest {
             Payment(from = participantD, to = participantF, amount = 15)
         )
 
-        assertTrue(optimizer.canOptimize(payments))
+        val result = optimizer.optimize(payments)
+        assertTrue(result.optimized)
 
-        val optimized = optimizer.optimize(payments)
-
-        assertTrue(collectionsAreEquals(expectedResult, optimized, paymentsAreEquals))
-        assertFalse(optimizer.canOptimize(optimized))
+        assertTrue(collectionsAreEquals(expectedResult, result.elements, paymentsAreEquals))
     }
 }

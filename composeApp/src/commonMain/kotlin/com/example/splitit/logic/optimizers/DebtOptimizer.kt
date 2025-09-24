@@ -1,21 +1,17 @@
 package com.example.splitit.logic.optimizers
 
 import com.example.splitit.domain.Payment
-import com.example.splitit.storage.PaymentStorage
 
-// Figure out if it is relevant to give it an identifier to improve optimization desition.
-class DebtOptimizer {
-    val optimizers: List<Optimizer<Payment>>
-    val paymentStorage: PaymentStorage
-
+// TODO THIS MAY BE GENERIC TOO. AS IS TOO ABSTRACT ComposedOptimizer
+class DebtOptimizer : Optimizer<Payment> {
+    private val optimizers: List<Optimizer<Payment>>
 
     // TODO DEPENDENCY INJECTION
-    constructor(optimizers: List<Optimizer<Payment>>, paymentStorage: PaymentStorage) {
+    constructor(optimizers: List<Optimizer<Payment>>) {
         this.optimizers = optimizers
-        this.paymentStorage = paymentStorage
     }
 
-    fun optimize() {
+    override fun optimize(elements: Set<Payment>): OptimizerResult<Payment> {
         TODO("Not yet implemented")
     }
 }
