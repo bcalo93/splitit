@@ -1,4 +1,4 @@
-package com.example.splitit.logic
+package com.example.splitit.logic.optimizers
 
 import com.example.splitit.domain.Participant
 import com.example.splitit.domain.Payment
@@ -7,6 +7,7 @@ import kotlin.uuid.ExperimentalUuidApi
 
 class TransitiveOptimizer: Optimizer<Payment> {
 
+    // THIS METHOD IS DEPRECATED, I CAN COMPARE RESULT WITH ORIGINAL
     @OptIn(ExperimentalUuidApi::class)
     override fun canOptimize(elements: Set<Payment>): Boolean {
         return elements.any { payment ->
@@ -53,6 +54,7 @@ class TransitiveOptimizer: Optimizer<Payment> {
             currentPayment = payments.firstOrNull { payment ->
                 payment != currentPayment &&
                         payment.from == currentPayment.to &&
+                        payment.to != currentPayment.from && // Ignore Cycles
                         !chain.contains(payment)
             }
         }
@@ -74,21 +76,21 @@ class TransitiveOptimizer: Optimizer<Payment> {
 
         if (diff > 0) {
             return hashSetOf(
-                Payment(first, last, diff),
-                Payment(second, last, lastPayment.amount - diff)
+                Payment(first, last, firstPayment.amount),
+                Payment(second, last, diff)
             )
-        } else if(diff < 0) {
-            val absoluteDiff = abs(diff)
+        }
+
+        if(diff < 0) {
             return hashSetOf(
-                Payment(first, second, firstPayment.amount - absoluteDiff),
+                Payment(first, second, abs(diff)),
                 Payment(first, last, lastPayment.amount )
             )
         }
-        else {
-            return hashSetOf(
-                Payment(first, last, firstPayment.amount)
-            )
-        }
+
+        return hashSetOf(
+            Payment(first, last, firstPayment.amount)
+        )
     }
 
 }

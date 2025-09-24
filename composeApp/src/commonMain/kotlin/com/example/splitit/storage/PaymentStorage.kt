@@ -9,7 +9,6 @@ import kotlin.uuid.Uuid
 class PaymentStorage {
     private val payments: MutableSet<Payment> = HashSet()
     val participants: MutableSet<Participant> = HashSet()
-        private set
 
     fun getPayments(): Set<Payment> {
         return payments

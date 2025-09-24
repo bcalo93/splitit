@@ -1,4 +1,4 @@
-package com.example.splitit.logic
+package com.example.splitit.logic.optimizers
 
 interface Optimizer<T> {
     fun canOptimize(elements: Set<T>): Boolean

@@ -1,7 +1,8 @@
-package com.example.splitit.logic
+package com.example.splitit.logic.optimizers
 
 import com.example.splitit.domain.Participant
 import com.example.splitit.domain.Payment
+import kotlin.collections.iterator
 
 class CycleOptimizer : Optimizer<Payment> {
     override fun canOptimize(elements: Set<Payment>): Boolean {

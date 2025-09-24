@@ -1,6 +1,5 @@
-package com.example.splitit.logic
+package com.example.splitit.logic.optimizers
 
-import com.example.splitit.domain.Participant
 import com.example.splitit.domain.Payment
 import com.example.splitit.storage.PaymentStorage
 
