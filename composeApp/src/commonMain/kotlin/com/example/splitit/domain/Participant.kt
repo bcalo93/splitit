@@ -3,6 +3,8 @@ package com.example.splitit.domain
 class Participant {
     var nickname: String
         private set
+
+    // TODO: REMOVE THIS AS IT IS REDUNDANT AND ADD UNNECESSARY COMPLEXITY
     var debts: MutableSet<Payment> = mutableSetOf<Payment>()
         private set
 
