@@ -1,43 +1,13 @@
-package com.example.splitit.logic.optimizers
+package com.example.splitit.logic.optimizers.debt
 
 import com.example.splitit.domain.Participant
 import com.example.splitit.domain.Payment
 import kotlin.math.abs
-import kotlin.uuid.ExperimentalUuidApi
 
-class TransitiveOptimizer: Optimizer<Payment> {
-    override fun optimize(elements: Set<Payment>): OptimizerResult<Payment>  {
-        val chunks = createChunks(elements)
-
-        val canOptimize = chunks.any{ it.size == CHUNK_SIZE }
-
-        val result = if (canOptimize) {
-            chunks.map { optimizeChunk(it) }.flatten().toSet()
-        } else {
-            elements
-        }
-
-        return OptimizerResult(
-            optimized = canOptimize,
-            elements = result
-        )
-    }
-
-    private fun createChunks(elements: Set<Payment>): List<Set<Payment>> {
-        val result = mutableListOf<Set<Payment>>()
-        val paymentsToProcess = elements.toMutableSet()
-        while (paymentsToProcess.isNotEmpty()) {
-            val chunk = collectChunk(paymentsToProcess)
-            result.add(chunk)
-            paymentsToProcess.removeAll(chunk)
-        }
-
-        return result
-    }
-
-    private fun collectChunk(payments: Set<Payment>, start: Payment? = null): Set<Payment> {
+class TransitiveOptimizer: DebtOptimizer() {
+    override fun collectChunk(payments: Set<Payment>): Set<Payment> {
         val chain = LinkedHashSet<Payment>()
-        var currentPayment: Payment? = start ?: payments.first()
+        var currentPayment: Payment? = payments.first()
         val visitedParticipants = mutableSetOf<Participant>()
 
         while (currentPayment != null) {
@@ -63,7 +33,7 @@ class TransitiveOptimizer: Optimizer<Payment> {
         return chain
     }
 
-    private fun optimizeChunk(chunk: Set<Payment>): Set<Payment> {
+    override fun optimizeChunk(chunk: Set<Payment>): Set<Payment> {
         if (chunk.size < CHUNK_SIZE) return chunk
 
         val firstPayment = chunk.first()
@@ -95,5 +65,3 @@ class TransitiveOptimizer: Optimizer<Payment> {
     }
 
 }
-
-private const val CHUNK_SIZE = 2

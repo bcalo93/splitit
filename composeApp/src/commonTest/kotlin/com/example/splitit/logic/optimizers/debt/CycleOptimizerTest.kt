@@ -1,8 +1,9 @@
-package com.example.splitit.logic.optimizers
+package com.example.splitit.logic.optimizers.debt
 
 import com.example.splitit.domain.Payment
 import com.example.splitit.domain.Participant
 import com.example.splitit.testutils.collectionsAreEquals
+import com.example.splitit.testutils.paymentsAreEquals
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
