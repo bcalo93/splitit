@@ -19,10 +19,6 @@ class TransitiveOptimizerTest {
 
     private val optimizer = TransitiveOptimizer()
 
-    private val paymentsAreEquals: (Payment, Payment) -> Boolean = { a, b ->
-        a.to == b.to && a.from == b.from && a.amount == b.amount
-    }
-
     @Test
     fun testSimpleTransitiveOptimizationFirstCase() {
         // Case: A -> B (50), B -> C (50) = A -> C (50)
@@ -157,5 +153,16 @@ class TransitiveOptimizerTest {
         assertTrue(result.optimized)
 
         assertTrue(collectionsAreEquals(expectedResult, result.elements, paymentsAreEquals))
+    }
+
+    @Test
+    fun testEmptySet() {
+        // Case: empty Set
+        val payments = emptySet<Payment>()
+
+        val result = optimizer.optimize(payments)
+
+        assertFalse(result.optimized, "Should not have optimized (empty set)")
+        assertTrue(result.elements.isEmpty(), "Should return empty set")
     }
 }
