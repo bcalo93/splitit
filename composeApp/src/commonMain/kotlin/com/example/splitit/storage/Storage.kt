@@ -6,9 +6,17 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-class PaymentStorage {
+class Storage {
     private val payments: MutableSet<Payment> = HashSet()
     val participants: MutableSet<Participant> = HashSet()
+
+
+    // TODO REMOVE
+    constructor() {
+        participants.add(Participant("Bob"))
+        participants.add(Participant("Alice"))
+        participants.add(Participant("Eve"))
+    }
 
     fun getPayments(): Set<Payment> {
         return payments
