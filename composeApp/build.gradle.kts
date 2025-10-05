@@ -39,7 +39,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation("io.insert-koin:koin-core:4.1.1")
+            implementation(libs.dep.inj)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
