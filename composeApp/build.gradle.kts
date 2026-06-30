@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -29,6 +30,10 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.sqldelight.android.driver)
+        }
+        androidUnitTest.dependencies {
+            implementation(libs.sqldelight.sqlite.driver)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -40,9 +45,21 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.dep.inj)
+            implementation(libs.sqldelight.runtime)
+        }
+        iosMain.dependencies {
+            implementation(libs.sqldelight.native.driver)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("SplitItDatabase") {
+            packageName.set("com.example.splitit.data.database")
         }
     }
 }
@@ -77,4 +94,3 @@ android {
 dependencies {
     debugImplementation(compose.uiTooling)
 }
-
