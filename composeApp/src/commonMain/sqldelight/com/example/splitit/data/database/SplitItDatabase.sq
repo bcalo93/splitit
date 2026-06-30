@@ -1,0 +1,264 @@
+CREATE TABLE sessions (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    deleted_at INTEGER
+);
+
+CREATE TABLE participants (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    avatar_color TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    deleted_at INTEGER
+);
+
+CREATE TABLE expenses (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    amount_minor INTEGER NOT NULL,
+    currency_code TEXT NOT NULL,
+    payer_participant_id TEXT NOT NULL REFERENCES participants(id),
+    date_millis INTEGER NOT NULL,
+    note TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    deleted_at INTEGER
+);
+
+CREATE TABLE expense_participants (
+    expense_id TEXT NOT NULL REFERENCES expenses(id) ON DELETE CASCADE,
+    participant_id TEXT NOT NULL REFERENCES participants(id),
+    share_weight INTEGER NOT NULL,
+    PRIMARY KEY(expense_id, participant_id)
+);
+
+CREATE TABLE settlements (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+    generated_at INTEGER NOT NULL,
+    source_revision INTEGER NOT NULL
+);
+
+CREATE TABLE settlement_transfers (
+    id TEXT NOT NULL PRIMARY KEY,
+    settlement_id TEXT NOT NULL REFERENCES settlements(id) ON DELETE CASCADE,
+    from_participant_id TEXT NOT NULL REFERENCES participants(id),
+    to_participant_id TEXT NOT NULL REFERENCES participants(id),
+    amount_minor INTEGER NOT NULL,
+    currency_code TEXT NOT NULL
+);
+
+CREATE TABLE settings (
+    id INTEGER NOT NULL PRIMARY KEY,
+    default_currency_code TEXT NOT NULL,
+    theme_mode TEXT NOT NULL
+);
+
+CREATE INDEX participants_session_id ON participants(session_id);
+CREATE INDEX expenses_session_id_date ON expenses(session_id, date_millis);
+CREATE INDEX expense_participants_expense_id ON expense_participants(expense_id);
+CREATE INDEX expense_participants_participant_id ON expense_participants(participant_id);
+CREATE INDEX settlements_session_id_generated_at ON settlements(session_id, generated_at);
+CREATE INDEX settlement_transfers_settlement_id ON settlement_transfers(settlement_id);
+
+selectSessions:
+SELECT *
+FROM sessions
+WHERE deleted_at IS NULL
+ORDER BY created_at DESC;
+
+selectSessionById:
+SELECT *
+FROM sessions
+WHERE id = ? AND deleted_at IS NULL;
+
+upsertSession:
+INSERT OR REPLACE INTO sessions(
+    id,
+    title,
+    description,
+    created_at,
+    updated_at,
+    status,
+    deleted_at
+)
+VALUES (?, ?, ?, ?, ?, ?, NULL);
+
+deleteSession:
+DELETE FROM sessions
+WHERE id = ?;
+
+deleteParticipantsBySession:
+DELETE FROM participants
+WHERE session_id = ?;
+
+selectParticipantsBySession:
+SELECT *
+FROM participants
+WHERE session_id = ? AND deleted_at IS NULL
+ORDER BY created_at ASC;
+
+selectParticipantById:
+SELECT *
+FROM participants
+WHERE id = ? AND deleted_at IS NULL;
+
+upsertParticipant:
+INSERT OR REPLACE INTO participants(
+    id,
+    session_id,
+    name,
+    avatar_color,
+    created_at,
+    updated_at,
+    deleted_at
+)
+VALUES (?, ?, ?, ?, ?, ?, NULL);
+
+deleteParticipant:
+DELETE FROM participants
+WHERE id = ?;
+
+countExpensesUsingParticipant:
+SELECT COUNT(*)
+FROM expenses
+WHERE payer_participant_id = ? AND deleted_at IS NULL
+UNION ALL
+SELECT COUNT(*)
+FROM expense_participants
+WHERE participant_id = ?;
+
+selectExpensesBySession:
+SELECT *
+FROM expenses
+WHERE session_id = ? AND deleted_at IS NULL
+ORDER BY date_millis DESC, created_at DESC;
+
+selectExpenseById:
+SELECT *
+FROM expenses
+WHERE id = ? AND deleted_at IS NULL;
+
+upsertExpense:
+INSERT OR REPLACE INTO expenses(
+    id,
+    session_id,
+    title,
+    amount_minor,
+    currency_code,
+    payer_participant_id,
+    date_millis,
+    note,
+    created_at,
+    updated_at,
+    deleted_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL);
+
+deleteExpense:
+DELETE FROM expenses
+WHERE id = ?;
+
+deleteExpensesBySession:
+DELETE FROM expenses
+WHERE session_id = ?;
+
+deleteExpenseParticipants:
+DELETE FROM expense_participants
+WHERE expense_id = ?;
+
+deleteExpenseParticipantsBySession:
+DELETE FROM expense_participants
+WHERE expense_id IN (
+    SELECT id
+    FROM expenses
+    WHERE session_id = ?
+);
+
+insertExpenseParticipant:
+INSERT INTO expense_participants(
+    expense_id,
+    participant_id,
+    share_weight
+)
+VALUES (?, ?, ?);
+
+selectExpenseParticipants:
+SELECT *
+FROM expense_participants
+WHERE expense_id = ?
+ORDER BY participant_id ASC;
+
+selectLatestSettlement:
+SELECT *
+FROM settlements
+WHERE session_id = ?
+ORDER BY generated_at DESC
+LIMIT 1;
+
+selectSettlementById:
+SELECT *
+FROM settlements
+WHERE id = ?;
+
+upsertSettlement:
+INSERT OR REPLACE INTO settlements(
+    id,
+    session_id,
+    generated_at,
+    source_revision
+)
+VALUES (?, ?, ?, ?);
+
+deleteSettlementsBySession:
+DELETE FROM settlements
+WHERE session_id = ?;
+
+deleteSettlementTransfersBySession:
+DELETE FROM settlement_transfers
+WHERE settlement_id IN (
+    SELECT id
+    FROM settlements
+    WHERE session_id = ?
+);
+
+deleteSettlementTransfers:
+DELETE FROM settlement_transfers
+WHERE settlement_id = ?;
+
+insertSettlementTransfer:
+INSERT INTO settlement_transfers(
+    id,
+    settlement_id,
+    from_participant_id,
+    to_participant_id,
+    amount_minor,
+    currency_code
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectSettlementTransfers:
+SELECT *
+FROM settlement_transfers
+WHERE settlement_id = ?
+ORDER BY id ASC;
+
+selectSettings:
+SELECT *
+FROM settings
+WHERE id = 1;
+
+upsertSettings:
+INSERT OR REPLACE INTO settings(
+    id,
+    default_currency_code,
+    theme_mode
+)
+VALUES (1, ?, ?);

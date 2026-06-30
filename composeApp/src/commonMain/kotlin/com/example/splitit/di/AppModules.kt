@@ -1,7 +1,9 @@
 package com.example.splitit.di
 
-val appModules = listOf(
-    dataModule,
+import com.example.splitit.data.database.DatabaseDriverFactory
+
+fun appModules(databaseDriverFactory: DatabaseDriverFactory) = listOf(
+    dataModule(databaseDriverFactory),
     domainModule,
     presentationModule,
 )
