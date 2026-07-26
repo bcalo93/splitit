@@ -45,6 +45,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.dep.inj)
+            implementation(libs.koin.compose.viewmodel)
             implementation(libs.sqldelight.runtime)
         }
         iosMain.dependencies {
