@@ -200,7 +200,7 @@ selectLatestSettlement:
 SELECT *
 FROM settlements
 WHERE session_id = ?
-ORDER BY generated_at DESC
+ORDER BY generated_at DESC, id DESC
 LIMIT 1;
 
 selectSettlementById:

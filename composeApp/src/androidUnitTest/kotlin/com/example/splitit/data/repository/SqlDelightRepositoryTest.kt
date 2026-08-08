@@ -165,17 +165,34 @@ class SqlDelightRepositoryTest {
                 ExpenseParticipantShare(ExpenseId("expense"), bob.id),
             ),
         )
+        val savedSettlement = Settlement(
+            id = SettlementId("settlement"),
+            sessionId = session.id,
+            generatedAtMillis = 10,
+            sourceRevision = 1,
+            transfers = listOf(
+                SettlementTransfer(
+                    id = TransferId("transfer"),
+                    settlementId = SettlementId("settlement"),
+                    fromParticipantId = bob.id,
+                    toParticipantId = alice.id,
+                    amount = Money(500, "USD"),
+                ),
+            ),
+        )
 
         repositories.sessionRepository.saveSession(session)
         repositories.participantRepository.saveParticipant(alice)
         repositories.participantRepository.saveParticipant(bob)
         repositories.expenseRepository.saveExpense(savedExpense)
+        repositories.settlementRepository.saveSettlement(savedSettlement)
 
         repositories.sessionRepository.deleteSession(session.id)
 
         assertNull(repositories.sessionRepository.getSession(session.id))
         assertEquals(emptyList(), repositories.participantRepository.getParticipants(session.id))
         assertEquals(emptyList(), repositories.expenseRepository.getExpenses(session.id))
+        assertNull(repositories.settlementRepository.getLatestSettlement(session.id))
     }
 
     private fun testRepositories(): TestRepositories {

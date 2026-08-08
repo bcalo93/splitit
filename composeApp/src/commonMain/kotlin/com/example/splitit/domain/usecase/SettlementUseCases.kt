@@ -7,6 +7,7 @@ import com.example.splitit.domain.repository.ExpenseRepository
 import com.example.splitit.domain.repository.ParticipantRepository
 import com.example.splitit.domain.repository.SettlementRepository
 import com.example.splitit.domain.service.BalanceCalculator
+import com.example.splitit.domain.service.SourceRevisionCalculator
 import com.example.splitit.domain.value.Clock
 import com.example.splitit.domain.value.IdGenerator
 import com.example.splitit.domain.value.SessionId
@@ -44,19 +45,11 @@ class GenerateSettlementUseCase(
             id = settlementId,
             sessionId = sessionId,
             generatedAtMillis = clock.nowMillis(),
-            sourceRevision = sourceRevision(participants, expenses),
+            sourceRevision = SourceRevisionCalculator.calculate(participants, expenses),
             transfers = optimizerAdapter.optimize(settlementId, debts),
         )
 
         settlementRepository.saveSettlement(settlement)
         return settlement
-    }
-
-    private fun sourceRevision(
-        participants: List<com.example.splitit.domain.model.Participant>,
-        expenses: List<com.example.splitit.domain.model.Expense>,
-    ): Long {
-        return (participants.map { it.updatedAtMillis } + expenses.map { it.updatedAtMillis })
-            .maxOrNull() ?: 0L
     }
 }

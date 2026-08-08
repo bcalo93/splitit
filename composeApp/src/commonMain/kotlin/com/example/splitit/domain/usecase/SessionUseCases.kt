@@ -2,6 +2,7 @@ package com.example.splitit.domain.usecase
 
 import com.example.splitit.domain.model.ExpenseSession
 import com.example.splitit.domain.repository.SessionRepository
+import com.example.splitit.domain.service.SourceRevisionCalculator
 import com.example.splitit.domain.value.Clock
 import com.example.splitit.domain.value.IdGenerator
 import com.example.splitit.domain.value.SessionId
@@ -78,12 +79,15 @@ class ObserveSessionDetailsUseCase(
         val session = requireNotNull(sessionRepository.getSession(sessionId)) {
             "Session ${sessionId.value} was not found."
         }
+        val participants = participantRepository.getParticipants(sessionId)
+        val expenses = expenseRepository.getExpenses(sessionId)
+        val latestSettlement = settlementRepository.getLatestSettlement(sessionId)
 
         return SessionDetails(
             session = session,
-            participants = participantRepository.getParticipants(sessionId),
-            expenses = expenseRepository.getExpenses(sessionId),
-            latestSettlement = settlementRepository.getLatestSettlement(sessionId),
+            participants = participants,
+            expenses = expenses,
+            latestSettlement = latestSettlement,
         )
     }
 }
@@ -93,4 +97,10 @@ data class SessionDetails(
     val participants: List<com.example.splitit.domain.model.Participant>,
     val expenses: List<com.example.splitit.domain.model.Expense>,
     val latestSettlement: com.example.splitit.domain.model.Settlement?,
-)
+) {
+    val currentSourceRevision: Long
+        get() = SourceRevisionCalculator.calculate(participants, expenses)
+
+    val isSettlementStale: Boolean
+        get() = latestSettlement != null && latestSettlement.sourceRevision != currentSourceRevision
+}
