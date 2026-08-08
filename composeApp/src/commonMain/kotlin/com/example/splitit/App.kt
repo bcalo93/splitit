@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -48,9 +50,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.splitit.domain.model.Balance
 import com.example.splitit.domain.model.Expense
 import com.example.splitit.domain.model.ExpenseSession
 import com.example.splitit.domain.model.Participant
+import com.example.splitit.domain.model.SettlementTransfer
 import com.example.splitit.domain.value.ExpenseId
 import com.example.splitit.domain.value.ParticipantId
 import com.example.splitit.domain.value.SessionId
@@ -67,6 +71,8 @@ import com.example.splitit.presentation.sessions.SessionFormUiState
 import com.example.splitit.presentation.sessions.SessionFormViewModel
 import com.example.splitit.presentation.sessions.SessionListUiState
 import com.example.splitit.presentation.sessions.SessionListViewModel
+import com.example.splitit.presentation.settlement.SettlementUiState
+import com.example.splitit.presentation.settlement.SettlementViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -75,6 +81,7 @@ private const val ROUTE_DETAILS = "details"
 private const val ROUTE_FORM = "form"
 private const val ROUTE_PARTICIPANTS = "participants"
 private const val ROUTE_EXPENSES = "expenses"
+private const val ROUTE_SETTLEMENT = "settlement"
 
 @Composable
 fun App() {
@@ -109,6 +116,10 @@ fun App() {
                                 routeSessionId = sessionId
                                 route = ROUTE_EXPENSES
                             },
+                            onSettlement = {
+                                routeSessionId = sessionId
+                                route = ROUTE_SETTLEMENT
+                            },
                         )
                     }
                 }
@@ -131,6 +142,18 @@ fun App() {
                         route = ROUTE_SESSIONS
                     } else {
                         ParticipantsRoute(
+                            sessionId = SessionId(sessionId),
+                            onBack = { route = ROUTE_DETAILS },
+                        )
+                    }
+                }
+
+                ROUTE_SETTLEMENT -> {
+                    val sessionId = routeSessionId
+                    if (sessionId == null) {
+                        route = ROUTE_SESSIONS
+                    } else {
+                        SettlementRoute(
                             sessionId = SessionId(sessionId),
                             onBack = { route = ROUTE_DETAILS },
                         )
@@ -231,6 +254,7 @@ private fun SessionDetailsRoute(
     onEdit: () -> Unit,
     onParticipants: () -> Unit,
     onExpenses: () -> Unit,
+    onSettlement: () -> Unit,
     viewModel: SessionDetailsViewModel = koinViewModel(
         key = "session-details-${sessionId.value}",
         parameters = { parametersOf(sessionId) },
@@ -247,6 +271,7 @@ private fun SessionDetailsRoute(
         onEdit = onEdit,
         onParticipants = onParticipants,
         onExpenses = onExpenses,
+        onSettlement = onSettlement,
         onRetry = viewModel::refresh,
     )
 }
@@ -304,6 +329,28 @@ private fun ExpensesRoute(
         onEdit = viewModel::startEditing,
         onCancelEdit = viewModel::cancelEditing,
         onDelete = viewModel::delete,
+        onRetry = viewModel::refresh,
+    )
+}
+
+@Composable
+private fun SettlementRoute(
+    sessionId: SessionId,
+    onBack: () -> Unit,
+    viewModel: SettlementViewModel = koinViewModel(
+        key = "settlement-${sessionId.value}",
+        parameters = { parametersOf(sessionId) },
+    ),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(sessionId) {
+        viewModel.refresh()
+    }
+
+    SettlementScreen(
+        state = state,
+        onBack = onBack,
+        onGenerate = viewModel::generate,
         onRetry = viewModel::refresh,
     )
 }
@@ -529,6 +576,7 @@ private fun SessionDetailsScreen(
     onEdit: () -> Unit,
     onParticipants: () -> Unit,
     onExpenses: () -> Unit,
+    onSettlement: () -> Unit,
     onRetry: () -> Unit,
 ) {
     Scaffold(
@@ -595,9 +643,218 @@ private fun SessionDetailsScreen(
                         ) {
                             Text("Manage expenses")
                         }
+                        details.latestSettlement?.let {
+                            Text(
+                                text = if (details.isSettlementStale) {
+                                    "Settlement needs to be regenerated after source data changed."
+                                } else {
+                                    "Settlement is up to date."
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (details.isSettlementStale) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            )
+                        }
+                        Button(onClick = onSettlement) {
+                            Text(
+                                if (details.latestSettlement == null) {
+                                    "Generate settlement"
+                                } else {
+                                    "View settlement"
+                                },
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettlementScreen(
+    state: SettlementUiState,
+    onBack: () -> Unit,
+    onGenerate: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    Scaffold(
+        modifier = Modifier.safeContentPadding(),
+        topBar = {
+            TopAppBar(
+                title = { Text("Settlement") },
+                navigationIcon = {
+                    TextButton(onClick = onBack) {
+                        Text("Back")
+                    }
+                },
+            )
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(20.dp),
+        ) {
+            when {
+                state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                state.errorMessage != null && state.participants.isEmpty() -> ErrorState(
+                    message = state.errorMessage,
+                    onRetry = onRetry,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+                else -> SettlementContent(
+                    state = state,
+                    onGenerate = onGenerate,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettlementContent(
+    state: SettlementUiState,
+    onGenerate: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(
+            text = if (state.settlement == null) {
+                "Turn the current balances into a short list of payments."
+            } else {
+                "Payments needed to settle this session"
+            },
+            style = MaterialTheme.typography.bodyLarge,
+        )
+
+        if (state.isSettlementStale) {
+            Text(
+                text = "The saved settlement is out of date. Regenerate it to include recent changes.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        state.errorMessage?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        Button(
+            enabled = state.canGenerateSettlement && !state.isGenerating,
+            onClick = onGenerate,
+        ) {
+            Text(
+                when {
+                    state.isGenerating -> "Generating"
+                    state.settlement == null -> "Generate settlement"
+                    else -> "Regenerate settlement"
+                },
+            )
+        }
+
+        if (!state.canGenerateSettlement) {
+            Text(
+                text = "Add at least two participants and one expense before generating a settlement.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        if (state.balances.isNotEmpty()) {
+            Text(
+                text = "Balances",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            state.balances.forEach { balance ->
+                BalanceRow(balance = balance, participants = state.participants)
+            }
+        }
+
+        state.settlement?.let { settlement ->
+            Text(
+                text = "Transfers",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (settlement.transfers.isEmpty()) {
+                Text(
+                    text = "Everyone is settled up.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                settlement.transfers.forEach { transfer ->
+                    SettlementTransferRow(
+                        transfer = transfer,
+                        participants = state.participants,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BalanceRow(
+    balance: Balance,
+    participants: List<Participant>,
+) {
+    val name = participantName(participants, balance.participantId)
+    val minorUnits = balance.amount.minorUnits
+    val amount = formatMinorUnits(if (minorUnits < 0) -minorUnits else minorUnits)
+    val message = when {
+        minorUnits > 0 -> "$name receives ${balance.amount.currencyCode} $amount"
+        minorUnits < 0 -> "$name owes ${balance.amount.currencyCode} $amount"
+        else -> "$name is settled"
+    }
+
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+    )
+}
+
+@Composable
+private fun SettlementTransferRow(
+    transfer: SettlementTransfer,
+    participants: List<Participant>,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = "${participantName(participants, transfer.fromParticipantId)} pays " +
+                    participantName(participants, transfer.toParticipantId),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "${transfer.amount.currencyCode} ${formatMinorUnits(transfer.amount.minorUnits)}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

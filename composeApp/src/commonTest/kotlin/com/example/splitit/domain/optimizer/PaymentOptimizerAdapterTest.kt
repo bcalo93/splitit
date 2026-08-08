@@ -55,6 +55,19 @@ class PaymentOptimizerAdapterTest {
         }
     }
 
+    @Test
+    fun rejectsDebtsWithDifferentCurrencies() {
+        assertFailsWith<IllegalArgumentException> {
+            adapter.optimize(
+                settlementId = SettlementId("settlement"),
+                debts = listOf(
+                    Debt(ParticipantId("alice"), ParticipantId("bob"), Money(100, "USD")),
+                    Debt(ParticipantId("bob"), ParticipantId("alice"), Money(40, "EUR")),
+                ),
+            )
+        }
+    }
+
     private object TestIdGenerator : IdGenerator {
         override fun newSessionId(): SessionId = SessionId("session")
         override fun newParticipantId(): ParticipantId = ParticipantId("participant")
