@@ -849,7 +849,7 @@ private fun SessionDetailsScreen(
                     onRetry = onRetry,
                     modifier = Modifier.align(Alignment.Center),
                 )
-                state.details != null -> state.details?.let { details ->
+                state.details != null -> state.details.let { details ->
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 24.dp),

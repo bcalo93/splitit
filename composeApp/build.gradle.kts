@@ -1,21 +1,32 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    id("com.android.kotlin.multiplatform.library")
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.sqldelight)
 }
 
 kotlin {
-    androidTarget {
+    android {
+        namespace = "com.splitit.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        packaging {
+            resources {
+                excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            }
+            jniLibs {
+                keepDebugSymbols += "**/libandroidx.graphics.path.so"
+            }
+        }
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        withHostTest {}
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -25,15 +36,18 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.compose.ui.tooling)
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.sqldelight.android.driver)
         }
-        androidUnitTest.dependencies {
-            implementation(libs.sqldelight.sqlite.driver)
+        named("androidHostTest") {
+            dependencies {
+                implementation(libs.sqldelight.sqlite.driver)
+            }
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -44,7 +58,7 @@ kotlin {
             implementation(libs.compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(libs.dep.inj)
+            api(libs.dep.inj)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.sqldelight.runtime)
         }
@@ -64,40 +78,6 @@ sqldelight {
             packageName.set("com.splitit.data.database")
         }
     }
-}
-
-android {
-    namespace = "com.splitit"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        applicationId = "com.splitit"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-        jniLibs {
-            keepDebugSymbols += "**/libandroidx.graphics.path.so"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
-dependencies {
-    debugImplementation(libs.compose.ui.tooling)
 }
 
 tasks.withType<Test>().configureEach {
