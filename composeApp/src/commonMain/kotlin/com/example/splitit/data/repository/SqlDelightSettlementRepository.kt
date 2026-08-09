@@ -54,6 +54,9 @@ class SqlDelightSettlementRepository(
     }
 
     override suspend fun deleteSettlements(sessionId: SessionId) {
-        queries.deleteSettlementsBySession(sessionId.value)
+        database.transaction {
+            queries.deleteSettlementTransfersBySession(sessionId.value)
+            queries.deleteSettlementsBySession(sessionId.value)
+        }
     }
 }
