@@ -94,6 +94,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    lint {
+        // Suppressed while dependencies remain pinned; re-enable when upgrading AGP/Gradle/libraries.
+        disable += setOf(
+            "AndroidGradlePluginVersion",
+            "GradleDependency",
+            "NewerVersionAvailable"
+        )
+    }
 }
 
 dependencies {
