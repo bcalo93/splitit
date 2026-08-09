@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +28,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -231,6 +232,7 @@ private fun SessionListRoute(
         onOpen = onOpen,
         onEdit = onEdit,
         onSettings = onSettings,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
         onDelete = viewModel::delete,
         onRetry = viewModel::refresh,
     )
@@ -356,6 +358,7 @@ private fun ExpensesRoute(
     ExpensesScreen(
         state = state,
         onBack = onBack,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
         onTitleChange = viewModel::onTitleChange,
         onAmountChange = viewModel::onAmountChange,
         onNoteChange = viewModel::onNoteChange,
@@ -399,6 +402,7 @@ private fun SessionListScreen(
     onOpen: (SessionId) -> Unit,
     onEdit: (SessionId) -> Unit,
     onSettings: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
     onDelete: (SessionId) -> Unit,
     onRetry: () -> Unit,
 ) {
@@ -431,26 +435,60 @@ private fun SessionListScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
         ) {
             when {
-                state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                state.errorMessage != null -> ErrorState(
+                state.isLoading && state.sessions.isEmpty() -> LoadingState(
+                    modifier = Modifier.align(Alignment.Center),
+                )
+                state.errorMessage != null && state.sessions.isEmpty() -> ErrorState(
                     message = state.errorMessage,
                     onRetry = onRetry,
                     modifier = Modifier.align(Alignment.Center),
                 )
-                state.sessions.isEmpty() -> EmptySessionsState(
-                    onCreate = onCreate,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-                else -> LazyColumn(
+                else -> Column(
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.sessions, key = { it.id.value }) { session ->
-                        SessionRow(
-                            session = session,
-                            onOpen = { onOpen(session.id) },
-                            onEdit = { onEdit(session.id) },
-                            onDelete = { onDelete(session.id) },
+                    if (state.sessions.isNotEmpty() || state.searchQuery.isNotBlank()) {
+                        SearchField(
+                            query = state.searchQuery,
+                            label = "Search sessions",
+                            onQueryChange = onSearchQueryChange,
                         )
+                    }
+                    if (state.isLoading) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                    state.errorMessage?.let { message ->
+                        InlineErrorState(message = message, onRetry = onRetry)
+                    }
+                    when {
+                        state.sessions.isEmpty() -> EmptySessionsState(
+                            onCreate = onCreate,
+                            modifier = Modifier.weight(1f),
+                        )
+                        state.visibleSessions.isEmpty() -> NoSearchResultsState(
+                            query = state.searchQuery,
+                            entityName = "sessions",
+                            onClear = { onSearchQueryChange("") },
+                            modifier = Modifier.weight(1f),
+                        )
+                        else -> LazyColumn(
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            items(
+                                items = state.visibleSessions,
+                                key = { it.id.value },
+                                contentType = { "session" },
+                            ) { session ->
+                                SessionRow(
+                                    session = session,
+                                    onOpen = { onOpen(session.id) },
+                                    onEdit = { onEdit(session.id) },
+                                    onDelete = { onDelete(session.id) },
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -803,65 +841,93 @@ private fun SessionDetailsScreen(
                 .padding(20.dp),
         ) {
             when {
-                state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                state.errorMessage != null -> ErrorState(
+                state.isLoading && state.details == null -> LoadingState(
+                    modifier = Modifier.align(Alignment.Center),
+                )
+                state.errorMessage != null && state.details == null -> ErrorState(
                     message = state.errorMessage,
                     onRetry = onRetry,
                     modifier = Modifier.align(Alignment.Center),
                 )
-                state.details != null -> {
-                    val details = state.details
-                    Column(
+                state.details != null -> state.details?.let { details ->
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 24.dp),
                         verticalArrangement = Arrangement.spacedBy(18.dp),
                     ) {
-                        Text(
-                            text = details.session.title,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        details.session.description?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                        if (state.isLoading) {
+                            item {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            }
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            SummaryBlock(label = "Participants", value = details.participants.size.toString())
-                            SummaryBlock(label = "Expenses", value = details.expenses.size.toString())
+                        state.errorMessage?.let { message ->
+                            item {
+                                InlineErrorState(message = message, onRetry = onRetry)
+                            }
                         }
-                        Button(onClick = onParticipants) {
-                            Text("Manage participants")
-                        }
-                        Button(
-                            enabled = details.participants.isNotEmpty(),
-                            onClick = onExpenses,
-                        ) {
-                            Text("Manage expenses")
-                        }
-                        details.latestSettlement?.let {
-                            Text(
-                                text = if (details.isSettlementStale) {
-                                    "Settlement needs to be regenerated after source data changed."
-                                } else {
-                                    "Settlement is up to date."
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (details.isSettlementStale) {
-                                    MaterialTheme.colorScheme.error
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                            )
-                        }
-                        Button(onClick = onSettlement) {
-                            Text(
-                                if (details.latestSettlement == null) {
-                                    "Generate settlement"
-                                } else {
-                                    "View settlement"
-                                },
-                            )
+                        item {
+                            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                                Text(
+                                    text = details.session.title,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                details.session.description?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    SummaryBlock(
+                                        modifier = Modifier.weight(1f),
+                                        label = "Participants",
+                                        value = details.participants.size.toString(),
+                                    )
+                                    SummaryBlock(
+                                        modifier = Modifier.weight(1f),
+                                        label = "Expenses",
+                                        value = details.expenses.size.toString(),
+                                    )
+                                }
+                                Button(onClick = onParticipants) {
+                                    Text("Manage participants")
+                                }
+                                Button(
+                                    enabled = details.participants.isNotEmpty(),
+                                    onClick = onExpenses,
+                                ) {
+                                    Text("Manage expenses")
+                                }
+                                details.latestSettlement?.let {
+                                    Text(
+                                        text = if (details.isSettlementStale) {
+                                            "Settlement needs to be regenerated after source data changed."
+                                        } else {
+                                            "Settlement is up to date."
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (details.isSettlementStale) {
+                                            MaterialTheme.colorScheme.error
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
+                                    )
+                                }
+                                Button(onClick = onSettlement) {
+                                    Text(
+                                        if (details.latestSettlement == null) {
+                                            "Generate settlement"
+                                        } else {
+                                            "View settlement"
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -898,7 +964,9 @@ private fun SettlementScreen(
                 .padding(20.dp),
         ) {
             when {
-                state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                state.isLoading && state.participants.isEmpty() -> LoadingState(
+                    modifier = Modifier.align(Alignment.Center),
+                )
                 state.errorMessage != null && state.participants.isEmpty() -> ErrorState(
                     message = state.errorMessage,
                     onRetry = onRetry,
@@ -907,6 +975,7 @@ private fun SettlementScreen(
                 else -> SettlementContent(
                     state = state,
                     onGenerate = onGenerate,
+                    onRetry = onRetry,
                 )
             }
         }
@@ -917,87 +986,118 @@ private fun SettlementScreen(
 private fun SettlementContent(
     state: SettlementUiState,
     onGenerate: () -> Unit,
+    onRetry: () -> Unit,
 ) {
-    Column(
+    val participantNames = remember(state.participants) {
+        state.participants.associate { participant -> participant.id to participant.name }
+    }
+
+    LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = if (state.settlement == null) {
-                "Turn the current balances into a short list of payments."
-            } else {
-                "Payments needed to settle this session"
-            },
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        item {
+            Text(
+                text = if (state.settlement == null) {
+                    "Turn the current balances into a short list of payments."
+                } else {
+                    "Payments needed to settle this session"
+                },
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
+        if (state.isLoading) {
+            item {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+        }
 
         if (state.isSettlementStale) {
-            Text(
-                text = "The saved settlement is out of date. Regenerate it to include recent changes.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
+            item {
+                Text(
+                    text = "The saved settlement is out of date. Regenerate it to include recent changes.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
 
         state.errorMessage?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
+            item {
+                InlineErrorState(message = it, onRetry = onRetry)
+            }
         }
 
-        Button(
-            enabled = state.canGenerateSettlement && !state.isGenerating,
-            onClick = onGenerate,
-        ) {
-            Text(
-                when {
-                    state.isGenerating -> "Generating"
-                    state.settlement == null -> "Generate settlement"
-                    else -> "Regenerate settlement"
-                },
-            )
+        item {
+            Button(
+                enabled = state.canGenerateSettlement && !state.isGenerating,
+                onClick = onGenerate,
+            ) {
+                Text(
+                    when {
+                        state.isGenerating -> "Generating"
+                        state.settlement == null -> "Generate settlement"
+                        else -> "Regenerate settlement"
+                    },
+                )
+            }
         }
 
         if (!state.canGenerateSettlement) {
-            Text(
-                text = "Add at least two participants and one expense before generating a settlement.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item {
+                Text(
+                    text = "Add at least two participants and one expense before generating a settlement.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
         if (state.balances.isNotEmpty()) {
-            Text(
-                text = "Balances",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            state.balances.forEach { balance ->
-                BalanceRow(balance = balance, participants = state.participants)
+            item {
+                Text(
+                    text = "Balances",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            items(
+                items = state.balances,
+                key = { it.participantId.value },
+                contentType = { "balance" },
+            ) { balance ->
+                BalanceRow(balance = balance, participantNames = participantNames)
             }
         }
 
         state.settlement?.let { settlement ->
-            Text(
-                text = "Transfers",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            if (settlement.transfers.isEmpty()) {
+            item {
                 Text(
-                    text = "Everyone is settled up.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = "Transfers",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
+            }
+            if (settlement.transfers.isEmpty()) {
+                item {
+                    Text(
+                        text = "Everyone is settled up.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             } else {
-                settlement.transfers.forEach { transfer ->
+                items(
+                    items = settlement.transfers,
+                    key = { it.id.value },
+                    contentType = { "transfer" },
+                ) { transfer ->
                     SettlementTransferRow(
                         transfer = transfer,
-                        participants = state.participants,
+                        participantNames = participantNames,
                     )
                 }
             }
@@ -1008,9 +1108,9 @@ private fun SettlementContent(
 @Composable
 private fun BalanceRow(
     balance: Balance,
-    participants: List<Participant>,
+    participantNames: Map<ParticipantId, String>,
 ) {
-    val name = participantName(participants, balance.participantId)
+    val name = participantNames[balance.participantId] ?: "Unknown"
     val minorUnits = balance.amount.minorUnits
     val amount = formatMinorUnits(if (minorUnits < 0) -minorUnits else minorUnits)
     val message = when {
@@ -1028,7 +1128,7 @@ private fun BalanceRow(
 @Composable
 private fun SettlementTransferRow(
     transfer: SettlementTransfer,
-    participants: List<Participant>,
+    participantNames: Map<ParticipantId, String>,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1041,8 +1141,8 @@ private fun SettlementTransferRow(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
-                text = "${participantName(participants, transfer.fromParticipantId)} pays " +
-                    participantName(participants, transfer.toParticipantId),
+                text = "${participantNames[transfer.fromParticipantId] ?: "Unknown"} pays " +
+                    (participantNames[transfer.toParticipantId] ?: "Unknown"),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -1060,6 +1160,7 @@ private fun SettlementTransferRow(
 private fun ExpensesScreen(
     state: ExpensesUiState,
     onBack: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
     onNoteChange: (String) -> Unit,
@@ -1071,6 +1172,10 @@ private fun ExpensesScreen(
     onDelete: (ExpenseId) -> Unit,
     onRetry: () -> Unit,
 ) {
+    val participantNames = remember(state.participants) {
+        state.participants.associate { participant -> participant.id to participant.name }
+    }
+
     Scaffold(
         modifier = Modifier.safeContentPadding(),
         topBar = {
@@ -1103,16 +1208,29 @@ private fun ExpensesScreen(
             )
 
             if (state.errorMessage != null && state.expenses.isNotEmpty()) {
-                Text(
-                    text = state.errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
+                InlineErrorState(message = state.errorMessage, onRetry = onRetry)
             }
 
-            Box(modifier = Modifier.fillMaxSize()) {
+            if (state.expenses.isNotEmpty() || state.searchQuery.isNotBlank()) {
+                SearchField(
+                    query = state.searchQuery,
+                    label = "Search expenses",
+                    onQueryChange = onSearchQueryChange,
+                )
+            }
+            if (state.isLoading && state.expenses.isNotEmpty()) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
                 when {
-                    state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    state.isLoading && state.expenses.isEmpty() -> LoadingState(
+                        modifier = Modifier.align(Alignment.Center),
+                    )
                     state.errorMessage != null && state.expenses.isEmpty() -> ErrorState(
                         message = state.errorMessage,
                         onRetry = onRetry,
@@ -1124,13 +1242,25 @@ private fun ExpensesScreen(
                     state.expenses.isEmpty() -> EmptyExpensesState(
                         modifier = Modifier.align(Alignment.Center),
                     )
+                    state.visibleExpenses.isEmpty() -> NoSearchResultsState(
+                        query = state.searchQuery,
+                        entityName = "expenses",
+                        onClear = { onSearchQueryChange("") },
+                        modifier = Modifier.align(Alignment.Center),
+                    )
                     else -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        items(state.expenses, key = { it.id.value }) { expense ->
+                        items(
+                            items = state.visibleExpenses,
+                            key = { it.id.value },
+                            contentType = { "expense" },
+                        ) { expense ->
                             ExpenseRow(
                                 expense = expense,
-                                participants = state.participants,
+                                participantNames = participantNames,
                                 onEdit = { onEdit(expense) },
                                 onDelete = { onDelete(expense.id) },
                             )
@@ -1289,14 +1419,14 @@ private fun ParticipantChoiceSection(
 @Composable
 private fun ExpenseRow(
     expense: Expense,
-    participants: List<Participant>,
+    participantNames: Map<ParticipantId, String>,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    val payerName = participantName(participants, expense.payerId)
+    val payerName = participantNames[expense.payerId] ?: "Unknown"
     val splitNames = expense.participantShares.joinToString(", ") { share ->
-        participantName(participants, share.participantId)
+        participantNames[share.participantId] ?: "Unknown"
     }
 
     Card(
@@ -1424,16 +1554,21 @@ private fun ParticipantsScreen(
             )
 
             if (state.errorMessage != null && state.participants.isNotEmpty()) {
-                Text(
-                    text = state.errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
+                InlineErrorState(message = state.errorMessage, onRetry = onRetry)
+            }
+            if (state.isLoading && state.participants.isNotEmpty()) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
 
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
                 when {
-                    state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    state.isLoading && state.participants.isEmpty() -> LoadingState(
+                        modifier = Modifier.align(Alignment.Center),
+                    )
                     state.errorMessage != null && state.participants.isEmpty() -> ErrorState(
                         message = state.errorMessage,
                         onRetry = onRetry,
@@ -1443,9 +1578,15 @@ private fun ParticipantsScreen(
                         modifier = Modifier.align(Alignment.Center),
                     )
                     else -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        items(state.participants, key = { it.id.value }) { participant ->
+                        items(
+                            items = state.participants,
+                            key = { it.id.value },
+                            contentType = { "participant" },
+                        ) { participant ->
                             ParticipantRow(
                                 participant = participant,
                                 onEdit = { onEdit(participant) },
@@ -1679,22 +1820,19 @@ private fun participantColor(color: String?): Color {
     }
 }
 
-private fun participantName(
-    participants: List<Participant>,
-    participantId: ParticipantId,
-): String {
-    return participants.firstOrNull { it.id == participantId }?.name ?: "Unknown"
-}
-
 @Composable
-private fun SummaryBlock(label: String, value: String) {
+private fun SummaryBlock(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+) {
     Surface(
+        modifier = modifier,
         color = MaterialTheme.colorScheme.secondaryContainer,
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(
             modifier = Modifier
-                .width(144.dp)
                 .padding(16.dp),
         ) {
             Text(
@@ -1708,6 +1846,93 @@ private fun SummaryBlock(label: String, value: String) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
+        }
+    }
+}
+
+@Composable
+private fun SearchField(
+    query: String,
+    label: String,
+    onQueryChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(label) },
+        singleLine = true,
+        trailingIcon = if (query.isNotEmpty()) {
+            {
+                TextButton(onClick = { onQueryChange("") }) {
+                    Text("Clear")
+                }
+            }
+        } else {
+            null
+        },
+    )
+}
+
+@Composable
+private fun LoadingState(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        CircularProgressIndicator()
+        Text(
+            text = "Loading...",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun InlineErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+        )
+        TextButton(onClick = onRetry) {
+            Text("Retry")
+        }
+    }
+}
+
+@Composable
+private fun NoSearchResultsState(
+    query: String,
+    entityName: String,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = "No $entityName match \"$query\".",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        OutlinedButton(onClick = onClear) {
+            Text("Clear search")
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.splitit.presentation.participants
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitit.domain.model.Participant
@@ -9,12 +10,15 @@ import com.example.splitit.domain.usecase.RemoveParticipantUseCase
 import com.example.splitit.domain.usecase.UpdateParticipantUseCase
 import com.example.splitit.domain.value.ParticipantId
 import com.example.splitit.domain.value.SessionId
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class ParticipantsUiState(
     val participants: List<Participant> = emptyList(),
     val isLoading: Boolean = true,
@@ -44,32 +48,36 @@ class ParticipantsViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(ParticipantsUiState())
     val state: StateFlow<ParticipantsUiState> = _state.asStateFlow()
+    private var refreshJob: Job? = null
 
     init {
         refresh()
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        if (refreshJob?.isActive == true) return
+
+        refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching { observeSessionDetails(sessionId).participants }
-                .onSuccess { participants ->
-                    _state.update {
-                        it.copy(
-                            participants = participants,
-                            isLoading = false,
-                            errorMessage = null,
-                        )
-                    }
+            try {
+                val participants = observeSessionDetails(sessionId).participants
+                _state.update {
+                    it.copy(
+                        participants = participants,
+                        isLoading = false,
+                        errorMessage = null,
+                    )
                 }
-                .onFailure { throwable ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = throwable.message ?: "Could not load participants.",
-                        )
-                    }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (throwable: Throwable) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = throwable.message ?: "Could not load participants.",
+                    )
                 }
+            }
         }
     }
 

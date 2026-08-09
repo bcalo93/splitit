@@ -1,5 +1,6 @@
 package com.example.splitit.presentation.expenses
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitit.domain.model.Expense
@@ -14,15 +15,20 @@ import com.example.splitit.domain.value.ExpenseId
 import com.example.splitit.domain.value.Money
 import com.example.splitit.domain.value.ParticipantId
 import com.example.splitit.domain.value.SessionId
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class ExpensesUiState(
     val participants: List<Participant> = emptyList(),
     val expenses: List<Expense> = emptyList(),
+    val visibleExpenses: List<Expense> = emptyList(),
+    val searchQuery: String = "",
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val defaultCurrencyCode: String = DefaultCurrencyCode,
@@ -51,44 +57,57 @@ class ExpensesViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(ExpensesUiState())
     val state: StateFlow<ExpensesUiState> = _state.asStateFlow()
+    private var refreshJob: Job? = null
 
     init {
         refresh()
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        if (refreshJob?.isActive == true) return
+
+        refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching {
-                observeSessionDetails(sessionId) to getSettings()
-            }
-                .onSuccess { (details, settings) ->
-                    val current = _state.value
+            try {
+                val (details, settings) = observeSessionDetails(sessionId) to getSettings()
+                _state.update {
+                    val current = it
                     val defaultPayer = current.payerId ?: details.participants.firstOrNull()?.id
                     val selected = current.selectedParticipantIds.ifEmpty {
                         defaultPayer?.let { setOf(it) } ?: emptySet()
                     }
 
-                    _state.update {
-                        it.copy(
-                            participants = details.participants,
-                            expenses = details.expenses,
-                            defaultCurrencyCode = settings.defaultCurrencyCode,
-                            payerId = defaultPayer,
-                            selectedParticipantIds = selected,
-                            isLoading = false,
-                            errorMessage = null,
-                        )
-                    }
+                    current.copy(
+                        participants = details.participants,
+                        expenses = details.expenses,
+                        visibleExpenses = filterExpenses(details.expenses, current.searchQuery),
+                        defaultCurrencyCode = settings.defaultCurrencyCode,
+                        payerId = defaultPayer,
+                        selectedParticipantIds = selected,
+                        isLoading = false,
+                        errorMessage = null,
+                    )
                 }
-                .onFailure { throwable ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = throwable.message ?: "Could not load expenses.",
-                        )
-                    }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (throwable: Throwable) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = throwable.message ?: "Could not load expenses.",
+                    )
                 }
+            }
+        }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _state.update {
+            it.copy(
+                searchQuery = query,
+                visibleExpenses = filterExpenses(it.expenses, query),
+                errorMessage = null,
+            )
         }
     }
 
@@ -242,6 +261,19 @@ class ExpensesViewModel(
                         it.copy(errorMessage = throwable.message ?: "Could not delete expense.")
                     }
                 }
+        }
+    }
+
+    private fun filterExpenses(
+        expenses: List<Expense>,
+        query: String,
+    ): List<Expense> {
+        val normalizedQuery = query.trim()
+        if (normalizedQuery.isEmpty()) return expenses
+
+        return expenses.filter { expense ->
+            expense.title.contains(normalizedQuery, ignoreCase = true) ||
+                expense.note?.contains(normalizedQuery, ignoreCase = true) == true
         }
     }
 

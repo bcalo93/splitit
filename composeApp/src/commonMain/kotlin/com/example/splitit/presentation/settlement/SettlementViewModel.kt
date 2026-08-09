@@ -1,5 +1,6 @@
 package com.example.splitit.presentation.settlement
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitit.domain.model.Balance
@@ -10,12 +11,14 @@ import com.example.splitit.domain.usecase.GenerateSettlementUseCase
 import com.example.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.example.splitit.domain.value.SessionId
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class SettlementUiState(
     val participants: List<Participant> = emptyList(),
     val balances: List<Balance> = emptyList(),
@@ -36,13 +39,16 @@ class SettlementViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettlementUiState())
     val state: StateFlow<SettlementUiState> = _state.asStateFlow()
+    private var refreshJob: Job? = null
 
     init {
         refresh()
     }
 
     fun refresh() {
-        viewModelScope.launch {
+        if (refreshJob?.isActive == true) return
+
+        refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 val snapshot = loadSnapshot()

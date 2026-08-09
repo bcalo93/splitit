@@ -1,5 +1,6 @@
 package com.example.splitit.presentation.sessions
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitit.domain.usecase.CreateSessionUseCase
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class SessionFormUiState(
     val title: String = "",
     val description: String = "",

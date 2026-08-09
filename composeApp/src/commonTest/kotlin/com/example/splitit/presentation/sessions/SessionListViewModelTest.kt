@@ -53,6 +53,31 @@ class SessionListViewModelTest {
         assertEquals(1, repository.deleteCalls)
     }
 
+    @Test
+    fun filtersSessionsByTitleAndDescription() = runViewModelTest {
+        val repository = InMemorySessionRepository(
+            listOf(
+                session(title = "Beach trip"),
+                session(
+                    id = TestIds.secondSession,
+                    title = "Monthly bills",
+                    description = "Shared home expenses",
+                ),
+            ),
+        )
+        val viewModel = viewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChange("BEACH")
+        assertEquals(listOf(TestIds.session), viewModel.state.value.visibleSessions.map { it.id })
+
+        viewModel.onSearchQueryChange("home")
+        assertEquals(listOf(TestIds.secondSession), viewModel.state.value.visibleSessions.map { it.id })
+
+        viewModel.onSearchQueryChange("missing")
+        assertTrue(viewModel.state.value.visibleSessions.isEmpty())
+    }
+
     private fun viewModel(repository: InMemorySessionRepository): SessionListViewModel {
         return SessionListViewModel(
             observeSessions = ObserveSessionsUseCase(repository),
