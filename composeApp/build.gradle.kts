@@ -107,3 +107,7 @@ android {
 dependencies {
     debugImplementation(compose.uiTooling)
 }
+
+tasks.withType<Test>().configureEach {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
