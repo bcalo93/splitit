@@ -61,17 +61,17 @@ kotlin {
 sqldelight {
     databases {
         create("SplitItDatabase") {
-            packageName.set("com.example.splitit.data.database")
+            packageName.set("com.splitit.data.database")
         }
     }
 }
 
 android {
-    namespace = "com.example.splitit"
+    namespace = "com.splitit"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.splitit"
+        applicationId = "com.splitit"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

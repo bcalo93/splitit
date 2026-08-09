@@ -12,7 +12,7 @@
 - Use the checked-in Gradle wrapper (`./gradlew`); it uses Gradle 8.14.3 and the project compiles Kotlin/Java for JVM 11.
 - Build the Android debug app with `./gradlew :composeApp:assembleDebug`.
 - Run the JVM-backed Android/common unit tests with `./gradlew :composeApp:testDebugUnitTest`.
-- Run one test class with `./gradlew :composeApp:testDebugUnitTest --tests 'com.example.splitit.domain.service.BalanceCalculatorTest'`; replace the class name as needed.
+- Run one test class with `./gradlew :composeApp:testDebugUnitTest --tests 'com.splitit.domain.service.BalanceCalculatorTest'`; replace the class name as needed.
 - Run Android lint with `./gradlew :composeApp:lint`; use `./gradlew :composeApp:check` for the full Gradle verification task.
 - Run the iOS app from `iosApp/iosApp.xcodeproj` in Xcode; the Kotlin framework is embedded through the generated Xcode/Gradle integration rather than a separate root app task.
 
