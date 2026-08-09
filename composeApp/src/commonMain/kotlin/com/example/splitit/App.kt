@@ -30,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,10 +56,10 @@ import com.example.splitit.domain.model.Expense
 import com.example.splitit.domain.model.ExpenseSession
 import com.example.splitit.domain.model.Participant
 import com.example.splitit.domain.model.SettlementTransfer
+import com.example.splitit.domain.repository.ThemeMode
 import com.example.splitit.domain.value.ExpenseId
 import com.example.splitit.domain.value.ParticipantId
 import com.example.splitit.domain.value.SessionId
-import com.example.splitit.presentation.expenses.DefaultCurrencyCode
 import com.example.splitit.presentation.expenses.ExpensesUiState
 import com.example.splitit.presentation.expenses.ExpensesViewModel
 import com.example.splitit.presentation.expenses.formatMinorUnits
@@ -73,6 +74,9 @@ import com.example.splitit.presentation.sessions.SessionListUiState
 import com.example.splitit.presentation.sessions.SessionListViewModel
 import com.example.splitit.presentation.settlement.SettlementUiState
 import com.example.splitit.presentation.settlement.SettlementViewModel
+import com.example.splitit.presentation.settings.SettingsUiState
+import com.example.splitit.presentation.settings.SettingsViewModel
+import com.example.splitit.ui.theme.SplitItTheme
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -82,10 +86,15 @@ private const val ROUTE_FORM = "form"
 private const val ROUTE_PARTICIPANTS = "participants"
 private const val ROUTE_EXPENSES = "expenses"
 private const val ROUTE_SETTLEMENT = "settlement"
+private const val ROUTE_SETTINGS = "settings"
 
 @Composable
-fun App() {
-    MaterialTheme {
+fun App(
+    settingsViewModel: SettingsViewModel = koinViewModel(),
+) {
+    val settingsState by settingsViewModel.state.collectAsStateWithLifecycle()
+
+    SplitItTheme(themeMode = settingsState.settings.themeMode) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
@@ -160,6 +169,13 @@ fun App() {
                     }
                 }
 
+                ROUTE_SETTINGS -> {
+                    SettingsRoute(
+                        onBack = { route = ROUTE_SESSIONS },
+                        viewModel = settingsViewModel,
+                    )
+                }
+
                 ROUTE_FORM -> {
                     SessionFormRoute(
                         sessionId = routeSessionId?.let(::SessionId),
@@ -188,6 +204,7 @@ fun App() {
                             routeFormKey += 1
                             route = ROUTE_FORM
                         },
+                        onSettings = { route = ROUTE_SETTINGS },
                     )
                 }
             }
@@ -200,6 +217,7 @@ private fun SessionListRoute(
     onCreate: () -> Unit,
     onOpen: (SessionId) -> Unit,
     onEdit: (SessionId) -> Unit,
+    onSettings: () -> Unit,
     viewModel: SessionListViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -212,7 +230,25 @@ private fun SessionListRoute(
         onCreate = onCreate,
         onOpen = onOpen,
         onEdit = onEdit,
+        onSettings = onSettings,
         onDelete = viewModel::delete,
+        onRetry = viewModel::refresh,
+    )
+}
+
+@Composable
+private fun SettingsRoute(
+    onBack: () -> Unit,
+    viewModel: SettingsViewModel,
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    SettingsScreen(
+        state = state,
+        onBack = onBack,
+        onCurrencyCodeChange = viewModel::onCurrencyCodeChange,
+        onThemeModeSelected = viewModel::onThemeModeSelected,
+        onSave = viewModel::save,
         onRetry = viewModel::refresh,
     )
 }
@@ -362,6 +398,7 @@ private fun SessionListScreen(
     onCreate: () -> Unit,
     onOpen: (SessionId) -> Unit,
     onEdit: (SessionId) -> Unit,
+    onSettings: () -> Unit,
     onDelete: (SessionId) -> Unit,
     onRetry: () -> Unit,
 ) {
@@ -374,6 +411,9 @@ private fun SessionListScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                 ),
                 actions = {
+                    TextButton(onClick = onSettings) {
+                        Text("Settings")
+                    }
                     Button(
                         modifier = Modifier.padding(end = 16.dp),
                         onClick = onCreate,
@@ -415,6 +455,162 @@ private fun SessionListScreen(
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsScreen(
+    state: SettingsUiState,
+    onBack: () -> Unit,
+    onCurrencyCodeChange: (String) -> Unit,
+    onThemeModeSelected: (ThemeMode) -> Unit,
+    onSave: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    Scaffold(
+        modifier = Modifier.safeContentPadding(),
+        topBar = {
+            TopAppBar(
+                title = { Text("Settings") },
+                navigationIcon = {
+                    TextButton(onClick = onBack) {
+                        Text("Back")
+                    }
+                },
+                actions = {
+                    Button(
+                        modifier = Modifier.padding(end = 16.dp),
+                        enabled = !state.isLoading && !state.isSaving,
+                        onClick = onSave,
+                    ) {
+                        Text(if (state.isSaving) "Saving" else "Save")
+                    }
+                },
+            )
+        },
+    ) { paddingValues ->
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ) {
+                Text(
+                    text = "Preferences are stored only on this device.",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                OutlinedTextField(
+                    value = state.draftSettings.defaultCurrencyCode,
+                    onValueChange = onCurrencyCodeChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isSaving,
+                    label = { Text("Default currency") },
+                    supportingText = {
+                        if (state.currencyError != null) {
+                            Text(state.currencyError)
+                        } else {
+                            Text("Use a 3-letter ISO code for new expenses, such as USD or EUR.")
+                        }
+                    },
+                    isError = state.currencyError != null,
+                    singleLine = true,
+                )
+                Text(
+                    text = "Theme",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                ThemeMode.entries.forEach { themeMode ->
+                    ThemeModeOption(
+                        themeMode = themeMode,
+                        selected = state.draftSettings.themeMode == themeMode,
+                        enabled = !state.isSaving,
+                        onClick = { onThemeModeSelected(themeMode) },
+                    )
+                }
+                state.errorMessage?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                if (state.saveCompleted) {
+                    Text(
+                        text = "Settings saved locally.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                if (state.errorMessage != null) {
+                    OutlinedButton(onClick = onRetry) {
+                        Text("Retry")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeModeOption(
+    themeMode: ThemeMode,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        RadioButton(
+            selected = selected,
+            enabled = enabled,
+            onClick = onClick,
+        )
+        Column {
+            Text(
+                text = themeModeLabel(themeMode),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = themeModeDescription(themeMode),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+private fun themeModeLabel(themeMode: ThemeMode): String {
+    return when (themeMode) {
+        ThemeMode.System -> "System default"
+        ThemeMode.Light -> "Light"
+        ThemeMode.Dark -> "Dark"
+    }
+}
+
+private fun themeModeDescription(themeMode: ThemeMode): String {
+    return when (themeMode) {
+        ThemeMode.System -> "Follow the device theme."
+        ThemeMode.Light -> "Always use the light theme."
+        ThemeMode.Dark -> "Always use the dark theme."
     }
 }
 
@@ -983,7 +1179,9 @@ private fun ExpenseForm(
                 value = state.amount,
                 onValueChange = onAmountChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Amount ($DefaultCurrencyCode)") },
+                label = {
+                    Text("Amount (${state.editingCurrencyCode ?: state.defaultCurrencyCode})")
+                },
                 singleLine = true,
                 isError = state.amountError != null,
                 supportingText = state.amountError?.let { message -> { Text(message) } },

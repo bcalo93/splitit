@@ -6,6 +6,7 @@ import com.example.splitit.domain.model.Expense
 import com.example.splitit.domain.model.Participant
 import com.example.splitit.domain.usecase.CreateExpenseUseCase
 import com.example.splitit.domain.usecase.DeleteExpenseUseCase
+import com.example.splitit.domain.usecase.GetSettingsUseCase
 import com.example.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.example.splitit.domain.usecase.UpdateExpenseUseCase
 import com.example.splitit.domain.value.Clock
@@ -24,12 +25,14 @@ data class ExpensesUiState(
     val expenses: List<Expense> = emptyList(),
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
+    val defaultCurrencyCode: String = DefaultCurrencyCode,
     val title: String = "",
     val amount: String = "",
     val payerId: ParticipantId? = null,
     val selectedParticipantIds: Set<ParticipantId> = emptySet(),
     val note: String = "",
     val editingExpenseId: ExpenseId? = null,
+    val editingCurrencyCode: String? = null,
     val titleError: String? = null,
     val amountError: String? = null,
     val payerError: String? = null,
@@ -44,6 +47,7 @@ class ExpensesViewModel(
     private val updateExpense: UpdateExpenseUseCase,
     private val deleteExpense: DeleteExpenseUseCase,
     private val clock: Clock,
+    private val getSettings: GetSettingsUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ExpensesUiState())
     val state: StateFlow<ExpensesUiState> = _state.asStateFlow()
@@ -55,8 +59,10 @@ class ExpensesViewModel(
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching { observeSessionDetails(sessionId) }
-                .onSuccess { details ->
+            runCatching {
+                observeSessionDetails(sessionId) to getSettings()
+            }
+                .onSuccess { (details, settings) ->
                     val current = _state.value
                     val defaultPayer = current.payerId ?: details.participants.firstOrNull()?.id
                     val selected = current.selectedParticipantIds.ifEmpty {
@@ -67,6 +73,7 @@ class ExpensesViewModel(
                         it.copy(
                             participants = details.participants,
                             expenses = details.expenses,
+                            defaultCurrencyCode = settings.defaultCurrencyCode,
                             payerId = defaultPayer,
                             selectedParticipantIds = selected,
                             isLoading = false,
@@ -133,6 +140,7 @@ class ExpensesViewModel(
                 selectedParticipantIds = expense.participantShares.map { share -> share.participantId }.toSet(),
                 note = expense.note.orEmpty(),
                 editingExpenseId = expense.id,
+                editingCurrencyCode = expense.amount.currencyCode,
                 titleError = null,
                 amountError = null,
                 payerError = null,
@@ -174,11 +182,18 @@ class ExpensesViewModel(
             _state.update { it.copy(isSaving = true, errorMessage = null) }
             val result = runCatching {
                 val editingId = current.editingExpenseId
+                val currencyCode = if (editingId == null) {
+                    getSettings().defaultCurrencyCode
+                } else {
+                    current.editingCurrencyCode
+                        ?: current.expenses.firstOrNull { it.id == editingId }?.amount?.currencyCode
+                        ?: current.defaultCurrencyCode
+                }
                 if (editingId == null) {
                     createExpense(
                         sessionId = sessionId,
                         title = current.title,
-                        amount = Money(parsedAmount, DefaultCurrencyCode),
+                        amount = Money(parsedAmount, currencyCode),
                         payerId = payerId,
                         participantIds = current.selectedParticipantIds.toList(),
                         dateMillis = clock.nowMillis(),
@@ -188,7 +203,7 @@ class ExpensesViewModel(
                     updateExpense(
                         expenseId = editingId,
                         title = current.title,
-                        amount = Money(parsedAmount, DefaultCurrencyCode),
+                        amount = Money(parsedAmount, currencyCode),
                         payerId = payerId,
                         participantIds = current.selectedParticipantIds.toList(),
                         dateMillis = current.expenses.first { it.id == editingId }.dateMillis,
@@ -239,6 +254,7 @@ class ExpensesViewModel(
             selectedParticipantIds = defaultPayer?.let { setOf(it) } ?: emptySet(),
             note = "",
             editingExpenseId = null,
+            editingCurrencyCode = null,
             titleError = null,
             amountError = null,
             payerError = null,
