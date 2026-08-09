@@ -1,7 +1,13 @@
 package com.splitit.domain.usecase
 
+import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.Participant
+import com.splitit.domain.model.Settlement
+import com.splitit.domain.repository.ExpenseRepository
+import com.splitit.domain.repository.ParticipantRepository
 import com.splitit.domain.repository.SessionRepository
+import com.splitit.domain.repository.SettlementRepository
 import com.splitit.domain.service.SourceRevisionCalculator
 import com.splitit.domain.value.Clock
 import com.splitit.domain.value.IdGenerator
@@ -71,9 +77,9 @@ class ObserveSessionsUseCase(
 
 class ObserveSessionDetailsUseCase(
     private val sessionRepository: SessionRepository,
-    private val participantRepository: com.splitit.domain.repository.ParticipantRepository,
-    private val expenseRepository: com.splitit.domain.repository.ExpenseRepository,
-    private val settlementRepository: com.splitit.domain.repository.SettlementRepository,
+    private val participantRepository: ParticipantRepository,
+    private val expenseRepository: ExpenseRepository,
+    private val settlementRepository: SettlementRepository,
 ) {
     suspend operator fun invoke(sessionId: SessionId): SessionDetails {
         val session = requireNotNull(sessionRepository.getSession(sessionId)) {
@@ -94,9 +100,9 @@ class ObserveSessionDetailsUseCase(
 
 data class SessionDetails(
     val session: ExpenseSession,
-    val participants: List<com.splitit.domain.model.Participant>,
-    val expenses: List<com.splitit.domain.model.Expense>,
-    val latestSettlement: com.splitit.domain.model.Settlement?,
+    val participants: List<Participant>,
+    val expenses: List<Expense>,
+    val latestSettlement: Settlement?,
 ) {
     val currentSourceRevision: Long
         get() = SourceRevisionCalculator.calculate(participants, expenses)
