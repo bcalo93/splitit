@@ -96,6 +96,6 @@ fun Settlement_transfers.toDomain(): SettlementTransfer {
 fun Settings.toDomain(): AppSettings {
     return AppSettings(
         defaultCurrencyCode = default_currency_code,
-        themeMode = ThemeMode.valueOf(theme_mode),
+        themeMode = ThemeMode.entries.firstOrNull { it.name == theme_mode } ?: ThemeMode.System,
     )
 }
