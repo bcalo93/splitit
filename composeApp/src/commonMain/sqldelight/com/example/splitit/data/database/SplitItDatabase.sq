@@ -79,8 +79,8 @@ SELECT *
 FROM sessions
 WHERE id = ? AND deleted_at IS NULL;
 
-upsertSession:
-INSERT OR REPLACE INTO sessions(
+insertSession:
+INSERT INTO sessions(
     id,
     title,
     description,
@@ -90,6 +90,15 @@ INSERT OR REPLACE INTO sessions(
     deleted_at
 )
 VALUES (?, ?, ?, ?, ?, ?, NULL);
+
+updateSession:
+UPDATE sessions
+SET title = ?,
+    description = ?,
+    updated_at = ?,
+    status = ?,
+    deleted_at = NULL
+WHERE id = ?;
 
 deleteSession:
 DELETE FROM sessions

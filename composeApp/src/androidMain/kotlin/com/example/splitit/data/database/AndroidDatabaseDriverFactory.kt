@@ -8,11 +8,13 @@ class AndroidDatabaseDriverFactory(
     private val context: Context,
 ) : DatabaseDriverFactory {
     override fun createDriver(): SqlDriver {
-        return AndroidSqliteDriver(
+        val driver = AndroidSqliteDriver(
             schema = SplitItDatabase.Schema,
             context = context,
             name = DATABASE_NAME,
         )
+        driver.execute(null, "PRAGMA foreign_keys = ON", 0)
+        return driver
     }
 
     private companion object {

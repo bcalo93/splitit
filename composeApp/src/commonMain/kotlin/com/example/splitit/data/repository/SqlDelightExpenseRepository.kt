@@ -59,6 +59,9 @@ class SqlDelightExpenseRepository(
     }
 
     override suspend fun deleteExpense(id: ExpenseId) {
-        queries.deleteExpense(id.value)
+        database.transaction {
+            queries.deleteExpenseParticipants(id.value)
+            queries.deleteExpense(id.value)
+        }
     }
 }

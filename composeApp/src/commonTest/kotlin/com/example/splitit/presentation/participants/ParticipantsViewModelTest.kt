@@ -1,0 +1,101 @@
+@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+
+package com.example.splitit.presentation.participants
+
+import com.example.splitit.domain.usecase.AddParticipantUseCase
+import com.example.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.example.splitit.domain.usecase.RemoveParticipantUseCase
+import com.example.splitit.domain.usecase.UpdateParticipantUseCase
+import com.example.splitit.testutils.InMemoryExpenseRepository
+import com.example.splitit.testutils.InMemoryParticipantRepository
+import com.example.splitit.testutils.InMemorySessionRepository
+import com.example.splitit.testutils.InMemorySettlementRepository
+import com.example.splitit.testutils.TestClock
+import com.example.splitit.testutils.TestIdGenerator
+import com.example.splitit.testutils.TestIds
+import com.example.splitit.testutils.participant
+import com.example.splitit.testutils.runViewModelTest
+import com.example.splitit.testutils.session
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class ParticipantsViewModelTest {
+    @Test
+    fun loadsParticipantsAndSupportsEditingCancellation() = runViewModelTest {
+        val alice = participant(TestIds.alice, name = "Alice", avatarColor = "#111111")
+        val repository = InMemoryParticipantRepository(listOf(alice))
+        val viewModel = createViewModel(repository)
+        advanceUntilIdle()
+
+        assertEquals(listOf(alice), viewModel.state.value.participants)
+        viewModel.startEditing(alice)
+        assertEquals(alice.name, viewModel.state.value.name)
+        assertEquals(alice.avatarColor, viewModel.state.value.selectedColor)
+        viewModel.cancelEditing()
+
+        assertEquals("", viewModel.state.value.name)
+        assertEquals(null, viewModel.state.value.editingParticipantId)
+    }
+
+    @Test
+    fun validatesAndAddsParticipant() = runViewModelTest {
+        val repository = InMemoryParticipantRepository()
+        val viewModel = createViewModel(repository, participantId = TestIds.charlie)
+        advanceUntilIdle()
+
+        viewModel.save()
+        assertEquals("Enter a participant name.", viewModel.state.value.nameError)
+
+        viewModel.onNameChange("  Charlie  ")
+        viewModel.onColorSelected("#ABCDEF")
+        viewModel.save()
+        advanceUntilIdle()
+
+        assertTrue(repository.savedParticipants.any { it.name == "Charlie" })
+        assertEquals("", viewModel.state.value.name)
+        assertEquals(null, viewModel.state.value.editingParticipantId)
+    }
+
+    @Test
+    fun showsSpecificErrorWhenDeletingUsedParticipant() = runViewModelTest {
+        val repository = InMemoryParticipantRepository(listOf(participant()))
+        repository.usedParticipantIds += TestIds.alice
+        val viewModel = createViewModel(repository)
+        advanceUntilIdle()
+
+        viewModel.delete(TestIds.alice)
+        advanceUntilIdle()
+
+        assertEquals(
+            "Participant cannot be removed because it is used by expenses.",
+            viewModel.state.value.errorMessage,
+        )
+        assertEquals(0, repository.deleteCalls)
+    }
+
+    private fun createViewModel(
+        participantRepository: InMemoryParticipantRepository,
+        participantId: com.example.splitit.domain.value.ParticipantId = TestIds.alice,
+    ): ParticipantsViewModel {
+        val sessionRepository = InMemorySessionRepository(listOf(session()))
+        return ParticipantsViewModel(
+            sessionId = TestIds.session,
+            observeSessionDetails = ObserveSessionDetailsUseCase(
+                sessionRepository,
+                participantRepository,
+                InMemoryExpenseRepository(),
+                InMemorySettlementRepository(),
+            ),
+            addParticipant = AddParticipantUseCase(
+                sessionRepository,
+                participantRepository,
+                TestIdGenerator(participantId = participantId),
+                TestClock(20L),
+            ),
+            updateParticipant = UpdateParticipantUseCase(participantRepository, TestClock(20L)),
+            removeParticipant = RemoveParticipantUseCase(participantRepository),
+        )
+    }
+}

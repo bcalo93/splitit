@@ -44,14 +44,26 @@ class SqlDelightSessionRepository(
     }
 
     override suspend fun saveSession(session: ExpenseSession) {
-        queries.upsertSession(
-            id = session.id.value,
-            title = session.title,
-            description = session.description,
-            created_at = session.createdAtMillis,
-            updated_at = session.updatedAtMillis,
-            status = session.status.name,
-        )
+        database.transaction {
+            if (queries.selectSessionById(session.id.value).executeAsOneOrNull() == null) {
+                queries.insertSession(
+                    id = session.id.value,
+                    title = session.title,
+                    description = session.description,
+                    created_at = session.createdAtMillis,
+                    updated_at = session.updatedAtMillis,
+                    status = session.status.name,
+                )
+            } else {
+                queries.updateSession(
+                    title = session.title,
+                    description = session.description,
+                    updated_at = session.updatedAtMillis,
+                    status = session.status.name,
+                    id = session.id.value,
+                )
+            }
+        }
     }
 
     override suspend fun deleteSession(id: SessionId) {
