@@ -118,6 +118,35 @@ class ExpensesViewModelTest {
         assertTrue(expenseRepository.savedExpenses.isEmpty())
     }
 
+    @Test
+    fun filtersExpensesByTitleAndNote() = runViewModelTest {
+        val firstExpense = expense(title = "Dinner")
+        val secondExpense = expense(
+            id = TestIds.secondExpense,
+            title = "Hotel",
+            note = "Beach weekend",
+        )
+        val viewModel = createViewModel(
+            participantRepository = InMemoryParticipantRepository(
+                listOf(participant(TestIds.alice), participant(TestIds.bob)),
+            ),
+            expenseRepository = InMemoryExpenseRepository(listOf(firstExpense, secondExpense)),
+        )
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChange("hotel")
+        assertEquals(listOf(TestIds.secondExpense), viewModel.state.value.visibleExpenses.map { it.id })
+
+        viewModel.onSearchQueryChange("WEEKEND")
+        assertEquals(listOf(TestIds.secondExpense), viewModel.state.value.visibleExpenses.map { it.id })
+
+        viewModel.onSearchQueryChange("")
+        assertEquals(
+            listOf(firstExpense.id, secondExpense.id),
+            viewModel.state.value.visibleExpenses.map { it.id },
+        )
+    }
+
     private fun createViewModel(
         participantRepository: InMemoryParticipantRepository = InMemoryParticipantRepository(
             listOf(participant(TestIds.alice)),

@@ -1,5 +1,6 @@
 package com.example.splitit.presentation.settings
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitit.domain.repository.AppSettings
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class SettingsUiState(
     val settings: AppSettings = AppSettings(),
     val draftSettings: AppSettings = AppSettings(),
