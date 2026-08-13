@@ -1,5 +1,4 @@
 rootProject.name = "SplitIt"
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
@@ -29,3 +28,4 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
+include(":androidApp")
