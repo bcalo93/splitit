@@ -9,10 +9,13 @@ plugins {
 }
 
 kotlin {
-    android {
+    androidLibrary {
         namespace = "com.splitit.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+        androidResources {
+            enable = true
+        }
         packaging {
             resources {
                 excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -71,6 +74,10 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
         }
     }
+}
+
+compose.resources {
+    generateResClass = auto
 }
 
 sqldelight {
