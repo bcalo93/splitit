@@ -1,37 +1,38 @@
 package com.splitit.testutils
 
+import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 
 class TestLocalizationService : LocalizationService {
-    override fun getString(key: String): String {
-        return enStrings[key] ?: key
+    override fun getString(key: LocalizedString): String {
+        return enStrings[key] ?: key.key
     }
 
     private val enStrings = mapOf(
-        "error_could_not_load_sessions" to "Could not load sessions.",
-        "error_could_not_delete_session" to "Could not delete the session.",
-        "error_enter_session_name" to "Enter a session name.",
-        "error_could_not_save_session" to "Could not save the session.",
-        "error_could_not_load_session" to "Could not load the session.",
-        "error_could_not_load_session_details" to "Could not load session details.",
-        "error_could_not_load_participants" to "Could not load participants.",
-        "error_enter_participant_name" to "Enter a participant name.",
-        "error_could_not_save_participant" to "Could not save participant.",
-        "error_participant_used_by_expenses" to "Participant cannot be removed because it is used by expenses.",
-        "error_could_not_remove_participant" to "Could not remove participant.",
-        "error_could_not_load_expenses" to "Could not load expenses.",
-        "error_enter_expense_title" to "Enter an expense title.",
-        "error_enter_positive_amount" to "Enter a positive amount.",
-        "error_choose_payer" to "Choose who paid.",
-        "error_choose_at_least_one_participant" to "Choose at least one participant.",
-        "error_could_not_save_expense" to "Could not save expense.",
-        "error_could_not_delete_expense" to "Could not delete expense.",
-        "error_could_not_load_settlement" to "Could not load settlement.",
-        "error_add_participants_and_expense" to "Add at least two participants and an expense first.",
-        "error_could_not_generate_settlement" to "Could not generate settlement.",
-        "error_could_not_load_settings" to "Could not load settings.",
-        "error_invalid_currency" to "Use a 3-letter currency code, such as USD or EUR.",
-        "error_could_not_save_settings" to "Could not save settings.",
+        LocalizedString.ErrorCouldNotLoadSessions to "Could not load sessions.",
+        LocalizedString.ErrorCouldNotDeleteSession to "Could not delete the session.",
+        LocalizedString.ErrorEnterSessionName to "Enter a session name.",
+        LocalizedString.ErrorCouldNotSaveSession to "Could not save the session.",
+        LocalizedString.ErrorCouldNotLoadSession to "Could not load the session.",
+        LocalizedString.ErrorCouldNotLoadSessionDetails to "Could not load session details.",
+        LocalizedString.ErrorCouldNotLoadParticipants to "Could not load participants.",
+        LocalizedString.ErrorEnterParticipantName to "Enter a participant name.",
+        LocalizedString.ErrorCouldNotSaveParticipant to "Could not save participant.",
+        LocalizedString.ErrorParticipantUsedByExpenses to "Participant cannot be removed because it is used by expenses.",
+        LocalizedString.ErrorCouldNotRemoveParticipant to "Could not remove participant.",
+        LocalizedString.ErrorCouldNotLoadExpenses to "Could not load expenses.",
+        LocalizedString.ErrorEnterExpenseTitle to "Enter an expense title.",
+        LocalizedString.ErrorEnterPositiveAmount to "Enter a positive amount.",
+        LocalizedString.ErrorChoosePayer to "Choose who paid.",
+        LocalizedString.ErrorChooseAtLeastOneParticipant to "Choose at least one participant.",
+        LocalizedString.ErrorCouldNotSaveExpense to "Could not save expense.",
+        LocalizedString.ErrorCouldNotDeleteExpense to "Could not delete expense.",
+        LocalizedString.ErrorCouldNotLoadSettlement to "Could not load settlement.",
+        LocalizedString.ErrorAddParticipantsAndExpense to "Add at least two participants and an expense first.",
+        LocalizedString.ErrorCouldNotGenerateSettlement to "Could not generate settlement.",
+        LocalizedString.ErrorCouldNotLoadSettings to "Could not load settings.",
+        LocalizedString.ErrorInvalidCurrency to "Use a 3-letter currency code, such as USD or EUR.",
+        LocalizedString.ErrorCouldNotSaveSettings to "Could not save settings.",
     )
 }
 

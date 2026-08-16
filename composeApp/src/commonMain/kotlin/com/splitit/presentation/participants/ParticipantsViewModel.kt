@@ -10,6 +10,7 @@ import com.splitit.domain.usecase.RemoveParticipantUseCase
 import com.splitit.domain.usecase.UpdateParticipantUseCase
 import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.SessionId
+import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -76,7 +77,7 @@ class ParticipantsViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: localization.getString("error_could_not_load_participants"),
+                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadParticipants),
                     )
                 }
             }
@@ -116,7 +117,7 @@ class ParticipantsViewModel(
     fun save() {
         val current = _state.value
         if (current.name.isBlank()) {
-            _state.update { it.copy(nameError = localization.getString("error_enter_participant_name")) }
+            _state.update { it.copy(nameError = localization.getString(LocalizedString.ErrorEnterParticipantName)) }
             return
         }
 
@@ -140,7 +141,7 @@ class ParticipantsViewModel(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = throwable.message ?: localization.getString("error_could_not_save_participant"),
+                            errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotSaveParticipant),
                         )
                     }
                 }
@@ -155,9 +156,9 @@ class ParticipantsViewModel(
                     _state.update {
                         it.copy(
                             errorMessage = if (throwable is IllegalArgumentException) {
-                                localization.getString("error_participant_used_by_expenses")
+                                localization.getString(LocalizedString.ErrorParticipantUsedByExpenses)
                             } else {
-                                throwable.message ?: localization.getString("error_could_not_remove_participant")
+                                throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotRemoveParticipant)
                             },
                         )
                     }

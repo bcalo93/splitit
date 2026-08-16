@@ -15,6 +15,7 @@ import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.SessionId
+import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -96,7 +97,7 @@ class ExpensesViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: localization.getString("error_could_not_load_expenses"),
+                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadExpenses),
                     )
                 }
             }
@@ -183,19 +184,19 @@ class ExpensesViewModel(
 
         if (current.title.isBlank()) {
             hasError = true
-            _state.update { it.copy(titleError = localization.getString("error_enter_expense_title")) }
+            _state.update { it.copy(titleError = localization.getString(LocalizedString.ErrorEnterExpenseTitle)) }
         }
         if (parsedAmount == null || parsedAmount <= 0) {
             hasError = true
-            _state.update { it.copy(amountError = localization.getString("error_enter_positive_amount")) }
+            _state.update { it.copy(amountError = localization.getString(LocalizedString.ErrorEnterPositiveAmount)) }
         }
         if (payerId == null) {
             hasError = true
-            _state.update { it.copy(payerError = localization.getString("error_choose_payer")) }
+            _state.update { it.copy(payerError = localization.getString(LocalizedString.ErrorChoosePayer)) }
         }
         if (current.selectedParticipantIds.isEmpty()) {
             hasError = true
-            _state.update { it.copy(participantsError = localization.getString("error_choose_at_least_one_participant")) }
+            _state.update { it.copy(participantsError = localization.getString(LocalizedString.ErrorChooseAtLeastOneParticipant)) }
         }
         if (hasError || parsedAmount == null || payerId == null) return
 
@@ -242,7 +243,7 @@ class ExpensesViewModel(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = throwable.message ?: localization.getString("error_could_not_save_expense"),
+                            errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotSaveExpense),
                         )
                     }
                 }
@@ -260,7 +261,7 @@ class ExpensesViewModel(
                 }
                 .onFailure { throwable ->
                     _state.update {
-                        it.copy(errorMessage = throwable.message ?: localization.getString("error_could_not_delete_expense"))
+                        it.copy(errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotDeleteExpense))
                     }
                 }
         }

@@ -1,7 +1,7 @@
 package com.splitit.localization
 
 interface LocalizationService {
-    fun getString(key: String): String
+    fun getString(key: LocalizedString): String
 }
 
 expect class StringResourceReader() {
@@ -14,10 +14,10 @@ class DefaultLocalizationService(
 ) : LocalizationService {
     private val cache = mutableMapOf<String, Map<String, String>>()
 
-    override fun getString(key: String): String {
+    override fun getString(key: LocalizedString): String {
         val locale = deviceLocale.getLanguage()
         val strings = cache.getOrPut(locale) { loadStrings(locale) }
-        return strings[key] ?: key
+        return strings[key.key] ?: key.key
     }
 
     private fun loadStrings(locale: String): Map<String, String> {

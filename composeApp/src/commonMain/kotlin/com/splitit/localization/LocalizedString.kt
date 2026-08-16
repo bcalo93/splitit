@@ -1,0 +1,28 @@
+package com.splitit.localization
+
+enum class LocalizedString(val key: String) {
+    ErrorCouldNotLoadSessions("error_could_not_load_sessions"),
+    ErrorCouldNotDeleteSession("error_could_not_delete_session"),
+    ErrorEnterSessionName("error_enter_session_name"),
+    ErrorCouldNotSaveSession("error_could_not_save_session"),
+    ErrorCouldNotLoadSession("error_could_not_load_session"),
+    ErrorCouldNotLoadSessionDetails("error_could_not_load_session_details"),
+    ErrorCouldNotLoadParticipants("error_could_not_load_participants"),
+    ErrorEnterParticipantName("error_enter_participant_name"),
+    ErrorCouldNotSaveParticipant("error_could_not_save_participant"),
+    ErrorParticipantUsedByExpenses("error_participant_used_by_expenses"),
+    ErrorCouldNotRemoveParticipant("error_could_not_remove_participant"),
+    ErrorCouldNotLoadExpenses("error_could_not_load_expenses"),
+    ErrorEnterExpenseTitle("error_enter_expense_title"),
+    ErrorEnterPositiveAmount("error_enter_positive_amount"),
+    ErrorChoosePayer("error_choose_payer"),
+    ErrorChooseAtLeastOneParticipant("error_choose_at_least_one_participant"),
+    ErrorCouldNotSaveExpense("error_could_not_save_expense"),
+    ErrorCouldNotDeleteExpense("error_could_not_delete_expense"),
+    ErrorCouldNotLoadSettlement("error_could_not_load_settlement"),
+    ErrorAddParticipantsAndExpense("error_add_participants_and_expense"),
+    ErrorCouldNotGenerateSettlement("error_could_not_generate_settlement"),
+    ErrorCouldNotLoadSettings("error_could_not_load_settings"),
+    ErrorInvalidCurrency("error_invalid_currency"),
+    ErrorCouldNotSaveSettings("error_could_not_save_settings"),
+}
