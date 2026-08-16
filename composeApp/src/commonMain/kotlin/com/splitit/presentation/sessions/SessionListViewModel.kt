@@ -7,6 +7,8 @@ import com.splitit.domain.model.ExpenseSession
 import com.splitit.domain.usecase.DeleteSessionUseCase
 import com.splitit.domain.usecase.ObserveSessionsUseCase
 import com.splitit.domain.value.SessionId
+import com.splitit.localization.LocalizedString
+import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +29,7 @@ data class SessionListUiState(
 class SessionListViewModel(
     private val observeSessions: ObserveSessionsUseCase,
     private val deleteSession: DeleteSessionUseCase,
+    private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SessionListUiState())
     val state: StateFlow<SessionListUiState> = _state.asStateFlow()
@@ -57,7 +60,7 @@ class SessionListViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: "Could not load sessions.",
+                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadSessions),
                     )
                 }
             }
@@ -83,7 +86,7 @@ class SessionListViewModel(
                 throw exception
             } catch (throwable: Throwable) {
                 _state.update {
-                    it.copy(errorMessage = throwable.message ?: "Could not delete the session.")
+                    it.copy(errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotDeleteSession))
                 }
             }
         }

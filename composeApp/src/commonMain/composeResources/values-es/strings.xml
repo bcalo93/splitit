@@ -1,0 +1,118 @@
+<resources>
+    <string name="app_name">SplitIt</string>
+
+    <string name="back">Volver</string>
+    <string name="save">Guardar</string>
+    <string name="saving">Guardando</string>
+    <string name="cancel">Cancelar</string>
+    <string name="delete">Eliminar</string>
+    <string name="edit">Editar</string>
+    <string name="retry">Reintentar</string>
+    <string name="loading">Cargando...</string>
+    <string name="clear">Limpiar</string>
+    <string name="clear_search">Limpiar búsqueda</string>
+    <string name="remove">Quitar</string>
+    <string name="name">Nombre</string>
+    <string name="description">Descripción</string>
+    <string name="title">Título</string>
+    <string name="note">Nota</string>
+    <string name="unknown">Desconocido</string>
+    <string name="settings">Configuración</string>
+    <string name="new_action">Nuevo</string>
+
+    <string name="search_sessions">Buscar sesiones</string>
+    <string name="entity_sessions">sesiones</string>
+    <string name="no_sessions_yet">Aún no hay sesiones</string>
+    <string name="create_session">Crear sesión</string>
+    <string name="delete_session_title">¿Eliminar sesión?</string>
+    <string name="delete_session_message">Esto elimina la sesión y sus datos locales de este dispositivo.</string>
+    <string name="session_summary">%1$d participantes | %2$d gastos</string>
+    <string name="no_results_match">Ningún %1$s coincide con \"%2$s\".</string>
+
+    <string name="session">Sesión</string>
+    <string name="participants">Participantes</string>
+    <string name="expenses">Gastos</string>
+    <string name="manage_participants">Gestionar participantes</string>
+    <string name="manage_expenses">Gestionar gastos</string>
+    <string name="settlement_needs_regeneration">La liquidación necesita regenerarse después de que los datos de origen cambiaron.</string>
+    <string name="settlement_up_to_date">La liquidación está actualizada.</string>
+    <string name="generate_settlement">Generar liquidación</string>
+    <string name="view_settlement">Ver liquidación</string>
+
+    <string name="edit_session">Editar sesión</string>
+    <string name="new_session">Nueva sesión</string>
+
+    <string name="settlement">Liquidación</string>
+    <string name="settlement_description">Convierte los saldos actuales en una lista corta de pagos.</string>
+    <string name="settlement_payments_title">Pagos necesarios para liquidar esta sesión</string>
+    <string name="settlement_stale_message">La liquidación guardada está desactualizada. Regenerala para incluir los cambios recientes.</string>
+    <string name="generating">Generando</string>
+    <string name="regenerate_settlement">Regenerar liquidación</string>
+    <string name="settlement_requirements">Agrega al menos dos participantes y un gasto antes de generar una liquidación.</string>
+    <string name="balances">Saldos</string>
+    <string name="transfers">Transferencias</string>
+    <string name="everyone_settled">Todos están al día.</string>
+    <string name="receives_amount">%1$s recibe %2$s %3$s</string>
+    <string name="owes_amount">%1$s debe %2$s %3$s</string>
+    <string name="is_settled">%s está al día</string>
+    <string name="pays_to">%1$s paga a %2$s</string>
+
+    <string name="preferences_stored_locally">Las preferencias se almacenan solo en este dispositivo.</string>
+    <string name="default_currency">Moneda predeterminada</string>
+    <string name="currency_hint">Usa un código ISO de 3 letras para nuevos gastos, como USD o EUR.</string>
+    <string name="theme">Tema</string>
+    <string name="theme_system">Predeterminado del sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="theme_system_description">Seguir el tema del dispositivo.</string>
+    <string name="theme_light_description">Usar siempre el tema claro.</string>
+    <string name="theme_dark_description">Usar siempre el tema oscuro.</string>
+    <string name="settings_saved">Configuración guardada localmente.</string>
+
+    <string name="add_participant">Agregar participante</string>
+    <string name="edit_participant">Editar participante</string>
+    <string name="remove_participant_title">¿Quitar participante?</string>
+    <string name="remove_participant_message">Los participantes usados por gastos no pueden ser eliminados.</string>
+    <string name="no_participants_yet">Aún no hay participantes</string>
+    <string name="add_first_participant">Agrega la primera persona para empezar a dividir gastos.</string>
+
+    <string name="search_expenses">Buscar gastos</string>
+    <string name="entity_expenses">gastos</string>
+    <string name="add_expense">Agregar gasto</string>
+    <string name="edit_expense">Editar gasto</string>
+    <string name="amount_label">Monto (%s)</string>
+    <string name="paid_by">Pagado por</string>
+    <string name="split_between">Dividir entre</string>
+    <string name="add_participants_before_expenses">Agrega participantes antes de crear gastos.</string>
+    <string name="paid_by_name">Pagado por %s</string>
+    <string name="split_names">Dividido: %s</string>
+    <string name="delete_expense_title">¿Eliminar gasto?</string>
+    <string name="delete_expense_message">Esto elimina el gasto de esta sesión.</string>
+    <string name="no_expenses_yet">Aún no hay gastos</string>
+    <string name="add_first_expense">Agrega el primer gasto para dividirlo equitativamente.</string>
+
+    <string name="error_could_not_load_sessions">No se pudieron cargar las sesiones.</string>
+    <string name="error_could_not_delete_session">No se pudo eliminar la sesión.</string>
+    <string name="error_enter_session_name">Ingresa un nombre para la sesión.</string>
+    <string name="error_could_not_save_session">No se pudo guardar la sesión.</string>
+    <string name="error_could_not_load_session">No se pudo cargar la sesión.</string>
+    <string name="error_could_not_load_session_details">No se pudieron cargar los detalles de la sesión.</string>
+    <string name="error_could_not_load_participants">No se pudieron cargar los participantes.</string>
+    <string name="error_enter_participant_name">Ingresa un nombre de participante.</string>
+    <string name="error_could_not_save_participant">No se pudo guardar el participante.</string>
+    <string name="error_participant_used_by_expenses">El participante no puede ser eliminado porque está siendo usado por gastos.</string>
+    <string name="error_could_not_remove_participant">No se pudo eliminar el participante.</string>
+    <string name="error_could_not_load_expenses">No se pudieron cargar los gastos.</string>
+    <string name="error_enter_expense_title">Ingresa un título para el gasto.</string>
+    <string name="error_enter_positive_amount">Ingresa un monto positivo.</string>
+    <string name="error_choose_payer">Elige quién pagó.</string>
+    <string name="error_choose_at_least_one_participant">Elige al menos un participante.</string>
+    <string name="error_could_not_save_expense">No se pudo guardar el gasto.</string>
+    <string name="error_could_not_delete_expense">No se pudo eliminar el gasto.</string>
+    <string name="error_could_not_load_settlement">No se pudo cargar la liquidación.</string>
+    <string name="error_add_participants_and_expense">Agrega al menos dos participantes y un gasto primero.</string>
+    <string name="error_could_not_generate_settlement">No se pudo generar la liquidación.</string>
+    <string name="error_could_not_load_settings">No se pudo cargar la configuración.</string>
+    <string name="error_invalid_currency">Usa un código de moneda de 3 letras, como USD o EUR.</string>
+    <string name="error_could_not_save_settings">No se pudo guardar la configuración.</string>
+</resources>

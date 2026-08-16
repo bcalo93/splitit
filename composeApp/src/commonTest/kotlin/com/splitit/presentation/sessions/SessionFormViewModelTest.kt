@@ -13,6 +13,7 @@ import com.splitit.testutils.TestClock
 import com.splitit.testutils.TestIdGenerator
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.runViewModelTest
+import com.splitit.testutils.testLocalizationService
 import com.splitit.testutils.session
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
@@ -87,6 +88,7 @@ class SessionFormViewModelTest {
                 expenseRepository = InMemoryExpenseRepository(),
                 settlementRepository = InMemorySettlementRepository(),
             ),
+            localization = testLocalizationService,
         )
     }
 }

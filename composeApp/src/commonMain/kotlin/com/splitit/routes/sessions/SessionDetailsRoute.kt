@@ -36,8 +36,21 @@ import com.splitit.presentation.sessiondetail.SessionDetailsViewModel
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.back
+import splitit.composeapp.generated.resources.edit
+import splitit.composeapp.generated.resources.expenses
+import splitit.composeapp.generated.resources.generate_settlement
+import splitit.composeapp.generated.resources.manage_expenses
+import splitit.composeapp.generated.resources.manage_participants
+import splitit.composeapp.generated.resources.participants
+import splitit.composeapp.generated.resources.session
+import splitit.composeapp.generated.resources.settlement_needs_regeneration
+import splitit.composeapp.generated.resources.settlement_up_to_date
+import splitit.composeapp.generated.resources.view_settlement
 
 @Composable
 fun SessionDetailsRoute(
@@ -83,10 +96,10 @@ private fun SessionDetailsScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Session") },
+                title = { Text(stringResource(Res.string.session)) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("Back")
+                        Text(stringResource(Res.string.back))
                     }
                 },
                 actions = {
@@ -94,7 +107,7 @@ private fun SessionDetailsScreen(
                         modifier = Modifier.padding(end = 16.dp),
                         onClick = onEdit,
                     ) {
-                        Text("Edit")
+                        Text(stringResource(Res.string.edit))
                     }
                 },
             )
@@ -151,30 +164,30 @@ private fun SessionDetailsScreen(
                                 ) {
                                     SummaryBlock(
                                         modifier = Modifier.weight(1f),
-                                        label = "Participants",
+                                        label = stringResource(Res.string.participants),
                                         value = details.participants.size.toString(),
                                     )
                                     SummaryBlock(
                                         modifier = Modifier.weight(1f),
-                                        label = "Expenses",
+                                        label = stringResource(Res.string.expenses),
                                         value = details.expenses.size.toString(),
                                     )
                                 }
                                 Button(onClick = onParticipants) {
-                                    Text("Manage participants")
+                                    Text(stringResource(Res.string.manage_participants))
                                 }
                                 Button(
                                     enabled = details.participants.isNotEmpty(),
                                     onClick = onExpenses,
                                 ) {
-                                    Text("Manage expenses")
+                                    Text(stringResource(Res.string.manage_expenses))
                                 }
                                 details.latestSettlement?.let {
                                     Text(
                                         text = if (details.isSettlementStale) {
-                                            "Settlement needs to be regenerated after source data changed."
+                                            stringResource(Res.string.settlement_needs_regeneration)
                                         } else {
-                                            "Settlement is up to date."
+                                            stringResource(Res.string.settlement_up_to_date)
                                         },
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = if (details.isSettlementStale) {
@@ -187,9 +200,9 @@ private fun SessionDetailsScreen(
                                 Button(onClick = onSettlement) {
                                     Text(
                                         if (details.latestSettlement == null) {
-                                            "Generate settlement"
+                                            stringResource(Res.string.generate_settlement)
                                         } else {
-                                            "View settlement"
+                                            stringResource(Res.string.view_settlement)
                                         },
                                     )
                                 }

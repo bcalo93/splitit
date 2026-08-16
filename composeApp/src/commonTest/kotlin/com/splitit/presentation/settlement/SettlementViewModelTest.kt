@@ -21,6 +21,7 @@ import com.splitit.testutils.expense
 import com.splitit.testutils.participant
 import com.splitit.testutils.runViewModelTest
 import com.splitit.testutils.session
+import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -106,6 +107,7 @@ class SettlementViewModelTest {
                 idGenerator = TestIdGenerator(),
                 clock = TestClock(20L),
             ),
+            localization = testLocalizationService,
         )
     }
 }

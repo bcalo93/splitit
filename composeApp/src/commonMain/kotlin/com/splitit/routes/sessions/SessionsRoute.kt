@@ -47,7 +47,22 @@ import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
 import com.splitit.ui.components.NoSearchResultsState
 import com.splitit.ui.components.SearchField
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.app_name
+import splitit.composeapp.generated.resources.cancel
+import splitit.composeapp.generated.resources.create_session
+import splitit.composeapp.generated.resources.delete
+import splitit.composeapp.generated.resources.delete_session_message
+import splitit.composeapp.generated.resources.delete_session_title
+import splitit.composeapp.generated.resources.edit
+import splitit.composeapp.generated.resources.entity_sessions
+import splitit.composeapp.generated.resources.new_action
+import splitit.composeapp.generated.resources.no_sessions_yet
+import splitit.composeapp.generated.resources.search_sessions
+import splitit.composeapp.generated.resources.session_summary
+import splitit.composeapp.generated.resources.settings
 
 @Composable
 fun SessionsRoute(
@@ -90,19 +105,19 @@ private fun SessionListScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("SplitIt") },
+                title = { Text(stringResource(Res.string.app_name)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                 ),
                 actions = {
                     TextButton(onClick = onSettings) {
-                        Text("Settings")
+                        Text(stringResource(Res.string.settings))
                     }
                     Button(
                         modifier = Modifier.padding(end = 16.dp),
                         onClick = onCreate,
                     ) {
-                        Text("New")
+                        Text(stringResource(Res.string.new_action))
                     }
                 },
             )
@@ -130,7 +145,7 @@ private fun SessionListScreen(
                     if (state.sessions.isNotEmpty() || state.searchQuery.isNotBlank()) {
                         SearchField(
                             query = state.searchQuery,
-                            label = "Search sessions",
+                            label = stringResource(Res.string.search_sessions),
                             onQueryChange = onSearchQueryChange,
                         )
                     }
@@ -147,7 +162,7 @@ private fun SessionListScreen(
                         )
                         state.visibleSessions.isEmpty() -> NoSearchResultsState(
                             query = state.searchQuery,
-                            entityName = "sessions",
+                            entityName = stringResource(Res.string.entity_sessions),
                             onClear = { onSearchQueryChange("") },
                             modifier = Modifier.weight(1f),
                         )
@@ -215,16 +230,16 @@ private fun SessionRow(
                 )
             }
             Text(
-                text = "${session.participantIds.size} participants | ${session.expenseIds.size} expenses",
+                text = stringResource(Res.string.session_summary, session.participantIds.size, session.expenseIds.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = onEdit) {
-                    Text("Edit")
+                    Text(stringResource(Res.string.edit))
                 }
                 TextButton(onClick = { showDeleteConfirmation = true }) {
-                    Text("Delete")
+                    Text(stringResource(Res.string.delete))
                 }
             }
         }
@@ -233,8 +248,8 @@ private fun SessionRow(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Delete session?") },
-            text = { Text("This removes the session and its local data from this device.") },
+            title = { Text(stringResource(Res.string.delete_session_title)) },
+            text = { Text(stringResource(Res.string.delete_session_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -242,12 +257,12 @@ private fun SessionRow(
                         onDelete()
                     },
                 ) {
-                    Text("Delete")
+                    Text(stringResource(Res.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         )
@@ -265,12 +280,12 @@ private fun EmptySessionsState(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "No sessions yet",
+            text = stringResource(Res.string.no_sessions_yet),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
         )
         Button(onClick = onCreate) {
-            Text("Create session")
+            Text(stringResource(Res.string.create_session))
         }
     }
 }

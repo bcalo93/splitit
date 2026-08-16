@@ -16,6 +16,7 @@ import com.splitit.testutils.TestIds
 import com.splitit.testutils.participant
 import com.splitit.testutils.runViewModelTest
 import com.splitit.testutils.session
+import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -96,6 +97,7 @@ class ParticipantsViewModelTest {
             ),
             updateParticipant = UpdateParticipantUseCase(participantRepository, TestClock(20L)),
             removeParticipant = RemoveParticipantUseCase(participantRepository),
+            localization = testLocalizationService,
         )
     }
 }

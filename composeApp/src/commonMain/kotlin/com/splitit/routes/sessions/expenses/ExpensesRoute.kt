@@ -57,8 +57,35 @@ import com.splitit.ui.components.LoadingState
 import com.splitit.ui.components.NoSearchResultsState
 import com.splitit.ui.components.SearchField
 import com.splitit.ui.components.participantColor
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.add_expense
+import splitit.composeapp.generated.resources.add_first_expense
+import splitit.composeapp.generated.resources.add_participants_before_expenses
+import splitit.composeapp.generated.resources.amount_label
+import splitit.composeapp.generated.resources.back
+import splitit.composeapp.generated.resources.cancel
+import splitit.composeapp.generated.resources.delete
+import splitit.composeapp.generated.resources.delete_expense_message
+import splitit.composeapp.generated.resources.delete_expense_title
+import splitit.composeapp.generated.resources.edit
+import splitit.composeapp.generated.resources.edit_expense
+import splitit.composeapp.generated.resources.entity_expenses
+import splitit.composeapp.generated.resources.expenses
+import splitit.composeapp.generated.resources.no_expenses_yet
+import splitit.composeapp.generated.resources.no_participants_yet
+import splitit.composeapp.generated.resources.note
+import splitit.composeapp.generated.resources.paid_by
+import splitit.composeapp.generated.resources.paid_by_name
+import splitit.composeapp.generated.resources.save
+import splitit.composeapp.generated.resources.saving
+import splitit.composeapp.generated.resources.search_expenses
+import splitit.composeapp.generated.resources.split_between
+import splitit.composeapp.generated.resources.split_names
+import splitit.composeapp.generated.resources.title
+import splitit.composeapp.generated.resources.unknown
 
 @Composable
 fun ExpensesRoute(
@@ -116,10 +143,10 @@ private fun ExpensesScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Expenses") },
+                title = { Text(stringResource(Res.string.expenses)) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("Back")
+                        Text(stringResource(Res.string.back))
                     }
                 },
             )
@@ -150,7 +177,7 @@ private fun ExpensesScreen(
             if (state.expenses.isNotEmpty() || state.searchQuery.isNotBlank()) {
                 SearchField(
                     query = state.searchQuery,
-                    label = "Search expenses",
+                    label = stringResource(Res.string.search_expenses),
                     onQueryChange = onSearchQueryChange,
                 )
             }
@@ -180,7 +207,7 @@ private fun ExpensesScreen(
                     )
                     state.visibleExpenses.isEmpty() -> NoSearchResultsState(
                         query = state.searchQuery,
-                        entityName = "expenses",
+                        entityName = stringResource(Res.string.entity_expenses),
                         onClear = { onSearchQueryChange("") },
                         modifier = Modifier.align(Alignment.Center),
                     )
@@ -228,7 +255,7 @@ private fun ExpenseForm(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                text = if (state.editingExpenseId == null) "Add expense" else "Edit expense",
+                text = if (state.editingExpenseId == null) stringResource(Res.string.add_expense) else stringResource(Res.string.edit_expense),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -236,7 +263,7 @@ private fun ExpenseForm(
                 value = state.title,
                 onValueChange = onTitleChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Title") },
+                label = { Text(stringResource(Res.string.title)) },
                 singleLine = true,
                 isError = state.titleError != null,
                 supportingText = state.titleError?.let { message -> { Text(message) } },
@@ -246,7 +273,7 @@ private fun ExpenseForm(
                 onValueChange = onAmountChange,
                 modifier = Modifier.fillMaxWidth(),
                 label = {
-                    Text("Amount (${state.editingCurrencyCode ?: state.defaultCurrencyCode})")
+                    Text(stringResource(Res.string.amount_label, state.editingCurrencyCode ?: state.defaultCurrencyCode))
                 },
                 singleLine = true,
                 isError = state.amountError != null,
@@ -258,11 +285,11 @@ private fun ExpenseForm(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(96.dp),
-                label = { Text("Note") },
+                label = { Text(stringResource(Res.string.note)) },
                 maxLines = 3,
             )
             ParticipantChoiceSection(
-                title = "Paid by",
+                title = stringResource(Res.string.paid_by),
                 participants = state.participants,
                 selectedIds = state.payerId?.let { setOf(it) } ?: emptySet(),
                 onParticipantSelected = onPayerSelected,
@@ -270,7 +297,7 @@ private fun ExpenseForm(
                 errorMessage = state.payerError,
             )
             ParticipantChoiceSection(
-                title = "Split between",
+                title = stringResource(Res.string.split_between),
                 participants = state.participants,
                 selectedIds = state.selectedParticipantIds,
                 onParticipantSelected = onParticipantToggled,
@@ -282,11 +309,11 @@ private fun ExpenseForm(
                     enabled = !state.isSaving && !state.isLoading && state.participants.isNotEmpty(),
                     onClick = onSave,
                 ) {
-                    Text(if (state.isSaving) "Saving" else "Save")
+                    Text(if (state.isSaving) stringResource(Res.string.saving) else stringResource(Res.string.save))
                 }
                 if (state.editingExpenseId != null) {
                     TextButton(onClick = onCancelEdit) {
-                        Text("Cancel")
+                        Text(stringResource(Res.string.cancel))
                     }
                 }
             }
@@ -337,7 +364,7 @@ private fun ParticipantChoiceSection(
         }
         if (singleSelection && participants.isEmpty()) {
             Text(
-                text = "Add participants before creating expenses.",
+                text = stringResource(Res.string.add_participants_before_expenses),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -360,9 +387,10 @@ private fun ExpenseRow(
     onDelete: () -> Unit,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    val payerName = participantNames[expense.payerId] ?: "Unknown"
+    val unknownLabel = stringResource(Res.string.unknown)
+    val payerName = participantNames[expense.payerId] ?: unknownLabel
     val splitNames = expense.participantShares.joinToString(", ") { share ->
-        participantNames[share.participantId] ?: "Unknown"
+        participantNames[share.participantId] ?: unknownLabel
     }
 
     Card(
@@ -395,19 +423,19 @@ private fun ExpenseRow(
                     )
                 }
                 OutlinedButton(onClick = onEdit) {
-                    Text("Edit")
+                    Text(stringResource(Res.string.edit))
                 }
                 TextButton(onClick = { showDeleteConfirmation = true }) {
-                    Text("Delete")
+                    Text(stringResource(Res.string.delete))
                 }
             }
             Text(
-                text = "Paid by $payerName",
+                text = stringResource(Res.string.paid_by_name, payerName),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "Split: $splitNames",
+                text = stringResource(Res.string.split_names, splitNames),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -427,8 +455,8 @@ private fun ExpenseRow(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Delete expense?") },
-            text = { Text("This removes the expense from this session.") },
+            title = { Text(stringResource(Res.string.delete_expense_title)) },
+            text = { Text(stringResource(Res.string.delete_expense_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -436,12 +464,12 @@ private fun ExpenseRow(
                         onDelete()
                     },
                 ) {
-                    Text("Delete")
+                    Text(stringResource(Res.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         )
@@ -458,12 +486,12 @@ private fun EmptyExpensesWithoutParticipantsState(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = "No participants yet",
+            text = stringResource(Res.string.no_participants_yet),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = "Add participants before creating expenses.",
+            text = stringResource(Res.string.add_participants_before_expenses),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -480,12 +508,12 @@ private fun EmptyExpensesState(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = "No expenses yet",
+            text = stringResource(Res.string.no_expenses_yet),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = "Add the first expense to split it equally.",
+            text = stringResource(Res.string.add_first_expense),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
