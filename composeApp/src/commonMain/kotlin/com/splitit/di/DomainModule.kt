@@ -4,9 +4,7 @@ import com.splitit.domain.Payment
 import com.splitit.domain.optimizer.PaymentOptimizerAdapter
 import com.splitit.domain.service.BalanceCalculator
 import com.splitit.localization.DefaultLocalizationService
-import com.splitit.localization.DeviceLocale
 import com.splitit.localization.LocalizationService
-import com.splitit.localization.StringResourceReader
 import com.splitit.domain.usecase.AddParticipantUseCase
 import com.splitit.domain.usecase.CalculateSessionBalancesUseCase
 import com.splitit.domain.usecase.CreateExpenseUseCase
@@ -36,10 +34,8 @@ val domainModule = module {
     single<IdGenerator> { UuidGenerator() }
     single<Clock> { SystemClock() }
     single { BalanceCalculator() }
-    single { DeviceLocale() }
-    single { DefaultLocalizationService(get(), get()) }
+    single { DefaultLocalizationService() }
     single<LocalizationService> { get<DefaultLocalizationService>() }
-    single { StringResourceReader() }
 
     single<Optimizer<Payment>> {
         ComposedOptimizer(
