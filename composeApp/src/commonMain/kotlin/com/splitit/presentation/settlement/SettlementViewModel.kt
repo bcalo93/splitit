@@ -10,7 +10,6 @@ import com.splitit.domain.usecase.CalculateSessionBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementUseCase
 import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.splitit.domain.value.SessionId
-import com.splitit.localization.LocalizationKey
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -63,7 +62,7 @@ class SettlementViewModel(
                     it.copy(
                         isLoading = false,
                         isGenerating = false,
-                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSettlement),
+                        errorMessage = throwable.message ?: localization.getString("error_could_not_load_settlement"),
                     )
                 }
             }
@@ -75,7 +74,7 @@ class SettlementViewModel(
         if (current.isLoading || current.isGenerating) return
         if (!current.canGenerateSettlement) {
             _state.update {
-                it.copy(errorMessage = localization.getString(LocalizationKey.ErrorAddParticipantsAndExpense))
+                it.copy(errorMessage = localization.getString("error_add_participants_and_expense"))
             }
             return
         }
@@ -92,7 +91,7 @@ class SettlementViewModel(
                 _state.update {
                     it.copy(
                         isGenerating = false,
-                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotGenerateSettlement),
+                        errorMessage = throwable.message ?: localization.getString("error_could_not_generate_settlement"),
                     )
                 }
             }

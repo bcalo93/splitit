@@ -90,4 +90,29 @@
     <string name="delete_expense_message">This removes the expense from this session.</string>
     <string name="no_expenses_yet">No expenses yet</string>
     <string name="add_first_expense">Add the first expense to split it equally.</string>
+
+    <string name="error_could_not_load_sessions">Could not load sessions.</string>
+    <string name="error_could_not_delete_session">Could not delete the session.</string>
+    <string name="error_enter_session_name">Enter a session name.</string>
+    <string name="error_could_not_save_session">Could not save the session.</string>
+    <string name="error_could_not_load_session">Could not load the session.</string>
+    <string name="error_could_not_load_session_details">Could not load session details.</string>
+    <string name="error_could_not_load_participants">Could not load participants.</string>
+    <string name="error_enter_participant_name">Enter a participant name.</string>
+    <string name="error_could_not_save_participant">Could not save participant.</string>
+    <string name="error_participant_used_by_expenses">Participant cannot be removed because it is used by expenses.</string>
+    <string name="error_could_not_remove_participant">Could not remove participant.</string>
+    <string name="error_could_not_load_expenses">Could not load expenses.</string>
+    <string name="error_enter_expense_title">Enter an expense title.</string>
+    <string name="error_enter_positive_amount">Enter a positive amount.</string>
+    <string name="error_choose_payer">Choose who paid.</string>
+    <string name="error_choose_at_least_one_participant">Choose at least one participant.</string>
+    <string name="error_could_not_save_expense">Could not save expense.</string>
+    <string name="error_could_not_delete_expense">Could not delete expense.</string>
+    <string name="error_could_not_load_settlement">Could not load settlement.</string>
+    <string name="error_add_participants_and_expense">Add at least two participants and an expense first.</string>
+    <string name="error_could_not_generate_settlement">Could not generate settlement.</string>
+    <string name="error_could_not_load_settings">Could not load settings.</string>
+    <string name="error_invalid_currency">Use a 3-letter currency code, such as USD or EUR.</string>
+    <string name="error_could_not_save_settings">Could not save settings.</string>
 </resources>

@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.splitit.domain.usecase.SessionDetails
 import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.splitit.domain.value.SessionId
-import com.splitit.localization.LocalizationKey
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -56,7 +55,7 @@ class SessionDetailsViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSessionDetails),
+                        errorMessage = throwable.message ?: localization.getString("error_could_not_load_session_details"),
                     )
                 }
             }

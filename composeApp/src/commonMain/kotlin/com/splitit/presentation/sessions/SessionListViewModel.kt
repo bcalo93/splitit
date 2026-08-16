@@ -7,7 +7,6 @@ import com.splitit.domain.model.ExpenseSession
 import com.splitit.domain.usecase.DeleteSessionUseCase
 import com.splitit.domain.usecase.ObserveSessionsUseCase
 import com.splitit.domain.value.SessionId
-import com.splitit.localization.LocalizationKey
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -60,7 +59,7 @@ class SessionListViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSessions),
+                        errorMessage = throwable.message ?: localization.getString("error_could_not_load_sessions"),
                     )
                 }
             }
@@ -86,7 +85,7 @@ class SessionListViewModel(
                 throw exception
             } catch (throwable: Throwable) {
                 _state.update {
-                    it.copy(errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotDeleteSession))
+                    it.copy(errorMessage = throwable.message ?: localization.getString("error_could_not_delete_session"))
                 }
             }
         }

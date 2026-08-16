@@ -7,7 +7,6 @@ import com.splitit.domain.usecase.CreateSessionUseCase
 import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.splitit.domain.usecase.UpdateSessionUseCase
 import com.splitit.domain.value.SessionId
-import com.splitit.localization.LocalizationKey
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,7 +58,7 @@ class SessionFormViewModel(
     fun save() {
         val current = _state.value
         if (current.title.isBlank()) {
-            _state.update { it.copy(titleError = localization.getString(LocalizationKey.ErrorEnterSessionName)) }
+            _state.update { it.copy(titleError = localization.getString("error_enter_session_name")) }
             return
         }
 
@@ -87,7 +86,7 @@ class SessionFormViewModel(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotSaveSession),
+                            errorMessage = throwable.message ?: localization.getString("error_could_not_save_session"),
                         )
                     }
                 }
@@ -115,7 +114,7 @@ class SessionFormViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSession),
+                            errorMessage = throwable.message ?: localization.getString("error_could_not_load_session"),
                         )
                     }
                 }
