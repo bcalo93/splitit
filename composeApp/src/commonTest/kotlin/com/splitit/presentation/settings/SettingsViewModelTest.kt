@@ -8,6 +8,7 @@ import com.splitit.domain.usecase.GetSettingsUseCase
 import com.splitit.domain.usecase.SaveSettingsUseCase
 import com.splitit.testutils.InMemorySettingsRepository
 import com.splitit.testutils.runViewModelTest
+import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,6 +21,7 @@ class SettingsViewModelTest {
         val viewModel = SettingsViewModel(
             getSettings = GetSettingsUseCase(repository),
             saveSettings = SaveSettingsUseCase(repository),
+            localization = testLocalizationService,
         )
         advanceUntilIdle()
 
@@ -41,6 +43,7 @@ class SettingsViewModelTest {
         val viewModel = SettingsViewModel(
             getSettings = GetSettingsUseCase(repository),
             saveSettings = SaveSettingsUseCase(repository),
+            localization = testLocalizationService,
         )
         advanceUntilIdle()
 
@@ -58,6 +61,7 @@ class SettingsViewModelTest {
         val viewModel = SettingsViewModel(
             getSettings = GetSettingsUseCase(repository),
             saveSettings = SaveSettingsUseCase(repository),
+            localization = testLocalizationService,
         )
         advanceUntilIdle()
 

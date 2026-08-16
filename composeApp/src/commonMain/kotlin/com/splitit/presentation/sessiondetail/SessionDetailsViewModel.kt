@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.splitit.domain.usecase.SessionDetails
 import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.splitit.domain.value.SessionId
+import com.splitit.localization.LocalizationKey
+import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,7 @@ data class SessionDetailsUiState(
 class SessionDetailsViewModel(
     private val sessionId: SessionId,
     private val observeSessionDetails: ObserveSessionDetailsUseCase,
+    private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SessionDetailsUiState())
     val state: StateFlow<SessionDetailsUiState> = _state.asStateFlow()
@@ -53,7 +56,7 @@ class SessionDetailsViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: "Could not load session details.",
+                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSessionDetails),
                     )
                 }
             }

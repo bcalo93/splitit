@@ -39,8 +39,27 @@ import com.splitit.presentation.settlement.SettlementViewModel
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.back
+import splitit.composeapp.generated.resources.balances
+import splitit.composeapp.generated.resources.everyone_settled
+import splitit.composeapp.generated.resources.generating
+import splitit.composeapp.generated.resources.generate_settlement
+import splitit.composeapp.generated.resources.is_settled
+import splitit.composeapp.generated.resources.owes_amount
+import splitit.composeapp.generated.resources.pays_to
+import splitit.composeapp.generated.resources.receives_amount
+import splitit.composeapp.generated.resources.regenerate_settlement
+import splitit.composeapp.generated.resources.settlement
+import splitit.composeapp.generated.resources.settlement_description
+import splitit.composeapp.generated.resources.settlement_payments_title
+import splitit.composeapp.generated.resources.settlement_requirements
+import splitit.composeapp.generated.resources.settlement_stale_message
+import splitit.composeapp.generated.resources.transfers
+import splitit.composeapp.generated.resources.unknown
 
 @Composable
 fun SettlementRoute(
@@ -76,10 +95,10 @@ private fun SettlementScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Settlement") },
+                title = { Text(stringResource(Res.string.settlement)) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("Back")
+                        Text(stringResource(Res.string.back))
                     }
                 },
             )
@@ -129,9 +148,9 @@ private fun SettlementContent(
         item {
             Text(
                 text = if (state.settlement == null) {
-                    "Turn the current balances into a short list of payments."
+                    stringResource(Res.string.settlement_description)
                 } else {
-                    "Payments needed to settle this session"
+                    stringResource(Res.string.settlement_payments_title)
                 },
                 style = MaterialTheme.typography.bodyLarge,
             )
@@ -146,7 +165,7 @@ private fun SettlementContent(
         if (state.isSettlementStale) {
             item {
                 Text(
-                    text = "The saved settlement is out of date. Regenerate it to include recent changes.",
+                    text = stringResource(Res.string.settlement_stale_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -166,9 +185,9 @@ private fun SettlementContent(
             ) {
                 Text(
                     when {
-                        state.isGenerating -> "Generating"
-                        state.settlement == null -> "Generate settlement"
-                        else -> "Regenerate settlement"
+                        state.isGenerating -> stringResource(Res.string.generating)
+                        state.settlement == null -> stringResource(Res.string.generate_settlement)
+                        else -> stringResource(Res.string.regenerate_settlement)
                     },
                 )
             }
@@ -177,7 +196,7 @@ private fun SettlementContent(
         if (!state.canGenerateSettlement) {
             item {
                 Text(
-                    text = "Add at least two participants and one expense before generating a settlement.",
+                    text = stringResource(Res.string.settlement_requirements),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -187,7 +206,7 @@ private fun SettlementContent(
         if (state.balances.isNotEmpty()) {
             item {
                 Text(
-                    text = "Balances",
+                    text = stringResource(Res.string.balances),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -204,7 +223,7 @@ private fun SettlementContent(
         state.settlement?.let { settlement ->
             item {
                 Text(
-                    text = "Transfers",
+                    text = stringResource(Res.string.transfers),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -212,7 +231,7 @@ private fun SettlementContent(
             if (settlement.transfers.isEmpty()) {
                 item {
                     Text(
-                        text = "Everyone is settled up.",
+                        text = stringResource(Res.string.everyone_settled),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -238,13 +257,13 @@ private fun BalanceRow(
     balance: Balance,
     participantNames: Map<ParticipantId, String>,
 ) {
-    val name = participantNames[balance.participantId] ?: "Unknown"
+    val name = participantNames[balance.participantId] ?: stringResource(Res.string.unknown)
     val minorUnits = balance.amount.minorUnits
     val amount = formatMinorUnits(if (minorUnits < 0) -minorUnits else minorUnits)
     val message = when {
-        minorUnits > 0 -> "$name receives ${balance.amount.currencyCode} $amount"
-        minorUnits < 0 -> "$name owes ${balance.amount.currencyCode} $amount"
-        else -> "$name is settled"
+        minorUnits > 0 -> stringResource(Res.string.receives_amount, name, balance.amount.currencyCode, amount)
+        minorUnits < 0 -> stringResource(Res.string.owes_amount, name, balance.amount.currencyCode, amount)
+        else -> stringResource(Res.string.is_settled, name)
     }
 
     Text(
@@ -269,8 +288,11 @@ private fun SettlementTransferRow(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
-                text = "${participantNames[transfer.fromParticipantId] ?: "Unknown"} pays " +
-                    (participantNames[transfer.toParticipantId] ?: "Unknown"),
+                text = stringResource(
+                    Res.string.pays_to,
+                    participantNames[transfer.fromParticipantId] ?: stringResource(Res.string.unknown),
+                    participantNames[transfer.toParticipantId] ?: stringResource(Res.string.unknown),
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )

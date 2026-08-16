@@ -10,6 +10,8 @@ import com.splitit.domain.usecase.RemoveParticipantUseCase
 import com.splitit.domain.usecase.UpdateParticipantUseCase
 import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.SessionId
+import com.splitit.localization.LocalizationKey
+import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +47,7 @@ class ParticipantsViewModel(
     private val addParticipant: AddParticipantUseCase,
     private val updateParticipant: UpdateParticipantUseCase,
     private val removeParticipant: RemoveParticipantUseCase,
+    private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ParticipantsUiState())
     val state: StateFlow<ParticipantsUiState> = _state.asStateFlow()
@@ -74,7 +77,7 @@ class ParticipantsViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: "Could not load participants.",
+                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadParticipants),
                     )
                 }
             }
@@ -114,7 +117,7 @@ class ParticipantsViewModel(
     fun save() {
         val current = _state.value
         if (current.name.isBlank()) {
-            _state.update { it.copy(nameError = "Enter a participant name.") }
+            _state.update { it.copy(nameError = localization.getString(LocalizationKey.ErrorEnterParticipantName)) }
             return
         }
 
@@ -138,7 +141,7 @@ class ParticipantsViewModel(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = throwable.message ?: "Could not save participant.",
+                            errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotSaveParticipant),
                         )
                     }
                 }
@@ -153,9 +156,9 @@ class ParticipantsViewModel(
                     _state.update {
                         it.copy(
                             errorMessage = if (throwable is IllegalArgumentException) {
-                                "Participant cannot be removed because it is used by expenses."
+                                localization.getString(LocalizationKey.ErrorParticipantUsedByExpenses)
                             } else {
-                                throwable.message ?: "Could not remove participant."
+                                throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotRemoveParticipant)
                             },
                         )
                     }

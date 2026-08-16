@@ -7,6 +7,8 @@ import com.splitit.domain.usecase.CreateSessionUseCase
 import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.splitit.domain.usecase.UpdateSessionUseCase
 import com.splitit.domain.value.SessionId
+import com.splitit.localization.LocalizationKey
+import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +31,7 @@ class SessionFormViewModel(
     private val createSession: CreateSessionUseCase,
     private val updateSession: UpdateSessionUseCase,
     private val observeSessionDetails: ObserveSessionDetailsUseCase,
+    private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SessionFormUiState(isLoading = sessionId != null))
     val state: StateFlow<SessionFormUiState> = _state.asStateFlow()
@@ -56,7 +59,7 @@ class SessionFormViewModel(
     fun save() {
         val current = _state.value
         if (current.title.isBlank()) {
-            _state.update { it.copy(titleError = "Enter a session name.") }
+            _state.update { it.copy(titleError = localization.getString(LocalizationKey.ErrorEnterSessionName)) }
             return
         }
 
@@ -84,7 +87,7 @@ class SessionFormViewModel(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = throwable.message ?: "Could not save the session.",
+                            errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotSaveSession),
                         )
                     }
                 }
@@ -112,7 +115,7 @@ class SessionFormViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = throwable.message ?: "Could not load the session.",
+                            errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSession),
                         )
                     }
                 }

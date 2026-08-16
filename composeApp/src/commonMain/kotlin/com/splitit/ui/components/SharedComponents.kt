@@ -16,6 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.clear
+import splitit.composeapp.generated.resources.clear_search
+import splitit.composeapp.generated.resources.loading
+import splitit.composeapp.generated.resources.no_results_match
+import splitit.composeapp.generated.resources.retry
 
 @Composable
 fun SearchField(
@@ -32,7 +39,7 @@ fun SearchField(
         trailingIcon = if (query.isNotEmpty()) {
             {
                 TextButton(onClick = { onQueryChange("") }) {
-                    Text("Clear")
+                    Text(stringResource(Res.string.clear))
                 }
             }
         } else {
@@ -52,7 +59,7 @@ fun LoadingState(
     ) {
         CircularProgressIndicator()
         Text(
-            text = "Loading...",
+            text = stringResource(Res.string.loading),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -77,7 +84,7 @@ fun InlineErrorState(
             color = MaterialTheme.colorScheme.error,
         )
         TextButton(onClick = onRetry) {
-            Text("Retry")
+            Text(stringResource(Res.string.retry))
         }
     }
 }
@@ -99,7 +106,7 @@ fun ErrorState(
             color = MaterialTheme.colorScheme.error,
         )
         OutlinedButton(onClick = onRetry) {
-            Text("Retry")
+            Text(stringResource(Res.string.retry))
         }
     }
 }
@@ -117,11 +124,11 @@ fun NoSearchResultsState(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = "No $entityName match \"$query\".",
+            text = stringResource(Res.string.no_results_match, entityName, query),
             style = MaterialTheme.typography.bodyLarge,
         )
         OutlinedButton(onClick = onClear) {
-            Text("Clear search")
+            Text(stringResource(Res.string.clear_search))
         }
     }
 }

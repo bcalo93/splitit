@@ -10,6 +10,8 @@ import com.splitit.domain.usecase.CalculateSessionBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementUseCase
 import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.splitit.domain.value.SessionId
+import com.splitit.localization.LocalizationKey
+import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +38,7 @@ class SettlementViewModel(
     private val observeSessionDetails: ObserveSessionDetailsUseCase,
     private val calculateSessionBalances: CalculateSessionBalancesUseCase,
     private val generateSettlement: GenerateSettlementUseCase,
+    private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettlementUiState())
     val state: StateFlow<SettlementUiState> = _state.asStateFlow()
@@ -60,7 +63,7 @@ class SettlementViewModel(
                     it.copy(
                         isLoading = false,
                         isGenerating = false,
-                        errorMessage = throwable.message ?: "Could not load settlement.",
+                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSettlement),
                     )
                 }
             }
@@ -72,7 +75,7 @@ class SettlementViewModel(
         if (current.isLoading || current.isGenerating) return
         if (!current.canGenerateSettlement) {
             _state.update {
-                it.copy(errorMessage = "Add at least two participants and an expense first.")
+                it.copy(errorMessage = localization.getString(LocalizationKey.ErrorAddParticipantsAndExpense))
             }
             return
         }
@@ -89,7 +92,7 @@ class SettlementViewModel(
                 _state.update {
                     it.copy(
                         isGenerating = false,
-                        errorMessage = throwable.message ?: "Could not generate settlement.",
+                        errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotGenerateSettlement),
                     )
                 }
             }

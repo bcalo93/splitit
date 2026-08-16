@@ -25,8 +25,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.splitit.domain.value.SessionId
 import com.splitit.presentation.sessions.SessionFormUiState
 import com.splitit.presentation.sessions.SessionFormViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.back
+import splitit.composeapp.generated.resources.description
+import splitit.composeapp.generated.resources.edit_session
+import splitit.composeapp.generated.resources.name
+import splitit.composeapp.generated.resources.new_session
+import splitit.composeapp.generated.resources.save
+import splitit.composeapp.generated.resources.saving
 
 @Composable
 fun SessionFormRoute(
@@ -72,10 +81,10 @@ private fun SessionFormScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) "Edit session" else "New session") },
+                title = { Text(if (isEditing) stringResource(Res.string.edit_session) else stringResource(Res.string.new_session)) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("Back")
+                        Text(stringResource(Res.string.back))
                     }
                 },
                 actions = {
@@ -84,7 +93,7 @@ private fun SessionFormScreen(
                         enabled = !state.isSaving && !state.isLoading,
                         onClick = onSave,
                     ) {
-                        Text(if (state.isSaving) "Saving" else "Save")
+                        Text(if (state.isSaving) stringResource(Res.string.saving) else stringResource(Res.string.save))
                     }
                 },
             )
@@ -104,7 +113,7 @@ private fun SessionFormScreen(
                     value = state.title,
                     onValueChange = onTitleChange,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Name") },
+                    label = { Text(stringResource(Res.string.name)) },
                     singleLine = true,
                     isError = state.titleError != null,
                     supportingText = state.titleError?.let { message -> { Text(message) } },
@@ -115,7 +124,7 @@ private fun SessionFormScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(132.dp),
-                    label = { Text("Description") },
+                    label = { Text(stringResource(Res.string.description)) },
                     maxLines = 4,
                 )
                 state.errorMessage?.let {

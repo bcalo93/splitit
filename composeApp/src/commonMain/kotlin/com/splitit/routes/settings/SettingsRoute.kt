@@ -34,6 +34,24 @@ import com.splitit.presentation.settings.SettingsUiState
 import com.splitit.presentation.settings.SettingsViewModel
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.LoadingState
+import org.jetbrains.compose.resources.stringResource
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.back
+import splitit.composeapp.generated.resources.currency_hint
+import splitit.composeapp.generated.resources.default_currency
+import splitit.composeapp.generated.resources.preferences_stored_locally
+import splitit.composeapp.generated.resources.retry
+import splitit.composeapp.generated.resources.save
+import splitit.composeapp.generated.resources.saving
+import splitit.composeapp.generated.resources.settings
+import splitit.composeapp.generated.resources.settings_saved
+import splitit.composeapp.generated.resources.theme
+import splitit.composeapp.generated.resources.theme_dark
+import splitit.composeapp.generated.resources.theme_dark_description
+import splitit.composeapp.generated.resources.theme_light
+import splitit.composeapp.generated.resources.theme_light_description
+import splitit.composeapp.generated.resources.theme_system
+import splitit.composeapp.generated.resources.theme_system_description
 
 @Composable
 fun SettingsRoute(
@@ -66,10 +84,10 @@ private fun SettingsScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(Res.string.settings)) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("Back")
+                        Text(stringResource(Res.string.back))
                     }
                 },
                 actions = {
@@ -78,7 +96,7 @@ private fun SettingsScreen(
                         enabled = !state.isLoading && !state.isSaving,
                         onClick = onSave,
                     ) {
-                        Text(if (state.isSaving) "Saving" else "Save")
+                        Text(if (state.isSaving) stringResource(Res.string.saving) else stringResource(Res.string.save))
                     }
                 },
             )
@@ -103,7 +121,7 @@ private fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
                 Text(
-                    text = "Preferences are stored only on this device.",
+                    text = stringResource(Res.string.preferences_stored_locally),
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 OutlinedTextField(
@@ -111,19 +129,19 @@ private fun SettingsScreen(
                     onValueChange = onCurrencyCodeChange,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !state.isSaving,
-                    label = { Text("Default currency") },
+                    label = { Text(stringResource(Res.string.default_currency)) },
                     supportingText = {
                         if (state.currencyError != null) {
                             Text(state.currencyError)
                         } else {
-                            Text("Use a 3-letter ISO code for new expenses, such as USD or EUR.")
+                            Text(stringResource(Res.string.currency_hint))
                         }
                     },
                     isError = state.currencyError != null,
                     singleLine = true,
                 )
                 Text(
-                    text = "Theme",
+                    text = stringResource(Res.string.theme),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -144,14 +162,14 @@ private fun SettingsScreen(
                 }
                 if (state.saveCompleted) {
                     Text(
-                        text = "Settings saved locally.",
+                        text = stringResource(Res.string.settings_saved),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
                 if (state.errorMessage != null) {
                     OutlinedButton(onClick = onRetry) {
-                        Text("Retry")
+                        Text(stringResource(Res.string.retry))
                     }
                 }
             }
@@ -192,18 +210,20 @@ private fun ThemeModeOption(
     }
 }
 
+@Composable
 private fun themeModeLabel(themeMode: ThemeMode): String {
     return when (themeMode) {
-        ThemeMode.System -> "System default"
-        ThemeMode.Light -> "Light"
-        ThemeMode.Dark -> "Dark"
+        ThemeMode.System -> stringResource(Res.string.theme_system)
+        ThemeMode.Light -> stringResource(Res.string.theme_light)
+        ThemeMode.Dark -> stringResource(Res.string.theme_dark)
     }
 }
 
+@Composable
 private fun themeModeDescription(themeMode: ThemeMode): String {
     return when (themeMode) {
-        ThemeMode.System -> "Follow the device theme."
-        ThemeMode.Light -> "Always use the light theme."
-        ThemeMode.Dark -> "Always use the dark theme."
+        ThemeMode.System -> stringResource(Res.string.theme_system_description)
+        ThemeMode.Light -> stringResource(Res.string.theme_light_description)
+        ThemeMode.Dark -> stringResource(Res.string.theme_dark_description)
     }
 }

@@ -7,6 +7,8 @@ import com.splitit.domain.repository.AppSettings
 import com.splitit.domain.repository.ThemeMode
 import com.splitit.domain.usecase.GetSettingsUseCase
 import com.splitit.domain.usecase.SaveSettingsUseCase
+import com.splitit.localization.LocalizationKey
+import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +29,7 @@ data class SettingsUiState(
 class SettingsViewModel(
     private val getSettings: GetSettingsUseCase,
     private val saveSettings: SaveSettingsUseCase,
+    private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettingsUiState())
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
@@ -55,7 +58,7 @@ class SettingsViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = throwable.message ?: "Could not load settings.",
+                            errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotLoadSettings),
                         )
                     }
                 }
@@ -90,7 +93,7 @@ class SettingsViewModel(
         val currencyCode = current.draftSettings.defaultCurrencyCode.trim().uppercase()
         if (!isValidCurrencyCode(currencyCode)) {
             _state.update {
-                it.copy(currencyError = "Use a 3-letter currency code, such as USD or EUR.")
+                it.copy(currencyError = localization.getString(LocalizationKey.ErrorInvalidCurrency))
             }
             return
         }
@@ -121,7 +124,7 @@ class SettingsViewModel(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = throwable.message ?: "Could not save settings.",
+                            errorMessage = throwable.message ?: localization.getString(LocalizationKey.ErrorCouldNotSaveSettings),
                         )
                     }
                 }

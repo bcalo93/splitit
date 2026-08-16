@@ -51,8 +51,25 @@ import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
 import com.splitit.ui.components.participantColor
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.add_first_participant
+import splitit.composeapp.generated.resources.add_participant
+import splitit.composeapp.generated.resources.back
+import splitit.composeapp.generated.resources.cancel
+import splitit.composeapp.generated.resources.delete
+import splitit.composeapp.generated.resources.edit
+import splitit.composeapp.generated.resources.edit_participant
+import splitit.composeapp.generated.resources.name
+import splitit.composeapp.generated.resources.no_participants_yet
+import splitit.composeapp.generated.resources.participants
+import splitit.composeapp.generated.resources.remove
+import splitit.composeapp.generated.resources.remove_participant_message
+import splitit.composeapp.generated.resources.remove_participant_title
+import splitit.composeapp.generated.resources.save
+import splitit.composeapp.generated.resources.saving
 
 @Composable
 fun ParticipantsRoute(
@@ -98,10 +115,10 @@ private fun ParticipantsScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Participants") },
+                title = { Text(stringResource(Res.string.participants)) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("Back")
+                        Text(stringResource(Res.string.back))
                     }
                 },
             )
@@ -186,7 +203,7 @@ private fun ParticipantForm(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                text = if (state.editingParticipantId == null) "Add participant" else "Edit participant",
+                text = if (state.editingParticipantId == null) stringResource(Res.string.add_participant) else stringResource(Res.string.edit_participant),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -194,7 +211,7 @@ private fun ParticipantForm(
                 value = state.name,
                 onValueChange = onNameChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Name") },
+                label = { Text(stringResource(Res.string.name)) },
                 singleLine = true,
                 isError = state.nameError != null,
                 supportingText = state.nameError?.let { message -> { Text(message) } },
@@ -208,11 +225,11 @@ private fun ParticipantForm(
                     enabled = !state.isSaving && !state.isLoading,
                     onClick = onSave,
                 ) {
-                    Text(if (state.isSaving) "Saving" else "Save")
+                    Text(if (state.isSaving) stringResource(Res.string.saving) else stringResource(Res.string.save))
                 }
                 if (state.editingParticipantId != null) {
                     TextButton(onClick = onCancelEdit) {
-                        Text("Cancel")
+                        Text(stringResource(Res.string.cancel))
                     }
                 }
             }
@@ -279,10 +296,10 @@ private fun ParticipantRow(
                 overflow = TextOverflow.Ellipsis,
             )
             OutlinedButton(onClick = onEdit) {
-                Text("Edit")
+                Text(stringResource(Res.string.edit))
             }
             TextButton(onClick = { showDeleteConfirmation = true }) {
-                Text("Delete")
+                Text(stringResource(Res.string.delete))
             }
         }
     }
@@ -290,8 +307,8 @@ private fun ParticipantRow(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Remove participant?") },
-            text = { Text("Participants used by expenses cannot be removed.") },
+            title = { Text(stringResource(Res.string.remove_participant_title)) },
+            text = { Text(stringResource(Res.string.remove_participant_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -299,12 +316,12 @@ private fun ParticipantRow(
                         onDelete()
                     },
                 ) {
-                    Text("Remove")
+                    Text(stringResource(Res.string.remove))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         )
@@ -321,12 +338,12 @@ private fun EmptyParticipantsState(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = "No participants yet",
+            text = stringResource(Res.string.no_participants_yet),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = "Add the first person to start splitting expenses.",
+            text = stringResource(Res.string.add_first_participant),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

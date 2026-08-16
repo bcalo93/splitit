@@ -1,0 +1,93 @@
+<resources>
+    <string name="app_name">SplitIt</string>
+
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="saving">Saving</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="retry">Retry</string>
+    <string name="loading">Loading...</string>
+    <string name="clear">Clear</string>
+    <string name="clear_search">Clear search</string>
+    <string name="remove">Remove</string>
+    <string name="name">Name</string>
+    <string name="description">Description</string>
+    <string name="title">Title</string>
+    <string name="note">Note</string>
+    <string name="unknown">Unknown</string>
+    <string name="settings">Settings</string>
+    <string name="new_action">New</string>
+
+    <string name="search_sessions">Search sessions</string>
+    <string name="entity_sessions">sessions</string>
+    <string name="no_sessions_yet">No sessions yet</string>
+    <string name="create_session">Create session</string>
+    <string name="delete_session_title">Delete session?</string>
+    <string name="delete_session_message">This removes the session and its local data from this device.</string>
+    <string name="session_summary">%1$d participants | %2$d expenses</string>
+    <string name="no_results_match">No %1$s match \"%2$s\".</string>
+
+    <string name="session">Session</string>
+    <string name="participants">Participants</string>
+    <string name="expenses">Expenses</string>
+    <string name="manage_participants">Manage participants</string>
+    <string name="manage_expenses">Manage expenses</string>
+    <string name="settlement_needs_regeneration">Settlement needs to be regenerated after source data changed.</string>
+    <string name="settlement_up_to_date">Settlement is up to date.</string>
+    <string name="generate_settlement">Generate settlement</string>
+    <string name="view_settlement">View settlement</string>
+
+    <string name="edit_session">Edit session</string>
+    <string name="new_session">New session</string>
+
+    <string name="settlement">Settlement</string>
+    <string name="settlement_description">Turn the current balances into a short list of payments.</string>
+    <string name="settlement_payments_title">Payments needed to settle this session</string>
+    <string name="settlement_stale_message">The saved settlement is out of date. Regenerate it to include recent changes.</string>
+    <string name="generating">Generating</string>
+    <string name="regenerate_settlement">Regenerate settlement</string>
+    <string name="settlement_requirements">Add at least two participants and one expense before generating a settlement.</string>
+    <string name="balances">Balances</string>
+    <string name="transfers">Transfers</string>
+    <string name="everyone_settled">Everyone is settled up.</string>
+    <string name="receives_amount">%1$s receives %2$s %3$s</string>
+    <string name="owes_amount">%1$s owes %2$s %3$s</string>
+    <string name="is_settled">%s is settled</string>
+    <string name="pays_to">%1$s pays %2$s</string>
+
+    <string name="preferences_stored_locally">Preferences are stored only on this device.</string>
+    <string name="default_currency">Default currency</string>
+    <string name="currency_hint">Use a 3-letter ISO code for new expenses, such as USD or EUR.</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system_description">Follow the device theme.</string>
+    <string name="theme_light_description">Always use the light theme.</string>
+    <string name="theme_dark_description">Always use the dark theme.</string>
+    <string name="settings_saved">Settings saved locally.</string>
+
+    <string name="add_participant">Add participant</string>
+    <string name="edit_participant">Edit participant</string>
+    <string name="remove_participant_title">Remove participant?</string>
+    <string name="remove_participant_message">Participants used by expenses cannot be removed.</string>
+    <string name="no_participants_yet">No participants yet</string>
+    <string name="add_first_participant">Add the first person to start splitting expenses.</string>
+
+    <string name="search_expenses">Search expenses</string>
+    <string name="entity_expenses">expenses</string>
+    <string name="add_expense">Add expense</string>
+    <string name="edit_expense">Edit expense</string>
+    <string name="amount_label">Amount (%s)</string>
+    <string name="paid_by">Paid by</string>
+    <string name="split_between">Split between</string>
+    <string name="add_participants_before_expenses">Add participants before creating expenses.</string>
+    <string name="paid_by_name">Paid by %s</string>
+    <string name="split_names">Split: %s</string>
+    <string name="delete_expense_title">Delete expense?</string>
+    <string name="delete_expense_message">This removes the expense from this session.</string>
+    <string name="no_expenses_yet">No expenses yet</string>
+    <string name="add_first_expense">Add the first expense to split it equally.</string>
+</resources>
