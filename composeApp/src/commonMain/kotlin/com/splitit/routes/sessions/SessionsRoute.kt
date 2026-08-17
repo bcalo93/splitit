@@ -1,30 +1,29 @@
 package com.splitit.routes.sessions
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,35 +33,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.Participant
 import com.splitit.domain.value.SessionId
 import com.splitit.presentation.sessions.SessionListUiState
 import com.splitit.presentation.sessions.SessionListViewModel
+import com.splitit.ui.components.AvatarBubble
+import com.splitit.ui.components.AvatarStackItem
+import com.splitit.ui.components.ConfirmDeleteDialog
 import com.splitit.ui.components.ErrorState
+import com.splitit.ui.components.GroupCard
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
 import com.splitit.ui.components.NoSearchResultsState
+import com.splitit.ui.components.PrimaryButton
 import com.splitit.ui.components.SearchField
+import com.splitit.ui.components.SplitItIcons
+import com.splitit.ui.components.SplitItLargeTopBar
+import com.splitit.ui.components.SplitItScaffold
+import com.splitit.ui.components.StatusChipStyle
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import splitit.composeapp.generated.resources.Res
-import splitit.composeapp.generated.resources.app_name
-import splitit.composeapp.generated.resources.cancel
-import splitit.composeapp.generated.resources.create_session
+import splitit.composeapp.generated.resources.cd_settings
+import splitit.composeapp.generated.resources.create_first_group
 import splitit.composeapp.generated.resources.delete
-import splitit.composeapp.generated.resources.delete_session_message
-import splitit.composeapp.generated.resources.delete_session_title
+import splitit.composeapp.generated.resources.delete_group_message
+import splitit.composeapp.generated.resources.delete_group_title
 import splitit.composeapp.generated.resources.edit
-import splitit.composeapp.generated.resources.entity_sessions
-import splitit.composeapp.generated.resources.new_action
-import splitit.composeapp.generated.resources.no_sessions_yet
-import splitit.composeapp.generated.resources.search_sessions
-import splitit.composeapp.generated.resources.session_summary
-import splitit.composeapp.generated.resources.settings
+import splitit.composeapp.generated.resources.entity_groups
+import splitit.composeapp.generated.resources.group_status_pending
+import splitit.composeapp.generated.resources.group_status_up_to_date
+import splitit.composeapp.generated.resources.group_summary
+import splitit.composeapp.generated.resources.groups_title
+import splitit.composeapp.generated.resources.new_group
+import splitit.composeapp.generated.resources.no_groups_yet
+import splitit.composeapp.generated.resources.search_groups
 
 @Composable
 fun SessionsRoute(
@@ -77,7 +89,7 @@ fun SessionsRoute(
         viewModel.refresh()
     }
 
-    SessionListScreen(
+    GroupsScreen(
         state = state,
         onCreate = onCreate,
         onOpen = onOpen,
@@ -91,7 +103,7 @@ fun SessionsRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SessionListScreen(
+private fun GroupsScreen(
     state: SessionListUiState,
     onCreate: () -> Unit,
     onOpen: (SessionId) -> Unit,
@@ -101,33 +113,45 @@ private fun SessionListScreen(
     onDelete: (SessionId) -> Unit,
     onRetry: () -> Unit,
 ) {
-    Scaffold(
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val fabExpanded = scrollBehavior.state.collapsedFraction < 0.5f
+
+    SplitItScaffold(
         modifier = Modifier.safeContentPadding(),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.app_name)) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+            SplitItLargeTopBar(
+                title = stringResource(Res.string.groups_title),
+                scrollBehavior = scrollBehavior,
                 actions = {
-                    TextButton(onClick = onSettings) {
-                        Text(stringResource(Res.string.settings))
-                    }
-                    Button(
-                        modifier = Modifier.padding(end = 16.dp),
-                        onClick = onCreate,
-                    ) {
-                        Text(stringResource(Res.string.new_action))
+                    IconButton(onClick = onSettings) {
+                        Icon(
+                            painter = painterResource(SplitItIcons.Settings),
+                            contentDescription = stringResource(Res.string.cd_settings),
+                        )
                     }
                 },
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onCreate,
+                expanded = fabExpanded,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                icon = {
+                    Icon(
+                        painter = painterResource(SplitItIcons.Add),
+                        contentDescription = null,
+                    )
+                },
+                text = { Text(stringResource(Res.string.new_group)) },
             )
         },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(paddingValues),
         ) {
             when {
                 state.isLoading && state.sessions.isEmpty() -> LoadingState(
@@ -140,47 +164,57 @@ private fun SessionListScreen(
                 )
                 else -> Column(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (state.sessions.isNotEmpty() || state.searchQuery.isNotBlank()) {
                         SearchField(
                             query = state.searchQuery,
-                            label = stringResource(Res.string.search_sessions),
+                            label = stringResource(Res.string.search_groups),
                             onQueryChange = onSearchQueryChange,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
                         )
-                    }
-                    if (state.isLoading) {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     state.errorMessage?.let { message ->
                         InlineErrorState(message = message, onRetry = onRetry)
                     }
                     when {
-                        state.sessions.isEmpty() -> EmptySessionsState(
+                        state.sessions.isEmpty() -> GroupsEmptyState(
                             onCreate = onCreate,
                             modifier = Modifier.weight(1f),
                         )
                         state.visibleSessions.isEmpty() -> NoSearchResultsState(
                             query = state.searchQuery,
-                            entityName = stringResource(Res.string.entity_sessions),
+                            entityName = stringResource(Res.string.entity_groups),
                             onClear = { onSearchQueryChange("") },
                             modifier = Modifier.weight(1f),
                         )
                         else -> LazyColumn(
-                            modifier = Modifier.fillMaxWidth().weight(1f),
-                            contentPadding = PaddingValues(bottom = 16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 12.dp,
+                                bottom = 88.dp,
+                            ),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(
                                 items = state.visibleSessions,
                                 key = { it.id.value },
-                                contentType = { "session" },
+                                contentType = { "group" },
                             ) { session ->
-                                SessionRow(
+                                GroupRow(
                                     session = session,
+                                    participants = state.participantsBySession[session.id].orEmpty(),
+                                    isPending = session.id in state.pendingSessionIds,
                                     onOpen = { onOpen(session.id) },
                                     onEdit = { onEdit(session.id) },
                                     onDelete = { onDelete(session.id) },
+                                    modifier = Modifier.animateItem(),
                                 )
                             }
                         }
@@ -192,100 +226,137 @@ private fun SessionListScreen(
 }
 
 @Composable
-private fun SessionRow(
+private fun GroupRow(
     session: ExpenseSession,
+    participants: List<Participant>,
+    isPending: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val avatarItems = participants.map { AvatarStackItem(name = it.name, colorHex = it.avatarColor) }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpen),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+    Box(modifier = modifier.fillMaxWidth()) {
+        GroupCard(
+            title = session.title,
+            subtitle = stringResource(
+                Res.string.group_summary,
+                session.participantIds.size,
+                session.expenseIds.size,
+            ),
+            avatarItems = avatarItems,
+            status = if (isPending) StatusChipStyle.Pending else StatusChipStyle.UpToDate,
+            statusLabel = stringResource(
+                if (isPending) Res.string.group_status_pending else Res.string.group_status_up_to_date,
+            ),
+            onClick = onOpen,
+            onMoreClick = { menuExpanded = true },
+        )
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = { menuExpanded = false },
         ) {
-            Text(
-                text = session.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.edit)) },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(SplitItIcons.Edit),
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    menuExpanded = false
+                    onEdit()
+                },
             )
-            session.description?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Text(
-                text = stringResource(Res.string.session_summary, session.participantIds.size, session.expenseIds.size),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.delete)) },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(SplitItIcons.Delete),
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    menuExpanded = false
+                    showDeleteConfirmation = true
+                },
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onEdit) {
-                    Text(stringResource(Res.string.edit))
-                }
-                TextButton(onClick = { showDeleteConfirmation = true }) {
-                    Text(stringResource(Res.string.delete))
-                }
-            }
         }
     }
 
     if (showDeleteConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text(stringResource(Res.string.delete_session_title)) },
-            text = { Text(stringResource(Res.string.delete_session_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteConfirmation = false
-                        onDelete()
-                    },
-                ) {
-                    Text(stringResource(Res.string.delete))
-                }
+        ConfirmDeleteDialog(
+            title = stringResource(Res.string.delete_group_title),
+            message = stringResource(Res.string.delete_group_message),
+            onConfirm = {
+                showDeleteConfirmation = false
+                onDelete()
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text(stringResource(Res.string.cancel))
-                }
-            },
+            onDismiss = { showDeleteConfirmation = false },
         )
     }
 }
 
 @Composable
-private fun EmptySessionsState(
+private fun GroupsEmptyState(
     onCreate: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(24.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.Center,
     ) {
+        GroupsEmptyIllustration()
+        Spacer(Modifier.height(24.dp))
         Text(
-            text = stringResource(Res.string.no_sessions_yet),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
+            text = stringResource(Res.string.no_groups_yet),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
         )
-        Button(onClick = onCreate) {
-            Text(stringResource(Res.string.create_session))
+        Spacer(Modifier.height(16.dp))
+        PrimaryButton(
+            text = stringResource(Res.string.create_first_group),
+            onClick = onCreate,
+        )
+    }
+}
+
+@Composable
+private fun GroupsEmptyIllustration(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.size(width = 152.dp, height = 104.dp),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = 80.dp, height = 48.dp)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 10.dp,
+                        topEnd = 10.dp,
+                        bottomStart = 24.dp,
+                        bottomEnd = 24.dp,
+                    ),
+                )
+                .background(MaterialTheme.colorScheme.primaryContainer),
+        )
+        Row(
+            modifier = Modifier.align(Alignment.TopCenter),
+            horizontalArrangement = Arrangement.spacedBy((-12).dp),
+        ) {
+            AvatarBubble(name = "Ana", colorHex = "#E0533D", size = 40.dp)
+            AvatarBubble(name = "Bea", colorHex = "#0F7B7E", size = 40.dp)
+            AvatarBubble(name = "Cris", colorHex = "#5B5FC7", size = 40.dp)
         }
     }
 }

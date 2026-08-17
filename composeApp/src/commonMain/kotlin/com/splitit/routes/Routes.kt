@@ -41,7 +41,7 @@ data class SessionForm(val sessionId: String? = null)
 data class Participants(val sessionId: String)
 
 @Serializable
-data class Expenses(val sessionId: String)
+data class Expenses(val sessionId: String, val openExpenseForm: Boolean = false)
 
 @Serializable
 data class Settlement(val sessionId: String)
@@ -119,9 +119,9 @@ fun SplitItRoutes(
             SessionDetailsRoute(
                 sessionId = SessionId(route.sessionId),
                 onBack = { navController.popBackStack() },
-                onEdit = { navController.navigate(SessionForm(route.sessionId)) },
                 onParticipants = { navController.navigate(Participants(route.sessionId)) },
                 onExpenses = { navController.navigate(Expenses(route.sessionId)) },
+                onAddExpense = { navController.navigate(Expenses(route.sessionId, openExpenseForm = true)) },
                 onSettlement = { navController.navigate(Settlement(route.sessionId)) },
             )
         }

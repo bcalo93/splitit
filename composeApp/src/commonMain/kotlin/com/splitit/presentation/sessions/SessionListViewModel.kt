@@ -4,7 +4,9 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.Participant
 import com.splitit.domain.usecase.DeleteSessionUseCase
+import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
 import com.splitit.domain.usecase.ObserveSessionsUseCase
 import com.splitit.domain.value.SessionId
 import com.splitit.localization.LocalizedString
@@ -24,10 +26,13 @@ data class SessionListUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val participantsBySession: Map<SessionId, List<Participant>> = emptyMap(),
+    val pendingSessionIds: Set<SessionId> = emptySet(),
 )
 
 class SessionListViewModel(
     private val observeSessions: ObserveSessionsUseCase,
+    private val observeSessionDetails: ObserveSessionDetailsUseCase,
     private val deleteSession: DeleteSessionUseCase,
     private val localization: LocalizationService,
 ) : ViewModel() {
@@ -46,10 +51,29 @@ class SessionListViewModel(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 val sessions = observeSessions()
+                val participantsBySession = mutableMapOf<SessionId, List<Participant>>()
+                val pendingSessionIds = mutableSetOf<SessionId>()
+                sessions.forEach { session ->
+                    try {
+                        val details = observeSessionDetails(session.id)
+                        participantsBySession[session.id] = details.participants
+                        val pending = details.isSettlementStale ||
+                            (details.latestSettlement == null && details.expenses.isNotEmpty())
+                        if (pending) {
+                            pendingSessionIds.add(session.id)
+                        }
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Throwable) {
+                        // Enrichment is best-effort; the list still renders its counts.
+                    }
+                }
                 _state.update {
                     it.copy(
                         sessions = sessions,
                         visibleSessions = filterSessions(sessions, it.searchQuery),
+                        participantsBySession = participantsBySession,
+                        pendingSessionIds = pendingSessionIds,
                         isLoading = false,
                         errorMessage = null,
                     )

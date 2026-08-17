@@ -29,6 +29,18 @@
     <string name="session_summary">%1$d participantes | %2$d gastos</string>
     <string name="no_results_match">Ningún %1$s coincide con \"%2$s\".</string>
 
+    <string name="groups_title">Tus grupos</string>
+    <string name="new_group">Nuevo grupo</string>
+    <string name="search_groups">Buscar grupos</string>
+    <string name="entity_groups">grupos</string>
+    <string name="no_groups_yet">Aún no tienes grupos</string>
+    <string name="create_first_group">Crea tu primer grupo</string>
+    <string name="group_status_up_to_date">Al día</string>
+    <string name="group_status_pending">Pendiente</string>
+    <string name="group_summary">%1$d personas · %2$d gastos</string>
+    <string name="delete_group_title">¿Eliminar grupo?</string>
+    <string name="delete_group_message">Esto elimina el grupo y sus datos locales de este dispositivo.</string>
+
     <string name="session">Sesión</string>
     <string name="participants">Participantes</string>
     <string name="expenses">Gastos</string>
@@ -38,6 +50,9 @@
     <string name="settlement_up_to_date">La liquidación está actualizada.</string>
     <string name="generate_settlement">Generar liquidación</string>
     <string name="view_settlement">Ver liquidación</string>
+    <string name="total_spent">Gastado en total</string>
+    <string name="settlement_balanced">Liquidación al día</string>
+    <string name="settlement_pending_changes">Hay cambios sin liquidar</string>
 
     <string name="edit_session">Editar sesión</string>
     <string name="new_session">Nueva sesión</string>

@@ -23,12 +23,14 @@ import splitit.composeapp.generated.resources.cd_back
 fun SplitItScaffold(
     modifier: Modifier = Modifier,
     topBar: @Composable () -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = topBar,
+        floatingActionButton = floatingActionButton,
         content = content,
     )
 }

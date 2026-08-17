@@ -3,8 +3,10 @@ package com.splitit.presentation.sessiondetail
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.splitit.domain.model.Expense
 import com.splitit.domain.usecase.SessionDetails
 import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.splitit.domain.value.Money
 import com.splitit.domain.value.SessionId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
@@ -21,7 +23,18 @@ data class SessionDetailsUiState(
     val details: SessionDetails? = null,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-)
+) {
+    val totalSpent: Money?
+        get() = details?.expenses?.totalSpent()
+}
+
+private fun List<Expense>.totalSpent(): Money? {
+    if (isEmpty()) return null
+    val currency = first().amount.currencyCode
+    return map { it.amount }
+        .filter { it.currencyCode == currency }
+        .fold(Money.zero(currency)) { acc, amount -> acc + amount }
+}
 
 class SessionDetailsViewModel(
     private val sessionId: SessionId,

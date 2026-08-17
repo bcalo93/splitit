@@ -12,7 +12,7 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
-    viewModel { SessionListViewModel(get(), get(), get()) }
+    viewModel { SessionListViewModel(get(), get(), get(), get()) }
     viewModel { (sessionId: SessionId?) -> SessionFormViewModel(sessionId, get(), get(), get(), get()) }
     viewModel { (sessionId: SessionId) -> SessionDetailsViewModel(sessionId, get(), get()) }
     viewModel { (sessionId: SessionId) -> ParticipantsViewModel(sessionId, get(), get(), get(), get(), get()) }

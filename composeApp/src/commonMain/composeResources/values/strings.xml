@@ -29,6 +29,18 @@
     <string name="session_summary">%1$d participants | %2$d expenses</string>
     <string name="no_results_match">No %1$s match \"%2$s\".</string>
 
+    <string name="groups_title">Your groups</string>
+    <string name="new_group">New group</string>
+    <string name="search_groups">Search groups</string>
+    <string name="entity_groups">groups</string>
+    <string name="no_groups_yet">No groups yet</string>
+    <string name="create_first_group">Create your first group</string>
+    <string name="group_status_up_to_date">Up to date</string>
+    <string name="group_status_pending">Pending</string>
+    <string name="group_summary">%1$d people · %2$d expenses</string>
+    <string name="delete_group_title">Delete group?</string>
+    <string name="delete_group_message">This removes the group and its local data from this device.</string>
+
     <string name="session">Session</string>
     <string name="participants">Participants</string>
     <string name="expenses">Expenses</string>
@@ -38,6 +50,9 @@
     <string name="settlement_up_to_date">Settlement is up to date.</string>
     <string name="generate_settlement">Generate settlement</string>
     <string name="view_settlement">View settlement</string>
+    <string name="total_spent">Total spent</string>
+    <string name="settlement_balanced">Settlement up to date</string>
+    <string name="settlement_pending_changes">There are unsettled changes</string>
 
     <string name="edit_session">Edit session</string>
     <string name="new_session">New session</string>

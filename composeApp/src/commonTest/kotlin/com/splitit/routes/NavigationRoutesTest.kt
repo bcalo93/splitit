@@ -35,4 +35,24 @@ class NavigationRoutesTest {
 
         assertEquals("session-1", decoded.sessionId)
     }
+
+    @Test
+    fun expensesRouteDefaultsToClosedForm() {
+        val route = Expenses(sessionId = "session-1")
+
+        val decoded = json.decodeFromString<Expenses>(json.encodeToString(route))
+
+        assertEquals("session-1", decoded.sessionId)
+        assertEquals(false, decoded.openExpenseForm)
+    }
+
+    @Test
+    fun expensesRouteCarriesOpenExpenseFormFlag() {
+        val route = Expenses(sessionId = "session-1", openExpenseForm = true)
+
+        val decoded = json.decodeFromString<Expenses>(json.encodeToString(route))
+
+        assertEquals("session-1", decoded.sessionId)
+        assertEquals(true, decoded.openExpenseForm)
+    }
 }
