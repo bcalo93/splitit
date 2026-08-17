@@ -4,64 +4,60 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.splitit.domain.model.Balance
-import com.splitit.domain.model.SettlementTransfer
-import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.SessionId
-import com.splitit.presentation.expenses.formatMinorUnits
 import com.splitit.presentation.settlement.SettlementUiState
 import com.splitit.presentation.settlement.SettlementViewModel
+import com.splitit.ui.components.BalanceBarChart
+import com.splitit.ui.components.BalanceBarEntry
+import com.splitit.ui.components.EmptyState
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
-import com.splitit.ui.components.ArrowBackIcon
+import com.splitit.ui.components.PrimaryButton
+import com.splitit.ui.components.SplitItIcons
+import com.splitit.ui.components.SplitItScaffold
+import com.splitit.ui.components.SplitItTopBar
+import com.splitit.ui.components.TransferCard
+import com.splitit.ui.theme.LocalSplitItSemanticColors
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import splitit.composeapp.generated.resources.Res
-import splitit.composeapp.generated.resources.back
 import splitit.composeapp.generated.resources.balances
 import splitit.composeapp.generated.resources.everyone_settled
-import splitit.composeapp.generated.resources.generating
 import splitit.composeapp.generated.resources.generate_settlement
-import splitit.composeapp.generated.resources.is_settled
-import splitit.composeapp.generated.resources.owes_amount
-import splitit.composeapp.generated.resources.pays_to
-import splitit.composeapp.generated.resources.receives_amount
 import splitit.composeapp.generated.resources.regenerate_settlement
 import splitit.composeapp.generated.resources.settlement
-import splitit.composeapp.generated.resources.settlement_description
-import splitit.composeapp.generated.resources.settlement_payments_title
+import splitit.composeapp.generated.resources.settlement_all_settled_title
+import splitit.composeapp.generated.resources.settlement_empty_title
 import splitit.composeapp.generated.resources.settlement_requirements
-import splitit.composeapp.generated.resources.settlement_stale_message
+import splitit.composeapp.generated.resources.settlement_stale_banner
 import splitit.composeapp.generated.resources.transfers
 import splitit.composeapp.generated.resources.unknown
+import splitit.composeapp.generated.resources.update
 
 @Composable
 fun SettlementRoute(
@@ -84,7 +80,6 @@ fun SettlementRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettlementScreen(
     state: SettlementUiState,
@@ -92,27 +87,30 @@ private fun SettlementScreen(
     onGenerate: () -> Unit,
     onRetry: () -> Unit,
 ) {
-    Scaffold(
+    val showContent = !(state.isLoading && state.participants.isEmpty()) &&
+        !(state.errorMessage != null && state.participants.isEmpty())
+
+    SplitItScaffold(
         modifier = Modifier.safeContentPadding(),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.settlement)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = ArrowBackIcon,
-                            contentDescription = stringResource(Res.string.back),
-                        )
-                    }
-                },
+            SplitItTopBar(
+                title = stringResource(Res.string.settlement),
+                onBack = onBack,
             )
+        },
+        bottomBar = {
+            if (showContent) {
+                SettlementBottomBar(
+                    state = state,
+                    onGenerate = onGenerate,
+                )
+            }
         },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(20.dp),
+                .padding(paddingValues),
         ) {
             when {
                 state.isLoading && state.participants.isEmpty() -> LoadingState(
@@ -142,63 +140,106 @@ private fun SettlementContent(
     val participantNames = remember(state.participants) {
         state.participants.associate { participant -> participant.id to participant.name }
     }
+    val participantColors = remember(state.participants) {
+        state.participants.associate { participant -> participant.id to participant.avatarColor }
+    }
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item {
-            Text(
-                text = if (state.settlement == null) {
-                    stringResource(Res.string.settlement_description)
-                } else {
-                    stringResource(Res.string.settlement_payments_title)
-                },
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
-        if (state.isLoading) {
+        state.errorMessage?.let { message ->
             item {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                InlineErrorState(message = message, onRetry = onRetry)
             }
         }
 
-        if (state.isSettlementStale) {
+        if (state.settlement == null) {
             item {
-                Text(
-                    text = stringResource(Res.string.settlement_stale_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
+                SettlementEmptyState(canGenerate = state.canGenerateSettlement)
+            }
+        } else {
+            if (state.balances.isNotEmpty()) {
+                item {
+                    SectionHeader(title = stringResource(Res.string.balances))
+                }
+                item {
+                    BalanceBarChart(
+                        entries = state.balances.map { balance ->
+                            BalanceBarEntry(
+                                name = participantNames[balance.participantId]
+                                    ?: stringResource(Res.string.unknown),
+                                colorHex = participantColors[balance.participantId],
+                                amount = balance.amount,
+                            )
+                        },
+                    )
+                }
+            }
+
+            if (state.isSettlementStale) {
+                item {
+                    StaleBanner(onUpdate = onGenerate)
+                }
+            }
+
+            val settlement = state.settlement
+            if (settlement.transfers.isEmpty()) {
+                item {
+                    CelebrationState()
+                }
+            } else {
+                item {
+                    SectionHeader(title = stringResource(Res.string.transfers))
+                }
+                items(
+                    items = settlement.transfers,
+                    key = { it.id.value },
+                    contentType = { "transfer" },
+                ) { transfer ->
+                    TransferCard(
+                        fromName = participantNames[transfer.fromParticipantId]
+                            ?: stringResource(Res.string.unknown),
+                        fromColorHex = participantColors[transfer.fromParticipantId],
+                        toName = participantNames[transfer.toParticipantId]
+                            ?: stringResource(Res.string.unknown),
+                        toColorHex = participantColors[transfer.toParticipantId],
+                        amount = transfer.amount,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettlementBottomBar(
+    state: SettlementUiState,
+    onGenerate: () -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.background) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (state.canGenerateSettlement) {
+                PrimaryButton(
+                    text = stringResource(
+                        if (state.settlement == null) {
+                            Res.string.generate_settlement
+                        } else {
+                            Res.string.regenerate_settlement
+                        },
+                    ),
+                    onClick = onGenerate,
+                    modifier = Modifier.fillMaxWidth(),
+                    isLoading = state.isGenerating,
+                    icon = SplitItIcons.AccountBalanceWallet,
                 )
-            }
-        }
-
-        state.errorMessage?.let {
-            item {
-                InlineErrorState(message = it, onRetry = onRetry)
-            }
-        }
-
-        item {
-            Button(
-                enabled = state.canGenerateSettlement && !state.isGenerating,
-                onClick = onGenerate,
-            ) {
-                Text(
-                    when {
-                        state.isGenerating -> stringResource(Res.string.generating)
-                        state.settlement == null -> stringResource(Res.string.generate_settlement)
-                        else -> stringResource(Res.string.regenerate_settlement)
-                    },
-                )
-            }
-        }
-
-        if (!state.canGenerateSettlement) {
-            item {
+            } else {
                 Text(
                     text = stringResource(Res.string.settlement_requirements),
                     style = MaterialTheme.typography.bodyMedium,
@@ -206,105 +247,96 @@ private fun SettlementContent(
                 )
             }
         }
-
-        if (state.balances.isNotEmpty()) {
-            item {
-                Text(
-                    text = stringResource(Res.string.balances),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-            items(
-                items = state.balances,
-                key = { it.participantId.value },
-                contentType = { "balance" },
-            ) { balance ->
-                BalanceRow(balance = balance, participantNames = participantNames)
-            }
-        }
-
-        state.settlement?.let { settlement ->
-            item {
-                Text(
-                    text = stringResource(Res.string.transfers),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-            if (settlement.transfers.isEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(Res.string.everyone_settled),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            } else {
-                items(
-                    items = settlement.transfers,
-                    key = { it.id.value },
-                    contentType = { "transfer" },
-                ) { transfer ->
-                    SettlementTransferRow(
-                        transfer = transfer,
-                        participantNames = participantNames,
-                    )
-                }
-            }
-        }
     }
 }
 
 @Composable
-private fun BalanceRow(
-    balance: Balance,
-    participantNames: Map<ParticipantId, String>,
-) {
-    val name = participantNames[balance.participantId] ?: stringResource(Res.string.unknown)
-    val minorUnits = balance.amount.minorUnits
-    val amount = formatMinorUnits(if (minorUnits < 0) -minorUnits else minorUnits)
-    val message = when {
-        minorUnits > 0 -> stringResource(Res.string.receives_amount, name, balance.amount.currencyCode, amount)
-        minorUnits < 0 -> stringResource(Res.string.owes_amount, name, balance.amount.currencyCode, amount)
-        else -> stringResource(Res.string.is_settled, name)
-    }
-
-    Text(
-        text = message,
-        style = MaterialTheme.typography.bodyMedium,
+private fun SettlementEmptyState(canGenerate: Boolean) {
+    EmptyState(
+        title = stringResource(Res.string.settlement_empty_title),
+        body = if (canGenerate) null else stringResource(Res.string.settlement_requirements),
+        icon = SplitItIcons.AccountBalanceWallet,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
 @Composable
-private fun SettlementTransferRow(
-    transfer: SettlementTransfer,
-    participantNames: Map<ParticipantId, String>,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
+private fun CelebrationState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+        Box(
+            modifier = Modifier
+                .size(88.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = stringResource(
-                    Res.string.pays_to,
-                    participantNames[transfer.fromParticipantId] ?: stringResource(Res.string.unknown),
-                    participantNames[transfer.toParticipantId] ?: stringResource(Res.string.unknown),
-                ),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = "${transfer.amount.currencyCode} ${formatMinorUnits(transfer.amount.minorUnits)}",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Icon(
+                painter = painterResource(SplitItIcons.Celebration),
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.secondary,
             )
         }
+        Text(
+            text = stringResource(Res.string.settlement_all_settled_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = stringResource(Res.string.everyone_settled),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
+}
+
+@Composable
+private fun StaleBanner(onUpdate: () -> Unit) {
+    val semantic = LocalSplitItSemanticColors.current
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        shape = MaterialTheme.shapes.small,
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                painter = painterResource(SplitItIcons.WarningAmber),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = semantic.staleWarning,
+            )
+            Text(
+                text = stringResource(Res.string.settlement_stale_banner),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            TextButton(onClick = onUpdate) {
+                Text(
+                    text = stringResource(Res.string.update),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
 }

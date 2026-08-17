@@ -58,6 +58,11 @@
     <string name="new_session">New session</string>
 
     <string name="settlement">Settlement</string>
+    <string name="settlement_empty_title">Generate the settlement to see who owes who</string>
+    <string name="settlement_stale_banner">Expenses changed since the last settlement</string>
+    <string name="update">Update</string>
+    <string name="settlement_all_settled_title">Clear accounts, long friendships 🎉</string>
+    <string name="transfer_content_description">%1$s pays %2$s %3$s</string>
     <string name="settlement_description">Turn the current balances into a short list of payments.</string>
     <string name="settlement_payments_title">Payments needed to settle this session</string>
     <string name="settlement_stale_message">The saved settlement is out of date. Regenerate it to include recent changes.</string>

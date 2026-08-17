@@ -1,11 +1,14 @@
 package com.splitit.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.splitit.domain.value.Money
@@ -26,7 +31,7 @@ import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.cd_delete
 import splitit.composeapp.generated.resources.cd_edit
 import splitit.composeapp.generated.resources.cd_more_vert
-import splitit.composeapp.generated.resources.cd_swap_horiz
+import splitit.composeapp.generated.resources.transfer_content_description
 
 @Composable
 fun GroupCard(
@@ -186,56 +191,82 @@ fun TransferCard(
     amount: Money,
     modifier: Modifier = Modifier,
 ) {
-    SplitItCard(modifier = modifier) {
+    val description = stringResource(
+        Res.string.transfer_content_description,
+        fromName,
+        toName,
+        formatMoney(amount, showCurrency = true),
+    )
+    SplitItCard(
+        modifier = modifier.semantics(mergeDescendants = true) {
+            contentDescription = description
+        },
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    AvatarBubble(name = fromName, colorHex = fromColorHex, size = 40.dp)
-                    Text(
-                        text = fromName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Icon(
-                    painter = painterResource(SplitItIcons.SwapHoriz),
-                    contentDescription = stringResource(Res.string.cd_swap_horiz),
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    AvatarBubble(name = toName, colorHex = toColorHex, size = 40.dp)
-                    Text(
-                        text = toName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                TransferEndpoint(name = fromName, colorHex = fromColorHex, modifier = Modifier.weight(1f))
+                TransferConnector()
+                TransferEndpoint(name = toName, colorHex = toColorHex, modifier = Modifier.weight(1f))
             }
             MoneyText(
                 amount = amount,
                 variant = MoneyTextVariant.Row,
-                tone = MoneyTone.Debit,
                 showCurrency = true,
             )
         }
+    }
+}
+
+@Composable
+private fun TransferEndpoint(
+    name: String,
+    colorHex: String?,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AvatarBubble(name = name, colorHex = colorHex, size = 40.dp)
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun TransferConnector() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .width(12.dp)
+                .height(2.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant),
+        )
+        Icon(
+            painter = painterResource(SplitItIcons.SwapHoriz),
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Box(
+            modifier = Modifier
+                .width(12.dp)
+                .height(2.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant),
+        )
     }
 }
 

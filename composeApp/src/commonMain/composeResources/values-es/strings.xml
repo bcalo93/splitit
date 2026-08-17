@@ -58,6 +58,11 @@
     <string name="new_session">Nueva sesión</string>
 
     <string name="settlement">Liquidación</string>
+    <string name="settlement_empty_title">Genera la liquidación para ver quién debe a quién</string>
+    <string name="settlement_stale_banner">Los gastos cambiaron desde la última liquidación</string>
+    <string name="update">Actualizar</string>
+    <string name="settlement_all_settled_title">Cuentas claras, amistades largas 🎉</string>
+    <string name="transfer_content_description">%1$s paga a %2$s %3$s</string>
     <string name="settlement_description">Convierte los saldos actuales en una lista corta de pagos.</string>
     <string name="settlement_payments_title">Pagos necesarios para liquidar esta sesión</string>
     <string name="settlement_stale_message">La liquidación guardada está desactualizada. Regenerala para incluir los cambios recientes.</string>
