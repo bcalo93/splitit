@@ -24,6 +24,7 @@ fun SplitItScaffold(
     modifier: Modifier = Modifier,
     topBar: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
@@ -31,6 +32,7 @@ fun SplitItScaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = topBar,
         floatingActionButton = floatingActionButton,
+        bottomBar = bottomBar,
         content = content,
     )
 }

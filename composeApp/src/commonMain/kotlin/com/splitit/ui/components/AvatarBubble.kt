@@ -136,6 +136,3 @@ private fun initials(name: String): String {
     val second = words.getOrNull(1)?.firstOrNull()?.uppercaseChar()?.toString() ?: ""
     return first + second
 }
-
-// Resolución de color de avatar por hex (compatibilidad con hex legacy persistidos §3.4).
-fun participantColor(color: String?): Color = avatarColorForHex(color).light

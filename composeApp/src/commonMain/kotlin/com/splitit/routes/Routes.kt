@@ -157,6 +157,7 @@ fun SplitItRoutes(
             ExpensesRoute(
                 sessionId = SessionId(route.sessionId),
                 onBack = { navController.popBackStack() },
+                openExpenseForm = route.openExpenseForm,
             )
         }
 

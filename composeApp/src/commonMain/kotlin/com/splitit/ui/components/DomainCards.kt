@@ -142,8 +142,7 @@ fun ExpenseCard(
 fun ParticipantRow(
     name: String,
     colorHex: String?,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
+    onMoreClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     SplitItCard(modifier = modifier) {
@@ -165,19 +164,14 @@ fun ParticipantRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            IconButton(onClick = onEdit) {
-                Icon(
-                    painter = painterResource(SplitItIcons.Edit),
-                    contentDescription = stringResource(Res.string.cd_edit),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    painter = painterResource(SplitItIcons.Delete),
-                    contentDescription = stringResource(Res.string.cd_delete),
-                    tint = MaterialTheme.colorScheme.error,
-                )
+            if (onMoreClick != null) {
+                IconButton(onClick = onMoreClick) {
+                    Icon(
+                        painter = painterResource(SplitItIcons.MoreVert),
+                        contentDescription = stringResource(Res.string.cd_more_vert),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }

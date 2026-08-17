@@ -156,4 +156,31 @@
     <string name="cd_clear">Limpiar</string>
     <string name="cd_increment">Incrementar</string>
     <string name="cd_decrement">Disminuir</string>
+
+    <string name="add">Añadir</string>
+    <string name="participants_empty_title">Nadie por aquí todavía</string>
+    <string name="participants_empty_body">Añade al menos dos personas para repartir los gastos.</string>
+    <string name="expenses_empty_title">Apunta el primer gasto</string>
+    <string name="new_expense">Nuevo gasto</string>
+    <string name="split_mode">Modo de reparto</string>
+    <string name="split_mode_equal">Partes iguales</string>
+    <string name="split_mode_weighted">Por partes</string>
+    <string name="select_all">Todos</string>
+    <string name="total_parts">%1$d partes en total</string>
+    <string name="expense_metadata">Pagó %1$s · entre %2$d</string>
+    <string name="day_today">Hoy</string>
+    <string name="day_yesterday">Ayer</string>
+    <string name="day_full_date">%2$d %1$s</string>
+    <string name="month_short_1">ene</string>
+    <string name="month_short_2">feb</string>
+    <string name="month_short_3">mar</string>
+    <string name="month_short_4">abr</string>
+    <string name="month_short_5">may</string>
+    <string name="month_short_6">jun</string>
+    <string name="month_short_7">jul</string>
+    <string name="month_short_8">ago</string>
+    <string name="month_short_9">sep</string>
+    <string name="month_short_10">oct</string>
+    <string name="month_short_11">nov</string>
+    <string name="month_short_12">dic</string>
 </resources>

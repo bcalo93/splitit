@@ -156,4 +156,31 @@
     <string name="cd_clear">Clear</string>
     <string name="cd_increment">Increase</string>
     <string name="cd_decrement">Decrease</string>
+
+    <string name="add">Add</string>
+    <string name="participants_empty_title">Nobody here yet</string>
+    <string name="participants_empty_body">Add at least two people so the money splits evenly.</string>
+    <string name="expenses_empty_title">Track the first expense</string>
+    <string name="new_expense">New expense</string>
+    <string name="split_mode">Split mode</string>
+    <string name="split_mode_equal">Equal parts</string>
+    <string name="split_mode_weighted">By parts</string>
+    <string name="select_all">All</string>
+    <string name="total_parts">%1$d parts in total</string>
+    <string name="expense_metadata">Paid by %1$s · between %2$d</string>
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
+    <string name="day_full_date">%1$s %2$d</string>
+    <string name="month_short_1">Jan</string>
+    <string name="month_short_2">Feb</string>
+    <string name="month_short_3">Mar</string>
+    <string name="month_short_4">Apr</string>
+    <string name="month_short_5">May</string>
+    <string name="month_short_6">Jun</string>
+    <string name="month_short_7">Jul</string>
+    <string name="month_short_8">Aug</string>
+    <string name="month_short_9">Sep</string>
+    <string name="month_short_10">Oct</string>
+    <string name="month_short_11">Nov</string>
+    <string name="month_short_12">Dec</string>
 </resources>

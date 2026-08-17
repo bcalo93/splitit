@@ -92,6 +92,10 @@ class ParticipantsViewModel(
         _state.update { it.copy(selectedColor = color, errorMessage = null) }
     }
 
+    fun startAdding() {
+        _state.update { it.emptyForm() }
+    }
+
     fun startEditing(participant: Participant) {
         _state.update {
             it.copy(

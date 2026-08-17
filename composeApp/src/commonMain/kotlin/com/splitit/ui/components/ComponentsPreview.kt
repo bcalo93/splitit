@@ -177,8 +177,7 @@ private fun ComponentGallery() {
             ParticipantRow(
                 name = "Ana García",
                 colorHex = "#E0533D",
-                onEdit = {},
-                onDelete = {},
+                onMoreClick = {},
             )
         }
 

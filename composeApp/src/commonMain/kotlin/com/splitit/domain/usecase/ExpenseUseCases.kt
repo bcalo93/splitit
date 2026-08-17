@@ -27,6 +27,7 @@ class CreateExpenseUseCase(
         participantIds: List<ParticipantId>,
         dateMillis: Long,
         note: String?,
+        shareWeights: Map<ParticipantId, Int> = emptyMap(),
     ): Expense {
         requireNotNull(sessionRepository.getSession(sessionId)) {
             "Session ${sessionId.value} was not found."
@@ -42,7 +43,11 @@ class CreateExpenseUseCase(
             amount = amount,
             payerId = payerId,
             participantShares = participantIds.distinct().map {
-                ExpenseParticipantShare(expenseId = expenseId, participantId = it)
+                ExpenseParticipantShare(
+                    expenseId = expenseId,
+                    participantId = it,
+                    shareWeight = shareWeights[it]?.coerceAtLeast(1) ?: 1,
+                )
             },
             dateMillis = dateMillis,
             note = note?.trim()?.takeIf { it.isNotEmpty() },
@@ -81,6 +86,7 @@ class UpdateExpenseUseCase(
         participantIds: List<ParticipantId>,
         dateMillis: Long,
         note: String?,
+        shareWeights: Map<ParticipantId, Int> = emptyMap(),
     ): Expense {
         val current = requireNotNull(expenseRepository.getExpense(expenseId)) {
             "Expense ${expenseId.value} was not found."
@@ -101,7 +107,11 @@ class UpdateExpenseUseCase(
             amount = amount,
             payerId = payerId,
             participantShares = participantIds.distinct().map {
-                ExpenseParticipantShare(expenseId = expenseId, participantId = it)
+                ExpenseParticipantShare(
+                    expenseId = expenseId,
+                    participantId = it,
+                    shareWeight = shareWeights[it]?.coerceAtLeast(1) ?: 1,
+                )
             },
             dateMillis = dateMillis,
             note = note?.trim()?.takeIf { it.isNotEmpty() },
