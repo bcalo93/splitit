@@ -20,6 +20,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -50,6 +52,7 @@ import com.splitit.presentation.participants.ParticipantsViewModel
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
+import com.splitit.ui.components.ArrowBackIcon
 import com.splitit.ui.components.participantColor
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -76,7 +79,6 @@ fun ParticipantsRoute(
     sessionId: SessionId,
     onBack: () -> Unit,
     viewModel: ParticipantsViewModel = koinViewModel(
-        key = "participants-${sessionId.value}",
         parameters = { parametersOf(sessionId) },
     ),
 ) {
@@ -117,8 +119,11 @@ private fun ParticipantsScreen(
             TopAppBar(
                 title = { Text(stringResource(Res.string.participants)) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(Res.string.back))
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = ArrowBackIcon,
+                            contentDescription = stringResource(Res.string.back),
+                        )
                     }
                 },
             )

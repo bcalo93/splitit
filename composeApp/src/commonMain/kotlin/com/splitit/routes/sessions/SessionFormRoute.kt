@@ -10,11 +10,12 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.splitit.domain.value.SessionId
 import com.splitit.presentation.sessions.SessionFormUiState
 import com.splitit.presentation.sessions.SessionFormViewModel
+import com.splitit.ui.components.ArrowBackIcon
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -40,11 +42,9 @@ import splitit.composeapp.generated.resources.saving
 @Composable
 fun SessionFormRoute(
     sessionId: SessionId?,
-    formKey: Int,
     onBack: () -> Unit,
     onSaved: (SessionId) -> Unit,
     viewModel: SessionFormViewModel = koinViewModel(
-        key = "session-form-${sessionId?.value ?: "new"}-$formKey",
         parameters = { parametersOf(sessionId) },
     ),
 ) {
@@ -83,8 +83,11 @@ private fun SessionFormScreen(
             TopAppBar(
                 title = { Text(if (isEditing) stringResource(Res.string.edit_session) else stringResource(Res.string.new_session)) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(Res.string.back))
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = ArrowBackIcon,
+                            contentDescription = stringResource(Res.string.back),
+                        )
                     }
                 },
                 actions = {

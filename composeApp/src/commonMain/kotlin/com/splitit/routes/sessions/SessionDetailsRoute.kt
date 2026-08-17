@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -36,6 +38,7 @@ import com.splitit.presentation.sessiondetail.SessionDetailsViewModel
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
+import com.splitit.ui.components.ArrowBackIcon
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -61,7 +64,6 @@ fun SessionDetailsRoute(
     onExpenses: () -> Unit,
     onSettlement: () -> Unit,
     viewModel: SessionDetailsViewModel = koinViewModel(
-        key = "session-details-${sessionId.value}",
         parameters = { parametersOf(sessionId) },
     ),
 ) {
@@ -98,8 +100,11 @@ private fun SessionDetailsScreen(
             TopAppBar(
                 title = { Text(stringResource(Res.string.session)) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(Res.string.back))
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = ArrowBackIcon,
+                            contentDescription = stringResource(Res.string.back),
+                        )
                     }
                 },
                 actions = {

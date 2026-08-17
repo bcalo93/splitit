@@ -14,11 +14,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +40,7 @@ import com.splitit.presentation.settlement.SettlementViewModel
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
+import com.splitit.ui.components.ArrowBackIcon
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -66,7 +68,6 @@ fun SettlementRoute(
     sessionId: SessionId,
     onBack: () -> Unit,
     viewModel: SettlementViewModel = koinViewModel(
-        key = "settlement-${sessionId.value}",
         parameters = { parametersOf(sessionId) },
     ),
 ) {
@@ -97,8 +98,11 @@ private fun SettlementScreen(
             TopAppBar(
                 title = { Text(stringResource(Res.string.settlement)) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(Res.string.back))
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = ArrowBackIcon,
+                            contentDescription = stringResource(Res.string.back),
+                        )
                     }
                 },
             )

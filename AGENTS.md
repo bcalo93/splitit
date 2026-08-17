@@ -5,7 +5,7 @@
 - This is a Kotlin Multiplatform project with two Gradle modules: `:composeApp` (KMP shared library) and `:androidApp` (Android application). `:composeApp` targets Android (library), `iosArm64`, and `iosSimulatorArm64`.
 - Put shared UI, domain, data, DI, and presentation changes under `composeApp/src/commonMain`; platform integrations belong in `composeApp/src/androidMain`, `composeApp/src/iosMain`, or `:androidApp` for Android-specific app wiring.
 - Android starts Koin and Compose from `MainActivity` in `:androidApp`; iOS does the equivalent from `MainViewController` in `:composeApp`, hosted by the `iosApp` Xcode project.
-- The main Compose navigation and screen wiring is in `composeApp/src/commonMain/kotlin/com/splitit/App.kt`; business behavior is organized into domain use cases/repositories and presentation view models.
+- The Compose entry point is `composeApp/src/commonMain/kotlin/com/splitit/App.kt` (theme + `SplitItRoutes`); the `NavHost`, type-safe `@Serializable` routes and navigation transitions live in `composeApp/src/commonMain/kotlin/com/splitit/routes/Routes.kt`. Business behavior is organized into domain use cases/repositories and presentation view models.
 
 ## Commands
 
