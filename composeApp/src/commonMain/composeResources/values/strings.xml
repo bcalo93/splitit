@@ -115,4 +115,30 @@
     <string name="error_could_not_load_settings">Could not load settings.</string>
     <string name="error_invalid_currency">Use a 3-letter currency code, such as USD or EUR.</string>
     <string name="error_could_not_save_settings">Could not save settings.</string>
+
+    <string name="cd_back">Back</string>
+    <string name="cd_add">Add</string>
+    <string name="cd_close">Close</string>
+    <string name="cd_check">Check</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_search_off">No results</string>
+    <string name="cd_edit">Edit</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_more_vert">More options</string>
+    <string name="cd_group">Group</string>
+    <string name="cd_person_add">Add participant</string>
+    <string name="cd_receipt_long">Expenses</string>
+    <string name="cd_payments">Amount</string>
+    <string name="cd_swap_horiz">Transfer</string>
+    <string name="cd_account_balance_wallet">Settlement</string>
+    <string name="cd_arrow_upward">Owes</string>
+    <string name="cd_arrow_downward">Receives</string>
+    <string name="cd_warning_amber">Warning</string>
+    <string name="cd_celebration">Celebration</string>
+    <string name="cd_settings">Settings</string>
+    <string name="cd_contrast">Theme</string>
+    <string name="cd_tune">Split mode</string>
+    <string name="cd_clear">Clear</string>
+    <string name="cd_increment">Increase</string>
+    <string name="cd_decrement">Decrease</string>
 </resources>

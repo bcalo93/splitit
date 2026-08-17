@@ -108,6 +108,7 @@ fun SplitItTheme(
         CompositionLocalProvider(
             LocalSplitItSemanticColors provides semanticColors,
             LocalSplitItMoneyStyles provides DefaultSplitItMoneyStyles,
+            LocalSplitItDarkTheme provides useDarkTheme,
             content = content,
         )
     }

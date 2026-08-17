@@ -12,6 +12,7 @@ import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.SessionId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
+import com.splitit.ui.theme.SplitItAvatarColorHexes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,14 +33,7 @@ data class ParticipantsUiState(
     val errorMessage: String? = null,
 )
 
-val ParticipantColors = listOf(
-    "#2F80ED",
-    "#27AE60",
-    "#EB5757",
-    "#F2994A",
-    "#9B51E0",
-    "#00A6A6",
-)
+val ParticipantColors: List<String> = SplitItAvatarColorHexes
 
 class ParticipantsViewModel(
     private val sessionId: SessionId,
