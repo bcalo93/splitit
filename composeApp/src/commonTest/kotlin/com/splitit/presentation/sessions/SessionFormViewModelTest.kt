@@ -29,7 +29,7 @@ class SessionFormViewModelTest {
 
         viewModel.save()
 
-        assertEquals("Enter a session name.", viewModel.state.value.titleError)
+        assertEquals("Enter a group name.", viewModel.state.value.titleError)
         assertEquals(0, repository.saveCalls)
     }
 

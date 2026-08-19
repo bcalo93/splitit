@@ -84,7 +84,7 @@ class SessionListViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadSessions),
+                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadGroups),
                     )
                 }
             }
@@ -110,7 +110,7 @@ class SessionListViewModel(
                 throw exception
             } catch (throwable: Throwable) {
                 _state.update {
-                    it.copy(errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotDeleteSession))
+                    it.copy(errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotDeleteGroup))
                 }
             }
         }

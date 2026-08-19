@@ -33,9 +33,9 @@ import org.koin.core.parameter.parametersOf
 import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.back
 import splitit.composeapp.generated.resources.description
-import splitit.composeapp.generated.resources.edit_session
+import splitit.composeapp.generated.resources.edit_group
 import splitit.composeapp.generated.resources.name
-import splitit.composeapp.generated.resources.new_session
+import splitit.composeapp.generated.resources.new_group
 import splitit.composeapp.generated.resources.save
 import splitit.composeapp.generated.resources.saving
 
@@ -81,7 +81,7 @@ private fun SessionFormScreen(
         modifier = Modifier.safeContentPadding(),
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) stringResource(Res.string.edit_session) else stringResource(Res.string.new_session)) },
+                title = { Text(if (isEditing) stringResource(Res.string.edit_group) else stringResource(Res.string.new_group)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

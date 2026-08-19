@@ -9,12 +9,12 @@ class TestLocalizationService : LocalizationService {
     }
 
     private val enStrings = mapOf(
-        LocalizedString.ErrorCouldNotLoadSessions to "Could not load sessions.",
-        LocalizedString.ErrorCouldNotDeleteSession to "Could not delete the session.",
-        LocalizedString.ErrorEnterSessionName to "Enter a session name.",
-        LocalizedString.ErrorCouldNotSaveSession to "Could not save the session.",
-        LocalizedString.ErrorCouldNotLoadSession to "Could not load the session.",
-        LocalizedString.ErrorCouldNotLoadSessionDetails to "Could not load session details.",
+        LocalizedString.ErrorCouldNotLoadGroups to "Could not load groups.",
+        LocalizedString.ErrorCouldNotDeleteGroup to "Could not delete the group.",
+        LocalizedString.ErrorEnterGroupName to "Enter a group name.",
+        LocalizedString.ErrorCouldNotSaveGroup to "Could not save the group.",
+        LocalizedString.ErrorCouldNotLoadGroup to "Could not load the group.",
+        LocalizedString.ErrorCouldNotLoadGroupDetails to "Could not load group details.",
         LocalizedString.ErrorCouldNotLoadParticipants to "Could not load participants.",
         LocalizedString.ErrorEnterParticipantName to "Enter a participant name.",
         LocalizedString.ErrorCouldNotSaveParticipant to "Could not save participant.",

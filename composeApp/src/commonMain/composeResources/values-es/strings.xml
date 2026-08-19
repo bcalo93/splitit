@@ -20,13 +20,6 @@
     <string name="settings">Configuración</string>
     <string name="new_action">Nuevo</string>
 
-    <string name="search_sessions">Buscar sesiones</string>
-    <string name="entity_sessions">sesiones</string>
-    <string name="no_sessions_yet">Aún no hay sesiones</string>
-    <string name="create_session">Crear sesión</string>
-    <string name="delete_session_title">¿Eliminar sesión?</string>
-    <string name="delete_session_message">Esto elimina la sesión y sus datos locales de este dispositivo.</string>
-    <string name="session_summary">%1$d participantes | %2$d gastos</string>
     <string name="no_results_match">Ningún %1$s coincide con \"%2$s\".</string>
 
     <string name="groups_title">Tus grupos</string>
@@ -41,7 +34,6 @@
     <string name="delete_group_title">¿Eliminar grupo?</string>
     <string name="delete_group_message">Esto elimina el grupo y sus datos locales de este dispositivo.</string>
 
-    <string name="session">Sesión</string>
     <string name="participants">Participantes</string>
     <string name="expenses">Gastos</string>
     <string name="manage_participants">Gestionar participantes</string>
@@ -54,8 +46,7 @@
     <string name="settlement_balanced">Liquidación al día</string>
     <string name="settlement_pending_changes">Hay cambios sin liquidar</string>
 
-    <string name="edit_session">Editar sesión</string>
-    <string name="new_session">Nueva sesión</string>
+    <string name="edit_group">Editar grupo</string>
 
     <string name="settlement">Liquidación</string>
     <string name="settlement_empty_title">Genera la liquidación para ver quién debe a quién</string>
@@ -64,7 +55,7 @@
     <string name="settlement_all_settled_title">Cuentas claras, amistades largas 🎉</string>
     <string name="transfer_content_description">%1$s paga a %2$s %3$s</string>
     <string name="settlement_description">Convierte los saldos actuales en una lista corta de pagos.</string>
-    <string name="settlement_payments_title">Pagos necesarios para liquidar esta sesión</string>
+    <string name="settlement_payments_title">Pagos necesarios para liquidar este grupo</string>
     <string name="settlement_stale_message">La liquidación guardada está desactualizada. Regenerala para incluir los cambios recientes.</string>
     <string name="generating">Generando</string>
     <string name="regenerate_settlement">Regenerar liquidación</string>
@@ -113,16 +104,16 @@
     <string name="paid_by_name">Pagado por %s</string>
     <string name="split_names">Dividido: %s</string>
     <string name="delete_expense_title">¿Eliminar gasto?</string>
-    <string name="delete_expense_message">Esto elimina el gasto de esta sesión.</string>
+    <string name="delete_expense_message">Esto elimina el gasto de este grupo.</string>
     <string name="no_expenses_yet">Aún no hay gastos</string>
     <string name="add_first_expense">Agrega el primer gasto para dividirlo equitativamente.</string>
 
-    <string name="error_could_not_load_sessions">No se pudieron cargar las sesiones.</string>
-    <string name="error_could_not_delete_session">No se pudo eliminar la sesión.</string>
-    <string name="error_enter_session_name">Ingresa un nombre para la sesión.</string>
-    <string name="error_could_not_save_session">No se pudo guardar la sesión.</string>
-    <string name="error_could_not_load_session">No se pudo cargar la sesión.</string>
-    <string name="error_could_not_load_session_details">No se pudieron cargar los detalles de la sesión.</string>
+    <string name="error_could_not_load_groups">No se pudieron cargar los grupos.</string>
+    <string name="error_could_not_delete_group">No se pudo eliminar el grupo.</string>
+    <string name="error_enter_group_name">Ingresa un nombre para el grupo.</string>
+    <string name="error_could_not_save_group">No se pudo guardar el grupo.</string>
+    <string name="error_could_not_load_group">No se pudo cargar el grupo.</string>
+    <string name="error_could_not_load_group_details">No se pudieron cargar los detalles del grupo.</string>
     <string name="error_could_not_load_participants">No se pudieron cargar los participantes.</string>
     <string name="error_enter_participant_name">Ingresa un nombre de participante.</string>
     <string name="error_could_not_save_participant">No se pudo guardar el participante.</string>

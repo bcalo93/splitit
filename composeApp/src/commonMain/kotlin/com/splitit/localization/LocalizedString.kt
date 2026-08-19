@@ -1,12 +1,12 @@
 package com.splitit.localization
 
 enum class LocalizedString(val key: String) {
-    ErrorCouldNotLoadSessions("error_could_not_load_sessions"),
-    ErrorCouldNotDeleteSession("error_could_not_delete_session"),
-    ErrorEnterSessionName("error_enter_session_name"),
-    ErrorCouldNotSaveSession("error_could_not_save_session"),
-    ErrorCouldNotLoadSession("error_could_not_load_session"),
-    ErrorCouldNotLoadSessionDetails("error_could_not_load_session_details"),
+    ErrorCouldNotLoadGroups("error_could_not_load_groups"),
+    ErrorCouldNotDeleteGroup("error_could_not_delete_group"),
+    ErrorEnterGroupName("error_enter_group_name"),
+    ErrorCouldNotSaveGroup("error_could_not_save_group"),
+    ErrorCouldNotLoadGroup("error_could_not_load_group"),
+    ErrorCouldNotLoadGroupDetails("error_could_not_load_group_details"),
     ErrorCouldNotLoadParticipants("error_could_not_load_participants"),
     ErrorEnterParticipantName("error_enter_participant_name"),
     ErrorCouldNotSaveParticipant("error_could_not_save_participant"),

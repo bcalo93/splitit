@@ -6,24 +6,24 @@ import splitit.composeapp.generated.resources.error_add_participants_and_expense
 import splitit.composeapp.generated.resources.error_choose_at_least_one_participant
 import splitit.composeapp.generated.resources.error_choose_payer
 import splitit.composeapp.generated.resources.error_could_not_delete_expense
-import splitit.composeapp.generated.resources.error_could_not_delete_session
+import splitit.composeapp.generated.resources.error_could_not_delete_group
 import splitit.composeapp.generated.resources.error_could_not_generate_settlement
 import splitit.composeapp.generated.resources.error_could_not_load_expenses
 import splitit.composeapp.generated.resources.error_could_not_load_participants
-import splitit.composeapp.generated.resources.error_could_not_load_session
-import splitit.composeapp.generated.resources.error_could_not_load_session_details
-import splitit.composeapp.generated.resources.error_could_not_load_sessions
+import splitit.composeapp.generated.resources.error_could_not_load_group
+import splitit.composeapp.generated.resources.error_could_not_load_group_details
+import splitit.composeapp.generated.resources.error_could_not_load_groups
 import splitit.composeapp.generated.resources.error_could_not_load_settings
 import splitit.composeapp.generated.resources.error_could_not_load_settlement
 import splitit.composeapp.generated.resources.error_could_not_remove_participant
 import splitit.composeapp.generated.resources.error_could_not_save_expense
 import splitit.composeapp.generated.resources.error_could_not_save_participant
-import splitit.composeapp.generated.resources.error_could_not_save_session
+import splitit.composeapp.generated.resources.error_could_not_save_group
 import splitit.composeapp.generated.resources.error_could_not_save_settings
 import splitit.composeapp.generated.resources.error_enter_expense_title
 import splitit.composeapp.generated.resources.error_enter_participant_name
 import splitit.composeapp.generated.resources.error_enter_positive_amount
-import splitit.composeapp.generated.resources.error_enter_session_name
+import splitit.composeapp.generated.resources.error_enter_group_name
 import splitit.composeapp.generated.resources.error_invalid_currency
 import splitit.composeapp.generated.resources.error_participant_used_by_expenses
 
@@ -50,12 +50,12 @@ class DefaultLocalizationService : LocalizationService {
     private suspend fun loadString(key: LocalizedString): String {
         return try {
             when (key) {
-                LocalizedString.ErrorCouldNotLoadSessions -> getString(Res.string.error_could_not_load_sessions)
-                LocalizedString.ErrorCouldNotDeleteSession -> getString(Res.string.error_could_not_delete_session)
-                LocalizedString.ErrorEnterSessionName -> getString(Res.string.error_enter_session_name)
-                LocalizedString.ErrorCouldNotSaveSession -> getString(Res.string.error_could_not_save_session)
-                LocalizedString.ErrorCouldNotLoadSession -> getString(Res.string.error_could_not_load_session)
-                LocalizedString.ErrorCouldNotLoadSessionDetails -> getString(Res.string.error_could_not_load_session_details)
+                LocalizedString.ErrorCouldNotLoadGroups -> getString(Res.string.error_could_not_load_groups)
+                LocalizedString.ErrorCouldNotDeleteGroup -> getString(Res.string.error_could_not_delete_group)
+                LocalizedString.ErrorEnterGroupName -> getString(Res.string.error_enter_group_name)
+                LocalizedString.ErrorCouldNotSaveGroup -> getString(Res.string.error_could_not_save_group)
+                LocalizedString.ErrorCouldNotLoadGroup -> getString(Res.string.error_could_not_load_group)
+                LocalizedString.ErrorCouldNotLoadGroupDetails -> getString(Res.string.error_could_not_load_group_details)
                 LocalizedString.ErrorCouldNotLoadParticipants -> getString(Res.string.error_could_not_load_participants)
                 LocalizedString.ErrorEnterParticipantName -> getString(Res.string.error_enter_participant_name)
                 LocalizedString.ErrorCouldNotSaveParticipant -> getString(Res.string.error_could_not_save_participant)

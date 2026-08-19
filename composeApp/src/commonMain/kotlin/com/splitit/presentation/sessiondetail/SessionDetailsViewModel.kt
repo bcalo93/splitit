@@ -69,7 +69,7 @@ class SessionDetailsViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadSessionDetails),
+                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadGroupDetails),
                     )
                 }
             }

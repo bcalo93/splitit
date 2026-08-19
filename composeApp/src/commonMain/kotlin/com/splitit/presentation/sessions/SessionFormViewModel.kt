@@ -59,7 +59,7 @@ class SessionFormViewModel(
     fun save() {
         val current = _state.value
         if (current.title.isBlank()) {
-            _state.update { it.copy(titleError = localization.getString(LocalizedString.ErrorEnterSessionName)) }
+            _state.update { it.copy(titleError = localization.getString(LocalizedString.ErrorEnterGroupName)) }
             return
         }
 
@@ -87,7 +87,7 @@ class SessionFormViewModel(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotSaveSession),
+                            errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotSaveGroup),
                         )
                     }
                 }
@@ -115,7 +115,7 @@ class SessionFormViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadSession),
+                            errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotLoadGroup),
                         )
                     }
                 }

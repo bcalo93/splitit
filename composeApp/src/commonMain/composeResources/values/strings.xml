@@ -20,13 +20,6 @@
     <string name="settings">Settings</string>
     <string name="new_action">New</string>
 
-    <string name="search_sessions">Search sessions</string>
-    <string name="entity_sessions">sessions</string>
-    <string name="no_sessions_yet">No sessions yet</string>
-    <string name="create_session">Create session</string>
-    <string name="delete_session_title">Delete session?</string>
-    <string name="delete_session_message">This removes the session and its local data from this device.</string>
-    <string name="session_summary">%1$d participants | %2$d expenses</string>
     <string name="no_results_match">No %1$s match \"%2$s\".</string>
 
     <string name="groups_title">Your groups</string>
@@ -41,7 +34,6 @@
     <string name="delete_group_title">Delete group?</string>
     <string name="delete_group_message">This removes the group and its local data from this device.</string>
 
-    <string name="session">Session</string>
     <string name="participants">Participants</string>
     <string name="expenses">Expenses</string>
     <string name="manage_participants">Manage participants</string>
@@ -54,8 +46,7 @@
     <string name="settlement_balanced">Settlement up to date</string>
     <string name="settlement_pending_changes">There are unsettled changes</string>
 
-    <string name="edit_session">Edit session</string>
-    <string name="new_session">New session</string>
+    <string name="edit_group">Edit group</string>
 
     <string name="settlement">Settlement</string>
     <string name="settlement_empty_title">Generate the settlement to see who owes who</string>
@@ -64,7 +55,7 @@
     <string name="settlement_all_settled_title">Clear accounts, long friendships 🎉</string>
     <string name="transfer_content_description">%1$s pays %2$s %3$s</string>
     <string name="settlement_description">Turn the current balances into a short list of payments.</string>
-    <string name="settlement_payments_title">Payments needed to settle this session</string>
+    <string name="settlement_payments_title">Payments needed to settle this group</string>
     <string name="settlement_stale_message">The saved settlement is out of date. Regenerate it to include recent changes.</string>
     <string name="generating">Generating</string>
     <string name="regenerate_settlement">Regenerate settlement</string>
@@ -113,16 +104,16 @@
     <string name="paid_by_name">Paid by %s</string>
     <string name="split_names">Split: %s</string>
     <string name="delete_expense_title">Delete expense?</string>
-    <string name="delete_expense_message">This removes the expense from this session.</string>
+    <string name="delete_expense_message">This removes the expense from this group.</string>
     <string name="no_expenses_yet">No expenses yet</string>
     <string name="add_first_expense">Add the first expense to split it equally.</string>
 
-    <string name="error_could_not_load_sessions">Could not load sessions.</string>
-    <string name="error_could_not_delete_session">Could not delete the session.</string>
-    <string name="error_enter_session_name">Enter a session name.</string>
-    <string name="error_could_not_save_session">Could not save the session.</string>
-    <string name="error_could_not_load_session">Could not load the session.</string>
-    <string name="error_could_not_load_session_details">Could not load session details.</string>
+    <string name="error_could_not_load_groups">Could not load groups.</string>
+    <string name="error_could_not_delete_group">Could not delete the group.</string>
+    <string name="error_enter_group_name">Enter a group name.</string>
+    <string name="error_could_not_save_group">Could not save the group.</string>
+    <string name="error_could_not_load_group">Could not load the group.</string>
+    <string name="error_could_not_load_group_details">Could not load group details.</string>
     <string name="error_could_not_load_participants">Could not load participants.</string>
     <string name="error_enter_participant_name">Enter a participant name.</string>
     <string name="error_could_not_save_participant">Could not save participant.</string>
