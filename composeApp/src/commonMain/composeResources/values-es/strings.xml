@@ -87,7 +87,13 @@
     <string name="theme_system_description">Seguir el tema del dispositivo.</string>
     <string name="theme_light_description">Usar siempre el tema claro.</string>
     <string name="theme_dark_description">Usar siempre el tema oscuro.</string>
-    <string name="settings_saved">Configuración guardada localmente.</string>
+    <string name="settings_saved">Ajustes guardados</string>
+    <string name="section_general">General</string>
+    <string name="section_appearance">Apariencia</string>
+    <string name="section_about">Acerca de</string>
+    <string name="about_version_label">Versión</string>
+    <string name="currency_common">Monedas comunes</string>
+    <string name="currency_custom_label">Código ISO personalizado</string>
 
     <string name="add_participant">Agregar participante</string>
     <string name="edit_participant">Editar participante</string>

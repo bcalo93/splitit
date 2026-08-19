@@ -9,11 +9,14 @@ import splitit.composeapp.generated.resources.arrow_downward
 import splitit.composeapp.generated.resources.arrow_upward
 import splitit.composeapp.generated.resources.celebration
 import splitit.composeapp.generated.resources.check
+import splitit.composeapp.generated.resources.chevron_right
 import splitit.composeapp.generated.resources.close
 import splitit.composeapp.generated.resources.contrast
+import splitit.composeapp.generated.resources.dark_mode
 import splitit.composeapp.generated.resources.delete
 import splitit.composeapp.generated.resources.edit
 import splitit.composeapp.generated.resources.group
+import splitit.composeapp.generated.resources.light_mode
 import splitit.composeapp.generated.resources.more_vert
 import splitit.composeapp.generated.resources.payments
 import splitit.composeapp.generated.resources.person_add
@@ -49,4 +52,7 @@ object SplitItIcons {
     val Settings: DrawableResource = Res.drawable.settings
     val Contrast: DrawableResource = Res.drawable.contrast
     val Tune: DrawableResource = Res.drawable.tune
+    val LightMode: DrawableResource = Res.drawable.light_mode
+    val DarkMode: DrawableResource = Res.drawable.dark_mode
+    val ChevronRight: DrawableResource = Res.drawable.chevron_right
 }

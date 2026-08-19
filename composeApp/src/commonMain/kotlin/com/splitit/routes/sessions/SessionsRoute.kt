@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -350,6 +351,21 @@ private fun GroupsEmptyIllustration(
                 )
                 .background(MaterialTheme.colorScheme.primaryContainer),
         )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(SplitItIcons.Check),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
         Row(
             modifier = Modifier.align(Alignment.TopCenter),
             horizontalArrangement = Arrangement.spacedBy((-12).dp),

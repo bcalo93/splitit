@@ -1,7 +1,6 @@
 package com.splitit.routes.sessions.participants
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.style.TextAlign
@@ -384,25 +384,41 @@ private fun ParticipantsEmptyIllustration(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy((-12).dp),
     ) {
-        GhostAvatar(56.dp)
-        GhostAvatar(56.dp)
-        GhostAvatar(56.dp)
+        GhostAvatar(
+            size = 56.dp,
+            container = MaterialTheme.colorScheme.primaryContainer,
+            content = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        GhostAvatar(
+            size = 56.dp,
+            container = MaterialTheme.colorScheme.secondaryContainer,
+            content = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        GhostAvatar(
+            size = 56.dp,
+            container = MaterialTheme.colorScheme.surfaceVariant,
+            content = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
 @Composable
-private fun GhostAvatar(size: androidx.compose.ui.unit.Dp) {
+private fun GhostAvatar(
+    size: androidx.compose.ui.unit.Dp,
+    container: androidx.compose.ui.graphics.Color,
+    content: androidx.compose.ui.graphics.Color,
+) {
     Box(
         modifier = Modifier
             .size(size)
-            .border(2.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape),
+            .clip(CircleShape)
+            .background(container, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             painter = painterResource(SplitItIcons.PersonAdd),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = content,
         )
     }
 }

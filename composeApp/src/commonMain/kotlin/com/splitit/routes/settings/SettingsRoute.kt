@@ -1,59 +1,80 @@
 package com.splitit.routes.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.splitit.appVersion
 import com.splitit.domain.repository.ThemeMode
 import com.splitit.presentation.settings.SettingsUiState
 import com.splitit.presentation.settings.SettingsViewModel
-import com.splitit.ui.components.ErrorState
-import com.splitit.ui.components.LoadingState
-import com.splitit.ui.components.ArrowBackIcon
+import com.splitit.ui.components.InlineErrorState
+import com.splitit.ui.components.SplitItIcons
+import com.splitit.ui.components.SplitItScaffold
+import com.splitit.ui.components.SplitItTopBar
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import splitit.composeapp.generated.resources.Res
-import splitit.composeapp.generated.resources.back
-import splitit.composeapp.generated.resources.currency_hint
+import splitit.composeapp.generated.resources.about_version_label
+import splitit.composeapp.generated.resources.cancel
+import splitit.composeapp.generated.resources.currency_common
+import splitit.composeapp.generated.resources.currency_custom_label
 import splitit.composeapp.generated.resources.default_currency
+import splitit.composeapp.generated.resources.error_invalid_currency
 import splitit.composeapp.generated.resources.preferences_stored_locally
-import splitit.composeapp.generated.resources.retry
 import splitit.composeapp.generated.resources.save
-import splitit.composeapp.generated.resources.saving
+import splitit.composeapp.generated.resources.section_about
+import splitit.composeapp.generated.resources.section_appearance
+import splitit.composeapp.generated.resources.section_general
 import splitit.composeapp.generated.resources.settings
 import splitit.composeapp.generated.resources.settings_saved
-import splitit.composeapp.generated.resources.theme
 import splitit.composeapp.generated.resources.theme_dark
-import splitit.composeapp.generated.resources.theme_dark_description
 import splitit.composeapp.generated.resources.theme_light
-import splitit.composeapp.generated.resources.theme_light_description
 import splitit.composeapp.generated.resources.theme_system
-import splitit.composeapp.generated.resources.theme_system_description
+
+private val COMMON_CURRENCY_CODES = listOf(
+    "USD", "EUR", "GBP", "JPY", "CNY", "AUD", "CAD", "CHF",
+    "MXN", "ARS", "BRL", "CLP", "COP", "UYU", "PEN",
+)
 
 @Composable
 fun SettingsRoute(
@@ -61,50 +82,53 @@ fun SettingsRoute(
     viewModel: SettingsViewModel,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val settingsSavedMessage = stringResource(Res.string.settings_saved)
+
+    LaunchedEffect(state.saveCompleted) {
+        if (state.saveCompleted) {
+            viewModel.consumeSaveCompleted()
+            snackbarHostState.showSnackbar(settingsSavedMessage)
+        }
+    }
 
     SettingsScreen(
         state = state,
         onBack = onBack,
-        onCurrencyCodeChange = viewModel::onCurrencyCodeChange,
-        onThemeModeSelected = viewModel::onThemeModeSelected,
-        onSave = viewModel::save,
+        snackbarHostState = snackbarHostState,
+        onCurrencySelected = { code ->
+            viewModel.onCurrencyCodeChange(code)
+            viewModel.save()
+        },
+        onThemeModeSelected = { mode ->
+            viewModel.onThemeModeSelected(mode)
+            viewModel.save()
+        },
         onRetry = viewModel::refresh,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsScreen(
     state: SettingsUiState,
     onBack: () -> Unit,
-    onCurrencyCodeChange: (String) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    onCurrencySelected: (String) -> Unit,
     onThemeModeSelected: (ThemeMode) -> Unit,
-    onSave: () -> Unit,
     onRetry: () -> Unit,
 ) {
-    Scaffold(
+    var showCurrencyDialog by remember { mutableStateOf(false) }
+
+    SplitItScaffold(
         modifier = Modifier.safeContentPadding(),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.settings)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = ArrowBackIcon,
-                            contentDescription = stringResource(Res.string.back),
-                        )
-                    }
-                },
-                actions = {
-                    Button(
-                        modifier = Modifier.padding(end = 16.dp),
-                        enabled = !state.isLoading && !state.isSaving,
-                        onClick = onSave,
-                    ) {
-                        Text(if (state.isSaving) stringResource(Res.string.saving) else stringResource(Res.string.save))
-                    }
-                },
+            SplitItTopBar(
+                title = stringResource(Res.string.settings),
+                onBack = onBack,
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         },
     ) { paddingValues ->
         if (state.isLoading) {
@@ -121,114 +145,217 @@ private fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(20.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
+                state.errorMessage?.let { message ->
+                    InlineErrorState(message = message, onRetry = onRetry)
+                }
+
+                SectionHeader(stringResource(Res.string.section_general))
+                PreferenceRow(
+                    title = stringResource(Res.string.default_currency),
+                    value = state.settings.defaultCurrencyCode,
+                    onClick = { showCurrencyDialog = true },
+                )
+
+                SectionHeader(stringResource(Res.string.section_appearance))
+                ThemeSegmentedButtons(
+                    selected = state.draftSettings.themeMode,
+                    enabled = !state.isSaving,
+                    onSelect = onThemeModeSelected,
+                )
+
+                SectionHeader(stringResource(Res.string.section_about))
+                PreferenceRow(
+                    title = stringResource(Res.string.about_version_label),
+                    value = appVersion(),
+                )
+
                 Text(
                     text = stringResource(Res.string.preferences_stored_locally),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                 )
-                OutlinedTextField(
-                    value = state.draftSettings.defaultCurrencyCode,
-                    onValueChange = onCurrencyCodeChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !state.isSaving,
-                    label = { Text(stringResource(Res.string.default_currency)) },
-                    supportingText = {
-                        if (state.currencyError != null) {
-                            Text(state.currencyError)
-                        } else {
-                            Text(stringResource(Res.string.currency_hint))
-                        }
-                    },
-                    isError = state.currencyError != null,
-                    singleLine = true,
-                )
+            }
+        }
+    }
+
+    if (showCurrencyDialog) {
+        CurrencyPickerDialog(
+            currentCode = state.settings.defaultCurrencyCode,
+            onDismiss = { showCurrencyDialog = false },
+            onConfirm = { code ->
+                showCurrencyDialog = false
+                onCurrencySelected(code)
+            },
+        )
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+    )
+}
+
+@Composable
+private fun PreferenceRow(
+    title: String,
+    value: String?,
+    onClick: (() -> Unit)? = null,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .then(
+                if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
+            ),
+        color = MaterialTheme.colorScheme.surface,
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            if (value != null) {
                 Text(
-                    text = stringResource(Res.string.theme),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    text = value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                ThemeMode.entries.forEach { themeMode ->
-                    ThemeModeOption(
-                        themeMode = themeMode,
-                        selected = state.draftSettings.themeMode == themeMode,
-                        enabled = !state.isSaving,
-                        onClick = { onThemeModeSelected(themeMode) },
-                    )
-                }
-                state.errorMessage?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-                if (state.saveCompleted) {
-                    Text(
-                        text = stringResource(Res.string.settings_saved),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                if (state.errorMessage != null) {
-                    OutlinedButton(onClick = onRetry) {
-                        Text(stringResource(Res.string.retry))
-                    }
-                }
+            }
+            if (onClick != null) {
+                Spacer(Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(SplitItIcons.ChevronRight),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeSegmentedButtons(
+    selected: ThemeMode,
+    enabled: Boolean,
+    onSelect: (ThemeMode) -> Unit,
+) {
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+    ) {
+        ThemeMode.entries.forEachIndexed { index, mode ->
+            SegmentedButton(
+                selected = selected == mode,
+                onClick = { onSelect(mode) },
+                enabled = enabled,
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = ThemeMode.entries.size),
+            ) {
+                Icon(
+                    painter = painterResource(themeModeIcon(mode)),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(themeModeLabel(mode))
             }
         }
     }
 }
 
 @Composable
-private fun ThemeModeOption(
-    themeMode: ThemeMode,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
+private fun themeModeIcon(themeMode: ThemeMode): DrawableResource = when (themeMode) {
+    ThemeMode.System -> SplitItIcons.Contrast
+    ThemeMode.Light -> SplitItIcons.LightMode
+    ThemeMode.Dark -> SplitItIcons.DarkMode
+}
+
+@Composable
+private fun themeModeLabel(themeMode: ThemeMode): String = when (themeMode) {
+    ThemeMode.System -> stringResource(Res.string.theme_system)
+    ThemeMode.Light -> stringResource(Res.string.theme_light)
+    ThemeMode.Dark -> stringResource(Res.string.theme_dark)
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun CurrencyPickerDialog(
+    currentCode: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        RadioButton(
-            selected = selected,
-            enabled = enabled,
-            onClick = onClick,
-        )
-        Column {
-            Text(
-                text = themeModeLabel(themeMode),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = themeModeDescription(themeMode),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
+    var draft by remember { mutableStateOf(currentCode) }
+    val normalized = draft.trim().uppercase()
+    val isValid = normalized.length == 3 && normalized.all { it in 'A'..'Z' }
 
-@Composable
-private fun themeModeLabel(themeMode: ThemeMode): String {
-    return when (themeMode) {
-        ThemeMode.System -> stringResource(Res.string.theme_system)
-        ThemeMode.Light -> stringResource(Res.string.theme_light)
-        ThemeMode.Dark -> stringResource(Res.string.theme_dark)
-    }
-}
-
-@Composable
-private fun themeModeDescription(themeMode: ThemeMode): String {
-    return when (themeMode) {
-        ThemeMode.System -> stringResource(Res.string.theme_system_description)
-        ThemeMode.Light -> stringResource(Res.string.theme_light_description)
-        ThemeMode.Dark -> stringResource(Res.string.theme_dark_description)
-    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.large,
+        title = { Text(stringResource(Res.string.default_currency)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(Res.string.currency_common),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    COMMON_CURRENCY_CODES.forEach { code ->
+                        FilterChip(
+                            selected = code == normalized,
+                            onClick = { draft = code },
+                            label = { Text(code) },
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = draft,
+                    onValueChange = { draft = it.take(3).uppercase() },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(Res.string.currency_custom_label)) },
+                    supportingText = {
+                        if (!isValid) {
+                            Text(stringResource(Res.string.error_invalid_currency))
+                        }
+                    },
+                    isError = !isValid,
+                    singleLine = true,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(normalized) },
+                enabled = isValid,
+            ) {
+                Text(stringResource(Res.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(Res.string.cancel))
+            }
+        },
+    )
 }
