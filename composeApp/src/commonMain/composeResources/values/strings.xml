@@ -14,6 +14,7 @@
     <string name="remove">Remove</string>
     <string name="name">Name</string>
     <string name="description">Description</string>
+    <string name="group_description_hint">Trip? Apartment? Dinner?</string>
     <string name="title">Title</string>
     <string name="note">Note</string>
     <string name="unknown">Unknown</string>

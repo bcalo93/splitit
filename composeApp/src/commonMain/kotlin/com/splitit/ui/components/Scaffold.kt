@@ -14,6 +14,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import splitit.composeapp.generated.resources.Res
@@ -45,6 +46,8 @@ fun SplitItTopBar(
     title: String,
     onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    navigationIcon: DrawableResource = SplitItIcons.ArrowBack,
+    navigationContentDescription: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
@@ -54,8 +57,9 @@ fun SplitItTopBar(
             if (onBack != null) {
                 IconButton(onClick = onBack) {
                     Icon(
-                        painter = painterResource(SplitItIcons.ArrowBack),
-                        contentDescription = stringResource(Res.string.cd_back),
+                        painter = painterResource(navigationIcon),
+                        contentDescription = navigationContentDescription
+                            ?: stringResource(Res.string.cd_back),
                     )
                 }
             }

@@ -9,6 +9,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.CircleShape
 import org.jetbrains.compose.resources.DrawableResource
@@ -30,6 +31,10 @@ fun FormTextField(
     maxLength: Int? = null,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    placeholder: String? = null,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    shape: Shape = MaterialTheme.shapes.small,
 ) {
     OutlinedTextField(
         value = value,
@@ -37,7 +42,11 @@ fun FormTextField(
         modifier = modifier,
         label = { Text(label) },
         singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
+        shape = shape,
         isError = error != null,
+        placeholder = placeholder?.let { { Text(it) } },
         leadingIcon = leadingIcon?.let {
             {
                 Icon(
