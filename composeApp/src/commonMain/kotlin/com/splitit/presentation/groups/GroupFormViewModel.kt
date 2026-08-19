@@ -56,6 +56,12 @@ class GroupFormViewModel(
         _state.update { it.copy(description = description, errorMessage = null) }
     }
 
+    fun onTitleBlur() {
+        if (_state.value.title.isBlank()) {
+            _state.update { it.copy(titleError = localization.getString(LocalizedString.ErrorEnterGroupName)) }
+        }
+    }
+
     fun save() {
         val current = _state.value
         if (current.title.isBlank()) {

@@ -15,6 +15,7 @@ import splitit.composeapp.generated.resources.contrast
 import splitit.composeapp.generated.resources.dark_mode
 import splitit.composeapp.generated.resources.delete
 import splitit.composeapp.generated.resources.edit
+import splitit.composeapp.generated.resources.error
 import splitit.composeapp.generated.resources.group
 import splitit.composeapp.generated.resources.light_mode
 import splitit.composeapp.generated.resources.more_vert
@@ -55,4 +56,5 @@ object SplitItIcons {
     val LightMode: DrawableResource = Res.drawable.light_mode
     val DarkMode: DrawableResource = Res.drawable.dark_mode
     val ChevronRight: DrawableResource = Res.drawable.chevron_right
+    val Error: DrawableResource = Res.drawable.error
 }

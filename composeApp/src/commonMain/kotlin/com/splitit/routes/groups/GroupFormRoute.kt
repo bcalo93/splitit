@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.splitit.domain.value.GroupId
@@ -65,6 +66,7 @@ fun GroupFormRoute(
         onBack = onBack,
         onTitleChange = viewModel::onTitleChange,
         onDescriptionChange = viewModel::onDescriptionChange,
+        onTitleBlur = viewModel::onTitleBlur,
         onSave = viewModel::save,
     )
 }
@@ -76,6 +78,7 @@ private fun GroupFormScreen(
     onBack: () -> Unit,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
+    onTitleBlur: () -> Unit,
     onSave: () -> Unit,
 ) {
     val spacing = LocalSplitItSpacing.current
@@ -136,7 +139,13 @@ private fun GroupFormScreen(
                     error = state.titleError,
                     maxLength = 50,
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (!focusState.isFocused) {
+                                onTitleBlur()
+                            }
+                        },
                 )
                 FormTextField(
                     value = state.description,

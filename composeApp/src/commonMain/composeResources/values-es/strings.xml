@@ -152,6 +152,7 @@
     <string name="cd_arrow_upward">Debe</string>
     <string name="cd_arrow_downward">Recibe</string>
     <string name="cd_warning_amber">Advertencia</string>
+    <string name="cd_error">Error</string>
     <string name="cd_celebration">Celebración</string>
     <string name="cd_settings">Configuración</string>
     <string name="cd_contrast">Tema</string>

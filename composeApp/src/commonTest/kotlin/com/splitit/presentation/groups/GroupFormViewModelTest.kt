@@ -34,6 +34,28 @@ class GroupFormViewModelTest {
     }
 
     @Test
+    fun onTitleBlurSetsErrorWhenTitleBlank() = runViewModelTest {
+        val repository = InMemoryGroupRepository()
+        val viewModel = createViewModel(repository)
+
+        viewModel.onTitleBlur()
+
+        assertEquals("Enter a group name.", viewModel.state.value.titleError)
+        assertEquals(0, repository.saveCalls)
+    }
+
+    @Test
+    fun onTitleBlurDoesNotSetErrorWhenTitleNotBlank() = runViewModelTest {
+        val repository = InMemoryGroupRepository()
+        val viewModel = createViewModel(repository)
+
+        viewModel.onTitleChange("  Weekend  ")
+        viewModel.onTitleBlur()
+
+        assertEquals(null, viewModel.state.value.titleError)
+    }
+
+    @Test
     fun createsGroupAndExposesSavedId() = runViewModelTest {
         val repository = InMemoryGroupRepository()
         val viewModel = createViewModel(repository)

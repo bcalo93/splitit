@@ -152,6 +152,7 @@
     <string name="cd_arrow_upward">Owes</string>
     <string name="cd_arrow_downward">Receives</string>
     <string name="cd_warning_amber">Warning</string>
+    <string name="cd_error">Error</string>
     <string name="cd_celebration">Celebration</string>
     <string name="cd_settings">Settings</string>
     <string name="cd_contrast">Theme</string>

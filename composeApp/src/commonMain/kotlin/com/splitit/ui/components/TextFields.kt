@@ -35,6 +35,7 @@ fun FormTextField(
     minLines: Int = 1,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     shape: Shape = MaterialTheme.shapes.small,
+    errorIcon: DrawableResource? = SplitItIcons.Error,
 ) {
     OutlinedTextField(
         value = value,
@@ -55,6 +56,18 @@ fun FormTextField(
                     modifier = Modifier.size(20.dp),
                 )
             }
+        },
+        trailingIcon = if (error != null && errorIcon != null) {
+            {
+                Icon(
+                    painter = painterResource(errorIcon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        } else {
+            null
         },
         supportingText = when {
             error != null -> ({ Text(error) })
