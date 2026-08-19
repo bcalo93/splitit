@@ -1,52 +1,52 @@
 package com.splitit.domain.usecase
 
 import com.splitit.domain.model.Expense
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.repository.ExpenseRepository
 import com.splitit.domain.repository.ParticipantRepository
-import com.splitit.domain.repository.SessionRepository
+import com.splitit.domain.repository.GroupRepository
 import com.splitit.domain.repository.SettlementRepository
 import com.splitit.domain.service.SourceRevisionCalculator
 import com.splitit.domain.value.Clock
 import com.splitit.domain.value.IdGenerator
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
-class CreateSessionUseCase(
-    private val sessionRepository: SessionRepository,
+class CreateGroupUseCase(
+    private val groupRepository: GroupRepository,
     private val idGenerator: IdGenerator,
     private val clock: Clock,
 ) {
     suspend operator fun invoke(
         title: String,
         description: String?,
-    ): ExpenseSession {
+    ): ExpenseGroup {
         val now = clock.nowMillis()
-        val session = ExpenseSession(
-            id = idGenerator.newSessionId(),
+        val group = ExpenseGroup(
+            id = idGenerator.newGroupId(),
             title = title.trim(),
             description = description?.trim()?.takeIf { it.isNotEmpty() },
             createdAtMillis = now,
             updatedAtMillis = now,
         )
 
-        sessionRepository.saveSession(session)
-        return session
+        groupRepository.saveGroup(group)
+        return group
     }
 }
 
-class UpdateSessionUseCase(
-    private val sessionRepository: SessionRepository,
+class UpdateGroupUseCase(
+    private val groupRepository: GroupRepository,
     private val clock: Clock,
 ) {
     suspend operator fun invoke(
-        sessionId: SessionId,
+        groupId: GroupId,
         title: String,
         description: String?,
-    ): ExpenseSession {
-        val current = requireNotNull(sessionRepository.getSession(sessionId)) {
-            "Session ${sessionId.value} was not found."
+    ): ExpenseGroup {
+        val current = requireNotNull(groupRepository.getGroup(groupId)) {
+            "Group ${groupId.value} was not found."
         }
         val updated = current.copy(
             title = title.trim(),
@@ -54,43 +54,43 @@ class UpdateSessionUseCase(
             updatedAtMillis = clock.nowMillis(),
         )
 
-        sessionRepository.saveSession(updated)
+        groupRepository.saveGroup(updated)
         return updated
     }
 }
 
-class DeleteSessionUseCase(
-    private val sessionRepository: SessionRepository,
+class DeleteGroupUseCase(
+    private val groupRepository: GroupRepository,
 ) {
-    suspend operator fun invoke(sessionId: SessionId) {
-        sessionRepository.deleteSession(sessionId)
+    suspend operator fun invoke(groupId: GroupId) {
+        groupRepository.deleteGroup(groupId)
     }
 }
 
-class ObserveSessionsUseCase(
-    private val sessionRepository: SessionRepository,
+class ObserveGroupsUseCase(
+    private val groupRepository: GroupRepository,
 ) {
-    suspend operator fun invoke(): List<ExpenseSession> {
-        return sessionRepository.getSessions()
+    suspend operator fun invoke(): List<ExpenseGroup> {
+        return groupRepository.getGroups()
     }
 }
 
-class ObserveSessionDetailsUseCase(
-    private val sessionRepository: SessionRepository,
+class ObserveGroupDetailsUseCase(
+    private val groupRepository: GroupRepository,
     private val participantRepository: ParticipantRepository,
     private val expenseRepository: ExpenseRepository,
     private val settlementRepository: SettlementRepository,
 ) {
-    suspend operator fun invoke(sessionId: SessionId): SessionDetails {
-        val session = requireNotNull(sessionRepository.getSession(sessionId)) {
-            "Session ${sessionId.value} was not found."
+    suspend operator fun invoke(groupId: GroupId): GroupDetails {
+        val group = requireNotNull(groupRepository.getGroup(groupId)) {
+            "Group ${groupId.value} was not found."
         }
-        val participants = participantRepository.getParticipants(sessionId)
-        val expenses = expenseRepository.getExpenses(sessionId)
-        val latestSettlement = settlementRepository.getLatestSettlement(sessionId)
+        val participants = participantRepository.getParticipants(groupId)
+        val expenses = expenseRepository.getExpenses(groupId)
+        val latestSettlement = settlementRepository.getLatestSettlement(groupId)
 
-        return SessionDetails(
-            session = session,
+        return GroupDetails(
+            group = group,
             participants = participants,
             expenses = expenses,
             latestSettlement = latestSettlement,
@@ -98,8 +98,8 @@ class ObserveSessionDetailsUseCase(
     }
 }
 
-data class SessionDetails(
-    val session: ExpenseSession,
+data class GroupDetails(
+    val group: ExpenseGroup,
     val participants: List<Participant>,
     val expenses: List<Expense>,
     val latestSettlement: Settlement?,

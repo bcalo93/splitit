@@ -1,4 +1,4 @@
-package com.splitit.routes.sessions
+package com.splitit.routes.groups
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,9 +23,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.splitit.domain.value.SessionId
-import com.splitit.presentation.sessions.SessionFormUiState
-import com.splitit.presentation.sessions.SessionFormViewModel
+import com.splitit.domain.value.GroupId
+import com.splitit.presentation.groups.GroupFormUiState
+import com.splitit.presentation.groups.GroupFormViewModel
 import com.splitit.ui.components.ArrowBackIcon
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -40,26 +40,26 @@ import splitit.composeapp.generated.resources.save
 import splitit.composeapp.generated.resources.saving
 
 @Composable
-fun SessionFormRoute(
-    sessionId: SessionId?,
+fun GroupFormRoute(
+    groupId: GroupId?,
     onBack: () -> Unit,
-    onSaved: (SessionId) -> Unit,
-    viewModel: SessionFormViewModel = koinViewModel(
-        parameters = { parametersOf(sessionId) },
+    onSaved: (GroupId) -> Unit,
+    viewModel: GroupFormViewModel = koinViewModel(
+        parameters = { parametersOf(groupId) },
     ),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.savedSessionId) {
-        state.savedSessionId?.let {
-            viewModel.consumeSavedSession()
+    LaunchedEffect(state.savedGroupId) {
+        state.savedGroupId?.let {
+            viewModel.consumeSavedGroup()
             onSaved(it)
         }
     }
 
-    SessionFormScreen(
+    GroupFormScreen(
         state = state,
-        isEditing = sessionId != null,
+        isEditing = groupId != null,
         onBack = onBack,
         onTitleChange = viewModel::onTitleChange,
         onDescriptionChange = viewModel::onDescriptionChange,
@@ -69,8 +69,8 @@ fun SessionFormRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SessionFormScreen(
-    state: SessionFormUiState,
+private fun GroupFormScreen(
+    state: GroupFormUiState,
     isEditing: Boolean,
     onBack: () -> Unit,
     onTitleChange: (String) -> Unit,

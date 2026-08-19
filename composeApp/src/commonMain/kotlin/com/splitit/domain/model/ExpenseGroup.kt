@@ -2,27 +2,27 @@ package com.splitit.domain.model
 
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
-data class ExpenseSession(
-    val id: SessionId,
+data class ExpenseGroup(
+    val id: GroupId,
     val title: String,
     val description: String?,
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
     val participantIds: Set<ParticipantId> = emptySet(),
     val expenseIds: Set<ExpenseId> = emptySet(),
-    val status: SessionStatus = SessionStatus.Active,
+    val status: GroupStatus = GroupStatus.Active,
 ) {
     init {
-        require(title.isNotBlank()) { "Session title cannot be blank." }
+        require(title.isNotBlank()) { "Group title cannot be blank." }
         require(updatedAtMillis >= createdAtMillis) {
-            "Session updatedAtMillis cannot be earlier than createdAtMillis."
+            "Group updatedAtMillis cannot be earlier than createdAtMillis."
         }
     }
 }
 
-enum class SessionStatus {
+enum class GroupStatus {
     Active,
     Archived,
 }

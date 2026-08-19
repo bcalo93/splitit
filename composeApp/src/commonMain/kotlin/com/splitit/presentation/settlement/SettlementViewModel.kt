@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Balance
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.Settlement
-import com.splitit.domain.usecase.CalculateSessionBalancesUseCase
+import com.splitit.domain.usecase.CalculateGroupBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
@@ -34,9 +34,9 @@ data class SettlementUiState(
 )
 
 class SettlementViewModel(
-    private val sessionId: SessionId,
-    private val observeSessionDetails: ObserveSessionDetailsUseCase,
-    private val calculateSessionBalances: CalculateSessionBalancesUseCase,
+    private val groupId: GroupId,
+    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val calculateGroupBalances: CalculateGroupBalancesUseCase,
     private val generateSettlement: GenerateSettlementUseCase,
     private val localization: LocalizationService,
 ) : ViewModel() {
@@ -83,7 +83,7 @@ class SettlementViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isGenerating = true, errorMessage = null) }
             try {
-                generateSettlement(sessionId)
+                generateSettlement(groupId)
                 val snapshot = loadSnapshot()
                 _state.update { it.apply(snapshot).copy(isGenerating = false, isLoading = false) }
             } catch (exception: CancellationException) {
@@ -100,10 +100,10 @@ class SettlementViewModel(
     }
 
     private suspend fun loadSnapshot(): SettlementSnapshot {
-        val details = observeSessionDetails(sessionId)
+        val details = observeGroupDetails(groupId)
         return SettlementSnapshot(
             participants = details.participants,
-            balances = calculateSessionBalances(sessionId),
+            balances = calculateGroupBalances(groupId),
             settlement = details.latestSettlement,
             currentSourceRevision = details.currentSourceRevision,
             isSettlementStale = details.isSettlementStale,

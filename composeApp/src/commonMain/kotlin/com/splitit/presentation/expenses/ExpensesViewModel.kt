@@ -8,13 +8,13 @@ import com.splitit.domain.model.Participant
 import com.splitit.domain.usecase.CreateExpenseUseCase
 import com.splitit.domain.usecase.DeleteExpenseUseCase
 import com.splitit.domain.usecase.GetSettingsUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.UpdateExpenseUseCase
 import com.splitit.domain.value.Clock
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
@@ -72,8 +72,8 @@ data class ExpensesUiState(
 }
 
 class ExpensesViewModel(
-    private val sessionId: SessionId,
-    private val observeSessionDetails: ObserveSessionDetailsUseCase,
+    private val groupId: GroupId,
+    private val observeGroupDetails: ObserveGroupDetailsUseCase,
     private val createExpense: CreateExpenseUseCase,
     private val updateExpense: UpdateExpenseUseCase,
     private val deleteExpense: DeleteExpenseUseCase,
@@ -95,7 +95,7 @@ class ExpensesViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val (details, settings) = observeSessionDetails(sessionId) to getSettings()
+                val (details, settings) = observeGroupDetails(groupId) to getSettings()
                 _state.update {
                     val current = it
                     val defaultPayer = current.payerId ?: details.participants.firstOrNull()?.id
@@ -281,7 +281,7 @@ class ExpensesViewModel(
                 }
                 if (editingId == null) {
                     createExpense(
-                        sessionId = sessionId,
+                        groupId = groupId,
                         title = current.title,
                         amount = Money(parsedAmount, currencyCode),
                         payerId = payerId,

@@ -13,12 +13,12 @@ class BalanceCalculator {
         expenses: List<Expense>,
     ): List<Balance> {
         require(participants.map { it.id }.toSet().size == participants.size) {
-            "Session participants cannot contain duplicate IDs."
+            "Group participants cannot contain duplicate IDs."
         }
 
         val currencyCode = defaultCurrency(expenses)
         require(expenses.all { it.amount.currencyCode == currencyCode }) {
-            "All expenses in a session must use the same currency."
+            "All expenses in a group must use the same currency."
         }
 
         val balances = participants.associate { participant ->
@@ -27,7 +27,7 @@ class BalanceCalculator {
 
         expenses.forEach { expense ->
             require(balances.containsKey(expense.payerId)) {
-                "Expense payer must belong to the session participants."
+                "Expense payer must belong to the group participants."
             }
 
             val shares = splitExpense(expense)
@@ -35,7 +35,7 @@ class BalanceCalculator {
 
             shares.forEach { (participantId, share) ->
                 require(balances.containsKey(participantId)) {
-                    "Expense participant must belong to the session participants."
+                    "Expense participant must belong to the group participants."
                 }
                 balances[participantId] = balances.getValue(participantId) - share
             }

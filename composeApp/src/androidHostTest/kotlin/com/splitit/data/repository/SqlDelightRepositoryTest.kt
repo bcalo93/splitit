@@ -4,9 +4,9 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.splitit.data.database.SplitItDatabase
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
-import com.splitit.domain.model.SessionStatus
+import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.model.SettlementTransfer
 import com.splitit.domain.repository.AppSettings
@@ -14,7 +14,7 @@ import com.splitit.domain.repository.ThemeMode
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 import com.splitit.domain.value.TransferId
 import kotlin.coroutines.Continuation
@@ -29,28 +29,28 @@ import kotlin.test.assertTrue
 
 class SqlDelightRepositoryTest {
     @Test
-    fun persistSessionAndParticipants() = runSuspendingTest {
+    fun persistGroupAndParticipants() = runSuspendingTest {
         val repositories = testRepositories()
-        val session = session()
+        val group = group()
         val alice = participant(ParticipantId("alice"))
         val bob = participant(ParticipantId("bob"))
 
-        repositories.sessionRepository.saveSession(session)
+        repositories.groupRepository.saveGroup(group)
         repositories.participantRepository.saveParticipant(alice)
         repositories.participantRepository.saveParticipant(bob)
 
-        val loadedSession = repositories.sessionRepository.getSession(session.id)
-        val participants = repositories.participantRepository.getParticipants(session.id)
+        val loadedGroup = repositories.groupRepository.getGroup(group.id)
+        val participants = repositories.participantRepository.getParticipants(group.id)
 
-        assertNotNull(loadedSession)
-        assertEquals(setOf(alice.id, bob.id), loadedSession.participantIds)
+        assertNotNull(loadedGroup)
+        assertEquals(setOf(alice.id, bob.id), loadedGroup.participantIds)
         assertEquals(listOf(alice, bob), participants)
     }
 
     @Test
     fun persistExpenseWithParticipantSharesTransactionally() = runSuspendingTest {
         val repositories = testRepositories()
-        val session = session()
+        val group = group()
         val alice = participant(ParticipantId("alice"))
         val bob = participant(ParticipantId("bob"))
         val expense = expense(
@@ -60,7 +60,7 @@ class SqlDelightRepositoryTest {
             ),
         )
 
-        repositories.sessionRepository.saveSession(session)
+        repositories.groupRepository.saveGroup(group)
         repositories.participantRepository.saveParticipant(alice)
         repositories.participantRepository.saveParticipant(bob)
         repositories.expenseRepository.saveExpense(expense)
@@ -75,12 +75,12 @@ class SqlDelightRepositoryTest {
     @Test
     fun updateExpenseReplacesShares() = runSuspendingTest {
         val repositories = testRepositories()
-        val session = session()
+        val group = group()
         val alice = participant(ParticipantId("alice"))
         val bob = participant(ParticipantId("bob"))
         val charlie = participant(ParticipantId("charlie"))
 
-        repositories.sessionRepository.saveSession(session)
+        repositories.groupRepository.saveGroup(group)
         listOf(alice, bob, charlie).forEach {
             repositories.participantRepository.saveParticipant(it)
         }
@@ -110,12 +110,12 @@ class SqlDelightRepositoryTest {
     @Test
     fun persistSettlementWithTransfers() = runSuspendingTest {
         val repositories = testRepositories()
-        val session = session()
+        val group = group()
         val alice = participant(ParticipantId("alice"))
         val bob = participant(ParticipantId("bob"))
         val settlement = Settlement(
             id = SettlementId("settlement"),
-            sessionId = session.id,
+            groupId = group.id,
             generatedAtMillis = 10,
             sourceRevision = 5,
             transfers = listOf(
@@ -129,12 +129,12 @@ class SqlDelightRepositoryTest {
             ),
         )
 
-        repositories.sessionRepository.saveSession(session)
+        repositories.groupRepository.saveGroup(group)
         repositories.participantRepository.saveParticipant(alice)
         repositories.participantRepository.saveParticipant(bob)
         repositories.settlementRepository.saveSettlement(settlement)
 
-        assertEquals(settlement, repositories.settlementRepository.getLatestSettlement(session.id))
+        assertEquals(settlement, repositories.settlementRepository.getLatestSettlement(group.id))
         assertEquals(settlement, repositories.settlementRepository.getSettlement(settlement.id))
     }
 
@@ -154,9 +154,9 @@ class SqlDelightRepositoryTest {
     }
 
     @Test
-    fun deleteSessionCascadesOwnedData() = runSuspendingTest {
+    fun deleteGroupCascadesOwnedData() = runSuspendingTest {
         val repositories = testRepositories()
-        val session = session()
+        val group = group()
         val alice = participant(ParticipantId("alice"))
         val bob = participant(ParticipantId("bob"))
         val savedExpense = expense(
@@ -167,7 +167,7 @@ class SqlDelightRepositoryTest {
         )
         val savedSettlement = Settlement(
             id = SettlementId("settlement"),
-            sessionId = session.id,
+            groupId = group.id,
             generatedAtMillis = 10,
             sourceRevision = 1,
             transfers = listOf(
@@ -181,18 +181,18 @@ class SqlDelightRepositoryTest {
             ),
         )
 
-        repositories.sessionRepository.saveSession(session)
+        repositories.groupRepository.saveGroup(group)
         repositories.participantRepository.saveParticipant(alice)
         repositories.participantRepository.saveParticipant(bob)
         repositories.expenseRepository.saveExpense(savedExpense)
         repositories.settlementRepository.saveSettlement(savedSettlement)
 
-        repositories.sessionRepository.deleteSession(session.id)
+        repositories.groupRepository.deleteGroup(group.id)
 
-        assertNull(repositories.sessionRepository.getSession(session.id))
-        assertEquals(emptyList(), repositories.participantRepository.getParticipants(session.id))
-        assertEquals(emptyList(), repositories.expenseRepository.getExpenses(session.id))
-        assertNull(repositories.settlementRepository.getLatestSettlement(session.id))
+        assertNull(repositories.groupRepository.getGroup(group.id))
+        assertEquals(emptyList(), repositories.participantRepository.getParticipants(group.id))
+        assertEquals(emptyList(), repositories.expenseRepository.getExpenses(group.id))
+        assertNull(repositories.settlementRepository.getLatestSettlement(group.id))
     }
 
     private fun testRepositories(): TestRepositories {
@@ -201,7 +201,7 @@ class SqlDelightRepositoryTest {
         val database = SplitItDatabase(driver)
 
         return TestRepositories(
-            sessionRepository = SqlDelightSessionRepository(database),
+            groupRepository = SqlDelightGroupRepository(database),
             participantRepository = SqlDelightParticipantRepository(database),
             expenseRepository = SqlDelightExpenseRepository(database),
             settlementRepository = SqlDelightSettlementRepository(database),
@@ -209,21 +209,21 @@ class SqlDelightRepositoryTest {
         )
     }
 
-    private fun session(): ExpenseSession {
-        return ExpenseSession(
-            id = SessionId("session"),
+    private fun group(): ExpenseGroup {
+        return ExpenseGroup(
+            id = GroupId("group"),
             title = "Trip",
             description = null,
             createdAtMillis = 1,
             updatedAtMillis = 1,
-            status = SessionStatus.Active,
+            status = GroupStatus.Active,
         )
     }
 
     private fun participant(id: ParticipantId): Participant {
         return Participant(
             id = id,
-            sessionId = SessionId("session"),
+            groupId = GroupId("group"),
             name = id.value,
             avatarColor = null,
             createdAtMillis = 1,
@@ -236,7 +236,7 @@ class SqlDelightRepositoryTest {
     ): Expense {
         return Expense(
             id = ExpenseId("expense"),
-            sessionId = SessionId("session"),
+            groupId = GroupId("group"),
             title = "Dinner",
             amount = Money(1000, "USD"),
             payerId = ParticipantId("alice"),
@@ -249,7 +249,7 @@ class SqlDelightRepositoryTest {
     }
 
     private data class TestRepositories(
-        val sessionRepository: SqlDelightSessionRepository,
+        val groupRepository: SqlDelightGroupRepository,
         val participantRepository: SqlDelightParticipantRepository,
         val expenseRepository: SqlDelightExpenseRepository,
         val settlementRepository: SqlDelightSettlementRepository,

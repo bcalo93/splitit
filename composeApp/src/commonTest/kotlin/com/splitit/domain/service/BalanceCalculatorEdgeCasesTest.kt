@@ -14,7 +14,7 @@ class BalanceCalculatorEdgeCasesTest {
     private val calculator = BalanceCalculator()
 
     @Test
-    fun emptyAndSingleParticipantSessionsHaveZeroBalances() {
+    fun emptyAndSingleParticipantGroupsHaveZeroBalances() {
         assertEquals(emptyList(), calculator.calculateBalances(emptyList(), emptyList()))
 
         val balances = calculator.calculateBalances(

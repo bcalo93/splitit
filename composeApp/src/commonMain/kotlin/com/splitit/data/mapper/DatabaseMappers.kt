@@ -3,15 +3,15 @@ package com.splitit.data.mapper
 import com.splitit.data.database.Expense_participants
 import com.splitit.data.database.Expenses
 import com.splitit.data.database.Participants
-import com.splitit.data.database.Sessions
+import com.splitit.data.database.Groups
 import com.splitit.data.database.Settings
 import com.splitit.data.database.Settlement_transfers
 import com.splitit.data.database.Settlements
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
-import com.splitit.domain.model.SessionStatus
+import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.model.SettlementTransfer
 import com.splitit.domain.repository.AppSettings
@@ -19,30 +19,30 @@ import com.splitit.domain.repository.ThemeMode
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 import com.splitit.domain.value.TransferId
 
-fun Sessions.toDomain(
+fun Groups.toDomain(
     participantIds: Set<ParticipantId> = emptySet(),
     expenseIds: Set<ExpenseId> = emptySet(),
-): ExpenseSession {
-    return ExpenseSession(
-        id = SessionId(id),
+): ExpenseGroup {
+    return ExpenseGroup(
+        id = GroupId(id),
         title = title,
         description = description,
         createdAtMillis = created_at,
         updatedAtMillis = updated_at,
         participantIds = participantIds,
         expenseIds = expenseIds,
-        status = SessionStatus.valueOf(status),
+        status = GroupStatus.valueOf(status),
     )
 }
 
 fun Participants.toDomain(): Participant {
     return Participant(
         id = ParticipantId(id),
-        sessionId = SessionId(session_id),
+        groupId = GroupId(group_id),
         name = name,
         avatarColor = avatar_color,
         createdAtMillis = created_at,
@@ -53,7 +53,7 @@ fun Participants.toDomain(): Participant {
 fun Expenses.toDomain(shares: List<ExpenseParticipantShare>): Expense {
     return Expense(
         id = ExpenseId(id),
-        sessionId = SessionId(session_id),
+        groupId = GroupId(group_id),
         title = title,
         amount = Money(amount_minor, currency_code),
         payerId = ParticipantId(payer_participant_id),
@@ -76,7 +76,7 @@ fun Expense_participants.toDomain(): ExpenseParticipantShare {
 fun Settlements.toDomain(transfers: List<SettlementTransfer>): Settlement {
     return Settlement(
         id = SettlementId(id),
-        sessionId = SessionId(session_id),
+        groupId = GroupId(group_id),
         generatedAtMillis = generated_at,
         sourceRevision = source_revision,
         transfers = transfers,

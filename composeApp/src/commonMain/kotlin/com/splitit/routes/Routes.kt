@@ -14,37 +14,37 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.presentation.settings.SettingsViewModel
-import com.splitit.routes.sessions.SessionDetailsRoute
-import com.splitit.routes.sessions.SessionFormRoute
-import com.splitit.routes.sessions.SessionsRoute
-import com.splitit.routes.sessions.expenses.ExpensesRoute
-import com.splitit.routes.sessions.participants.ParticipantsRoute
-import com.splitit.routes.sessions.settlement.SettlementRoute
+import com.splitit.routes.groups.GroupDetailsRoute
+import com.splitit.routes.groups.GroupFormRoute
+import com.splitit.routes.groups.GroupsRoute
+import com.splitit.routes.groups.expenses.ExpensesRoute
+import com.splitit.routes.groups.participants.ParticipantsRoute
+import com.splitit.routes.groups.settlement.SettlementRoute
 import com.splitit.routes.settings.SettingsRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object Sessions
+data object Groups
 
 @Serializable
 data object Settings
 
 @Serializable
-data class SessionDetails(val sessionId: String)
+data class GroupDetails(val groupId: String)
 
 @Serializable
-data class SessionForm(val sessionId: String? = null)
+data class GroupForm(val groupId: String? = null)
 
 @Serializable
-data class Participants(val sessionId: String)
+data class Participants(val groupId: String)
 
 @Serializable
-data class Expenses(val sessionId: String, val openExpenseForm: Boolean = false)
+data class Expenses(val groupId: String, val openExpenseForm: Boolean = false)
 
 @Serializable
-data class Settlement(val sessionId: String)
+data class Settlement(val groupId: String)
 
 private const val TRANSITION_DURATION_MS = 300
 
@@ -99,43 +99,43 @@ fun SplitItRoutes(
 
     NavHost(
         navController = navController,
-        startDestination = Sessions,
+        startDestination = Groups,
         enterTransition = { enterFor(initialState, targetState) },
         exitTransition = { exitFor(initialState, targetState) },
         popEnterTransition = { popEnterFor(initialState, targetState) },
         popExitTransition = { popExitFor(initialState, targetState) },
     ) {
-        composable<Sessions> {
-            SessionsRoute(
-                onCreate = { navController.navigate(SessionForm()) },
-                onOpen = { sessionId -> navController.navigate(SessionDetails(sessionId.value)) },
-                onEdit = { sessionId -> navController.navigate(SessionForm(sessionId.value)) },
+        composable<Groups> {
+            GroupsRoute(
+                onCreate = { navController.navigate(GroupForm()) },
+                onOpen = { groupId -> navController.navigate(GroupDetails(groupId.value)) },
+                onEdit = { groupId -> navController.navigate(GroupForm(groupId.value)) },
                 onSettings = { navController.navigate(Settings) },
             )
         }
 
-        composable<SessionDetails> { backStackEntry ->
-            val route = backStackEntry.toRoute<SessionDetails>()
-            SessionDetailsRoute(
-                sessionId = SessionId(route.sessionId),
+        composable<GroupDetails> { backStackEntry ->
+            val route = backStackEntry.toRoute<GroupDetails>()
+            GroupDetailsRoute(
+                groupId = GroupId(route.groupId),
                 onBack = { navController.popBackStack() },
-                onParticipants = { navController.navigate(Participants(route.sessionId)) },
-                onExpenses = { navController.navigate(Expenses(route.sessionId)) },
-                onAddExpense = { navController.navigate(Expenses(route.sessionId, openExpenseForm = true)) },
-                onSettlement = { navController.navigate(Settlement(route.sessionId)) },
+                onParticipants = { navController.navigate(Participants(route.groupId)) },
+                onExpenses = { navController.navigate(Expenses(route.groupId)) },
+                onAddExpense = { navController.navigate(Expenses(route.groupId, openExpenseForm = true)) },
+                onSettlement = { navController.navigate(Settlement(route.groupId)) },
             )
         }
 
-        composable<SessionForm> { backStackEntry ->
-            val route = backStackEntry.toRoute<SessionForm>()
-            val sessionId = route.sessionId?.let(::SessionId)
-            SessionFormRoute(
-                sessionId = sessionId,
+        composable<GroupForm> { backStackEntry ->
+            val route = backStackEntry.toRoute<GroupForm>()
+            val groupId = route.groupId?.let(::GroupId)
+            GroupFormRoute(
+                groupId = groupId,
                 onBack = { navController.popBackStack() },
-                onSaved = { savedSessionId ->
-                    if (sessionId == null) {
-                        navController.navigate(SessionDetails(savedSessionId.value)) {
-                            popUpTo<SessionForm> { inclusive = true }
+                onSaved = { savedGroupId ->
+                    if (groupId == null) {
+                        navController.navigate(GroupDetails(savedGroupId.value)) {
+                            popUpTo<GroupForm> { inclusive = true }
                         }
                     } else {
                         navController.popBackStack()
@@ -147,7 +147,7 @@ fun SplitItRoutes(
         composable<Participants> { backStackEntry ->
             val route = backStackEntry.toRoute<Participants>()
             ParticipantsRoute(
-                sessionId = SessionId(route.sessionId),
+                groupId = GroupId(route.groupId),
                 onBack = { navController.popBackStack() },
             )
         }
@@ -155,7 +155,7 @@ fun SplitItRoutes(
         composable<Expenses> { backStackEntry ->
             val route = backStackEntry.toRoute<Expenses>()
             ExpensesRoute(
-                sessionId = SessionId(route.sessionId),
+                groupId = GroupId(route.groupId),
                 onBack = { navController.popBackStack() },
                 openExpenseForm = route.openExpenseForm,
             )
@@ -164,7 +164,7 @@ fun SplitItRoutes(
         composable<Settlement> { backStackEntry ->
             val route = backStackEntry.toRoute<Settlement>()
             SettlementRoute(
-                sessionId = SessionId(route.sessionId),
+                groupId = GroupId(route.groupId),
                 onBack = { navController.popBackStack() },
             )
         }

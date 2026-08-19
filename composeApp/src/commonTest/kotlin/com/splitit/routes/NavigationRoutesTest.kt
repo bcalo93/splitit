@@ -10,49 +10,49 @@ class NavigationRoutesTest {
     private val json = Json
 
     @Test
-    fun sessionDetailsRouteRoundTrips() {
-        val route = SessionDetails(sessionId = "session-1")
+    fun groupDetailsRouteRoundTrips() {
+        val route = GroupDetails(groupId = "group-1")
 
-        val decoded = json.decodeFromString<SessionDetails>(json.encodeToString(route))
+        val decoded = json.decodeFromString<GroupDetails>(json.encodeToString(route))
 
-        assertEquals("session-1", decoded.sessionId)
+        assertEquals("group-1", decoded.groupId)
     }
 
     @Test
-    fun sessionFormCreateRouteDefaultsToNullSessionId() {
-        val route = SessionForm()
+    fun groupFormCreateRouteDefaultsToNullGroupId() {
+        val route = GroupForm()
 
-        val decoded = json.decodeFromString<SessionForm>(json.encodeToString(route))
+        val decoded = json.decodeFromString<GroupForm>(json.encodeToString(route))
 
-        assertEquals(null, decoded.sessionId)
+        assertEquals(null, decoded.groupId)
     }
 
     @Test
-    fun sessionFormEditRouteRoundTrips() {
-        val route = SessionForm(sessionId = "session-1")
+    fun groupFormEditRouteRoundTrips() {
+        val route = GroupForm(groupId = "group-1")
 
-        val decoded = json.decodeFromString<SessionForm>(json.encodeToString(route))
+        val decoded = json.decodeFromString<GroupForm>(json.encodeToString(route))
 
-        assertEquals("session-1", decoded.sessionId)
+        assertEquals("group-1", decoded.groupId)
     }
 
     @Test
     fun expensesRouteDefaultsToClosedForm() {
-        val route = Expenses(sessionId = "session-1")
+        val route = Expenses(groupId = "group-1")
 
         val decoded = json.decodeFromString<Expenses>(json.encodeToString(route))
 
-        assertEquals("session-1", decoded.sessionId)
+        assertEquals("group-1", decoded.groupId)
         assertEquals(false, decoded.openExpenseForm)
     }
 
     @Test
     fun expensesRouteCarriesOpenExpenseFormFlag() {
-        val route = Expenses(sessionId = "session-1", openExpenseForm = true)
+        val route = Expenses(groupId = "group-1", openExpenseForm = true)
 
         val decoded = json.decodeFromString<Expenses>(json.encodeToString(route))
 
-        assertEquals("session-1", decoded.sessionId)
+        assertEquals("group-1", decoded.groupId)
         assertEquals(true, decoded.openExpenseForm)
     }
 }

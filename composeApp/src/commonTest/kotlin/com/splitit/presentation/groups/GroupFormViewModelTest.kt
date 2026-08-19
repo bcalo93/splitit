@@ -1,30 +1,30 @@
 @file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 
-package com.splitit.presentation.sessions
+package com.splitit.presentation.groups
 
-import com.splitit.domain.usecase.CreateSessionUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
-import com.splitit.domain.usecase.UpdateSessionUseCase
+import com.splitit.domain.usecase.CreateGroupUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.UpdateGroupUseCase
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryParticipantRepository
-import com.splitit.testutils.InMemorySessionRepository
+import com.splitit.testutils.InMemoryGroupRepository
 import com.splitit.testutils.InMemorySettlementRepository
 import com.splitit.testutils.TestClock
 import com.splitit.testutils.TestIdGenerator
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.runViewModelTest
 import com.splitit.testutils.testLocalizationService
-import com.splitit.testutils.session
+import com.splitit.testutils.group
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class SessionFormViewModelTest {
+class GroupFormViewModelTest {
     @Test
     fun validatesTitleBeforeLaunchingSave() = runViewModelTest {
-        val repository = InMemorySessionRepository()
+        val repository = InMemoryGroupRepository()
         val viewModel = createViewModel(repository)
 
         viewModel.save()
@@ -34,8 +34,8 @@ class SessionFormViewModelTest {
     }
 
     @Test
-    fun createsSessionAndExposesSavedId() = runViewModelTest {
-        val repository = InMemorySessionRepository()
+    fun createsGroupAndExposesSavedId() = runViewModelTest {
+        val repository = InMemoryGroupRepository()
         val viewModel = createViewModel(repository)
 
         viewModel.onTitleChange("  Weekend  ")
@@ -43,19 +43,19 @@ class SessionFormViewModelTest {
         viewModel.save()
         advanceUntilIdle()
 
-        assertEquals(TestIds.session, viewModel.state.value.savedSessionId)
+        assertEquals(TestIds.group, viewModel.state.value.savedGroupId)
         assertFalse(viewModel.state.value.isSaving)
-        assertEquals("Weekend", repository.savedSessions.single().title)
-        assertEquals("Notes", repository.savedSessions.single().description)
+        assertEquals("Weekend", repository.savedGroups.single().title)
+        assertEquals("Notes", repository.savedGroups.single().description)
 
-        viewModel.consumeSavedSession()
-        assertEquals(null, viewModel.state.value.savedSessionId)
+        viewModel.consumeSavedGroup()
+        assertEquals(null, viewModel.state.value.savedGroupId)
     }
 
     @Test
-    fun loadsAndUpdatesExistingSession() = runViewModelTest {
-        val original = session(title = "Old title", description = "Old description")
-        val repository = InMemorySessionRepository(listOf(original))
+    fun loadsAndUpdatesExistingGroup() = runViewModelTest {
+        val original = group(title = "Old title", description = "Old description")
+        val repository = InMemoryGroupRepository(listOf(original))
         val viewModel = createViewModel(repository, original.id)
         advanceUntilIdle()
 
@@ -66,24 +66,24 @@ class SessionFormViewModelTest {
         viewModel.save()
         advanceUntilIdle()
 
-        assertEquals(original.id, viewModel.state.value.savedSessionId)
-        assertEquals("New title", repository.savedSessions.single().title)
+        assertEquals(original.id, viewModel.state.value.savedGroupId)
+        assertEquals("New title", repository.savedGroups.single().title)
     }
 
     private fun createViewModel(
-        sessionRepository: InMemorySessionRepository,
-        sessionId: com.splitit.domain.value.SessionId? = null,
-    ): SessionFormViewModel {
-        return SessionFormViewModel(
-            sessionId = sessionId,
-            createSession = CreateSessionUseCase(
-                sessionRepository,
+        groupRepository: InMemoryGroupRepository,
+        groupId: com.splitit.domain.value.GroupId? = null,
+    ): GroupFormViewModel {
+        return GroupFormViewModel(
+            groupId = groupId,
+            createGroup = CreateGroupUseCase(
+                groupRepository,
                 TestIdGenerator(),
                 TestClock(20L),
             ),
-            updateSession = UpdateSessionUseCase(sessionRepository, TestClock(20L)),
-            observeSessionDetails = ObserveSessionDetailsUseCase(
-                sessionRepository = sessionRepository,
+            updateGroup = UpdateGroupUseCase(groupRepository, TestClock(20L)),
+            observeGroupDetails = ObserveGroupDetailsUseCase(
+                groupRepository = groupRepository,
                 participantRepository = InMemoryParticipantRepository(),
                 expenseRepository = InMemoryExpenseRepository(),
                 settlementRepository = InMemorySettlementRepository(),

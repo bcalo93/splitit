@@ -1,0 +1,107 @@
+ALTER TABLE sessions RENAME TO groups;
+
+CREATE TABLE participants_new (
+    id TEXT NOT NULL PRIMARY KEY,
+    group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    avatar_color TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    deleted_at INTEGER
+);
+
+INSERT INTO participants_new (
+    id,
+    group_id,
+    name,
+    avatar_color,
+    created_at,
+    updated_at,
+    deleted_at
+)
+SELECT
+    id,
+    session_id,
+    name,
+    avatar_color,
+    created_at,
+    updated_at,
+    deleted_at
+FROM participants;
+
+DROP TABLE participants;
+
+ALTER TABLE participants_new RENAME TO participants;
+
+CREATE TABLE expenses_new (
+    id TEXT NOT NULL PRIMARY KEY,
+    group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    amount_minor INTEGER NOT NULL,
+    currency_code TEXT NOT NULL,
+    payer_participant_id TEXT NOT NULL REFERENCES participants(id),
+    date_millis INTEGER NOT NULL,
+    note TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    deleted_at INTEGER
+);
+
+INSERT INTO expenses_new (
+    id,
+    group_id,
+    title,
+    amount_minor,
+    currency_code,
+    payer_participant_id,
+    date_millis,
+    note,
+    created_at,
+    updated_at,
+    deleted_at
+)
+SELECT
+    id,
+    session_id,
+    title,
+    amount_minor,
+    currency_code,
+    payer_participant_id,
+    date_millis,
+    note,
+    created_at,
+    updated_at,
+    deleted_at
+FROM expenses;
+
+DROP TABLE expenses;
+
+ALTER TABLE expenses_new RENAME TO expenses;
+
+CREATE TABLE settlements_new (
+    id TEXT NOT NULL PRIMARY KEY,
+    group_id TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    generated_at INTEGER NOT NULL,
+    source_revision INTEGER NOT NULL
+);
+
+INSERT INTO settlements_new (
+    id,
+    group_id,
+    generated_at,
+    source_revision
+)
+SELECT
+    id,
+    session_id,
+    generated_at,
+    source_revision
+FROM settlements;
+
+DROP TABLE settlements;
+
+ALTER TABLE settlements_new RENAME TO settlements;
+
+CREATE INDEX participants_group_id ON participants(group_id);
+CREATE INDEX expenses_group_id_date ON expenses(group_id, date_millis);
+CREATE INDEX settlements_group_id_generated_at ON settlements(group_id, generated_at);

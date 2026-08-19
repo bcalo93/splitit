@@ -4,23 +4,23 @@ import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
 import com.splitit.domain.repository.ExpenseRepository
 import com.splitit.domain.repository.ParticipantRepository
-import com.splitit.domain.repository.SessionRepository
+import com.splitit.domain.repository.GroupRepository
 import com.splitit.domain.value.Clock
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
 class CreateExpenseUseCase(
-    private val sessionRepository: SessionRepository,
+    private val groupRepository: GroupRepository,
     private val participantRepository: ParticipantRepository,
     private val expenseRepository: ExpenseRepository,
     private val idGenerator: IdGenerator,
     private val clock: Clock,
 ) {
     suspend operator fun invoke(
-        sessionId: SessionId,
+        groupId: GroupId,
         title: String,
         amount: Money,
         payerId: ParticipantId,
@@ -29,16 +29,16 @@ class CreateExpenseUseCase(
         note: String?,
         shareWeights: Map<ParticipantId, Int> = emptyMap(),
     ): Expense {
-        requireNotNull(sessionRepository.getSession(sessionId)) {
-            "Session ${sessionId.value} was not found."
+        requireNotNull(groupRepository.getGroup(groupId)) {
+            "Group ${groupId.value} was not found."
         }
-        validateParticipants(sessionId, payerId, participantIds)
+        validateParticipants(groupId, payerId, participantIds)
 
         val now = clock.nowMillis()
         val expenseId = idGenerator.newExpenseId()
         val expense = Expense(
             id = expenseId,
-            sessionId = sessionId,
+            groupId = groupId,
             title = title.trim(),
             amount = amount,
             payerId = payerId,
@@ -60,15 +60,15 @@ class CreateExpenseUseCase(
     }
 
     private suspend fun validateParticipants(
-        sessionId: SessionId,
+        groupId: GroupId,
         payerId: ParticipantId,
         participantIds: List<ParticipantId>,
     ) {
         require(participantIds.isNotEmpty()) { "Expense must include at least one participant." }
-        val sessionParticipantIds = participantRepository.getParticipants(sessionId).map { it.id }.toSet()
-        require(payerId in sessionParticipantIds) { "Expense payer must belong to the session." }
-        require(participantIds.all { it in sessionParticipantIds }) {
-            "Every expense participant must belong to the session."
+        val groupParticipantIds = participantRepository.getParticipants(groupId).map { it.id }.toSet()
+        require(payerId in groupParticipantIds) { "Expense payer must belong to the group." }
+        require(participantIds.all { it in groupParticipantIds }) {
+            "Every expense participant must belong to the group."
         }
     }
 }
@@ -91,15 +91,15 @@ class UpdateExpenseUseCase(
         val current = requireNotNull(expenseRepository.getExpense(expenseId)) {
             "Expense ${expenseId.value} was not found."
         }
-        val sessionParticipantIds = participantRepository
-            .getParticipants(current.sessionId)
+        val groupParticipantIds = participantRepository
+            .getParticipants(current.groupId)
             .map { it.id }
             .toSet()
 
         require(participantIds.isNotEmpty()) { "Expense must include at least one participant." }
-        require(payerId in sessionParticipantIds) { "Expense payer must belong to the session." }
-        require(participantIds.all { it in sessionParticipantIds }) {
-            "Every expense participant must belong to the session."
+        require(payerId in groupParticipantIds) { "Expense payer must belong to the group." }
+        require(participantIds.all { it in groupParticipantIds }) {
+            "Every expense participant must belong to the group."
         }
 
         val updated = current.copy(

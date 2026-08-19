@@ -1,11 +1,11 @@
 package com.splitit.domain.model
 
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
 data class Participant(
     val id: ParticipantId,
-    val sessionId: SessionId,
+    val groupId: GroupId,
     val name: String,
     val avatarColor: String?,
     val createdAtMillis: Long,

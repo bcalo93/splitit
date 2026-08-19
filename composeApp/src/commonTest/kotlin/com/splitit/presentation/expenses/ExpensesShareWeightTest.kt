@@ -6,12 +6,12 @@ import com.splitit.domain.repository.AppSettings
 import com.splitit.domain.usecase.CreateExpenseUseCase
 import com.splitit.domain.usecase.DeleteExpenseUseCase
 import com.splitit.domain.usecase.GetSettingsUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.UpdateExpenseUseCase
 import com.splitit.domain.value.Money
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryParticipantRepository
-import com.splitit.testutils.InMemorySessionRepository
+import com.splitit.testutils.InMemoryGroupRepository
 import com.splitit.testutils.InMemorySettingsRepository
 import com.splitit.testutils.InMemorySettlementRepository
 import com.splitit.testutils.TestClock
@@ -19,7 +19,7 @@ import com.splitit.testutils.TestIdGenerator
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.participant
 import com.splitit.testutils.runViewModelTest
-import com.splitit.testutils.session
+import com.splitit.testutils.group
 import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
@@ -127,19 +127,19 @@ class ExpensesShareWeightTest {
                 participant(TestIds.charlie),
             ),
         )
-        val sessionRepository = InMemorySessionRepository(listOf(session()))
+        val groupRepository = InMemoryGroupRepository(listOf(group()))
         val settingsRepository = InMemorySettingsRepository(AppSettings(defaultCurrencyCode = "EUR"))
         val clock = TestClock(20L)
         return ExpensesViewModel(
-            sessionId = TestIds.session,
-            observeSessionDetails = ObserveSessionDetailsUseCase(
-                sessionRepository,
+            groupId = TestIds.group,
+            observeGroupDetails = ObserveGroupDetailsUseCase(
+                groupRepository,
                 participantRepository,
                 expenseRepository,
                 InMemorySettlementRepository(),
             ),
             createExpense = CreateExpenseUseCase(
-                sessionRepository,
+                groupRepository,
                 participantRepository,
                 expenseRepository,
                 TestIdGenerator(),

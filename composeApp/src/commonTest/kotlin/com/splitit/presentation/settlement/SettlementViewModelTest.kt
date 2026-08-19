@@ -4,15 +4,15 @@ package com.splitit.presentation.settlement
 
 import com.splitit.domain.optimizer.PaymentOptimizerAdapter
 import com.splitit.domain.service.BalanceCalculator
-import com.splitit.domain.usecase.CalculateSessionBalancesUseCase
+import com.splitit.domain.usecase.CalculateGroupBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.logic.optimizers.ComposedOptimizer
 import com.splitit.logic.optimizers.debt.CycleOptimizer
 import com.splitit.logic.optimizers.debt.TransitiveOptimizer
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryParticipantRepository
-import com.splitit.testutils.InMemorySessionRepository
+import com.splitit.testutils.InMemoryGroupRepository
 import com.splitit.testutils.InMemorySettlementRepository
 import com.splitit.testutils.TestClock
 import com.splitit.testutils.TestIdGenerator
@@ -20,7 +20,7 @@ import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
 import com.splitit.testutils.participant
 import com.splitit.testutils.runViewModelTest
-import com.splitit.testutils.session
+import com.splitit.testutils.group
 import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
@@ -80,17 +80,17 @@ class SettlementViewModelTest {
         expenseRepository: InMemoryExpenseRepository,
         settlementRepository: InMemorySettlementRepository = InMemorySettlementRepository(),
     ): SettlementViewModel {
-        val sessionRepository = InMemorySessionRepository(listOf(session()))
+        val groupRepository = InMemoryGroupRepository(listOf(group()))
         val balanceCalculator = BalanceCalculator()
         return SettlementViewModel(
-            sessionId = TestIds.session,
-            observeSessionDetails = ObserveSessionDetailsUseCase(
-                sessionRepository,
+            groupId = TestIds.group,
+            observeGroupDetails = ObserveGroupDetailsUseCase(
+                groupRepository,
                 participantRepository,
                 expenseRepository,
                 settlementRepository,
             ),
-            calculateSessionBalances = CalculateSessionBalancesUseCase(
+            calculateGroupBalances = CalculateGroupBalancesUseCase(
                 participantRepository,
                 expenseRepository,
                 balanceCalculator,

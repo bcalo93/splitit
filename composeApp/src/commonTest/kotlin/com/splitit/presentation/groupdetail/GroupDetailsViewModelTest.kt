@@ -1,33 +1,33 @@
 @file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 
-package com.splitit.presentation.sessiondetail
+package com.splitit.presentation.groupdetail
 
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.value.Money
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryParticipantRepository
-import com.splitit.testutils.InMemorySessionRepository
+import com.splitit.testutils.InMemoryGroupRepository
 import com.splitit.testutils.InMemorySettlementRepository
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
 import com.splitit.testutils.participant
 import com.splitit.testutils.runViewModelTest
-import com.splitit.testutils.session
+import com.splitit.testutils.group
 import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
-class SessionDetailsViewModelTest {
+class GroupDetailsViewModelTest {
     @Test
     fun loadsDetailsAndCanRefresh() = runViewModelTest {
-        val sessionRepository = InMemorySessionRepository(listOf(session()))
+        val groupRepository = InMemoryGroupRepository(listOf(group()))
         val participantRepository = InMemoryParticipantRepository(listOf(participant()))
-        val viewModel = SessionDetailsViewModel(
-            sessionId = TestIds.session,
-            observeSessionDetails = ObserveSessionDetailsUseCase(
-                sessionRepository,
+        val viewModel = GroupDetailsViewModel(
+            groupId = TestIds.group,
+            observeGroupDetails = ObserveGroupDetailsUseCase(
+                groupRepository,
                 participantRepository,
                 InMemoryExpenseRepository(),
                 InMemorySettlementRepository(),
@@ -37,7 +37,7 @@ class SessionDetailsViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.isLoading)
-        assertEquals(TestIds.session, viewModel.state.value.details?.session?.id)
+        assertEquals(TestIds.group, viewModel.state.value.details?.group?.id)
         assertEquals(1, viewModel.state.value.details?.participants?.size)
 
         viewModel.refresh()
@@ -47,7 +47,7 @@ class SessionDetailsViewModelTest {
 
     @Test
     fun aggregatesTotalSpentAcrossExpenses() = runViewModelTest {
-        val sessionRepository = InMemorySessionRepository(listOf(session()))
+        val groupRepository = InMemoryGroupRepository(listOf(group()))
         val participantRepository = InMemoryParticipantRepository(listOf(participant()))
         val expenseRepository = InMemoryExpenseRepository(
             listOf(
@@ -55,10 +55,10 @@ class SessionDetailsViewModelTest {
                 expense(id = TestIds.secondExpense, amount = Money(2_500L, "USD")),
             ),
         )
-        val viewModel = SessionDetailsViewModel(
-            sessionId = TestIds.session,
-            observeSessionDetails = ObserveSessionDetailsUseCase(
-                sessionRepository,
+        val viewModel = GroupDetailsViewModel(
+            groupId = TestIds.group,
+            observeGroupDetails = ObserveGroupDetailsUseCase(
+                groupRepository,
                 participantRepository,
                 expenseRepository,
                 InMemorySettlementRepository(),
@@ -72,10 +72,10 @@ class SessionDetailsViewModelTest {
 
     @Test
     fun exposesNullTotalSpentWithoutExpenses() = runViewModelTest {
-        val viewModel = SessionDetailsViewModel(
-            sessionId = TestIds.session,
-            observeSessionDetails = ObserveSessionDetailsUseCase(
-                InMemorySessionRepository(listOf(session())),
+        val viewModel = GroupDetailsViewModel(
+            groupId = TestIds.group,
+            observeGroupDetails = ObserveGroupDetailsUseCase(
+                InMemoryGroupRepository(listOf(group())),
                 InMemoryParticipantRepository(listOf(participant())),
                 InMemoryExpenseRepository(),
                 InMemorySettlementRepository(),
@@ -88,11 +88,11 @@ class SessionDetailsViewModelTest {
     }
 
     @Test
-    fun exposesMissingSessionError() = runViewModelTest {
-        val viewModel = SessionDetailsViewModel(
-            sessionId = TestIds.session,
-            observeSessionDetails = ObserveSessionDetailsUseCase(
-                InMemorySessionRepository(),
+    fun exposesMissingGroupError() = runViewModelTest {
+        val viewModel = GroupDetailsViewModel(
+            groupId = TestIds.group,
+            observeGroupDetails = ObserveGroupDetailsUseCase(
+                InMemoryGroupRepository(),
                 InMemoryParticipantRepository(),
                 InMemoryExpenseRepository(),
                 InMemorySettlementRepository(),
@@ -102,6 +102,6 @@ class SessionDetailsViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.isLoading)
-        assertEquals("Session session was not found.", viewModel.state.value.errorMessage)
+        assertEquals("Group group was not found.", viewModel.state.value.errorMessage)
     }
 }

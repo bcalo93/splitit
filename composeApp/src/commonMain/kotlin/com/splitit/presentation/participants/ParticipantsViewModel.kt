@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Participant
 import com.splitit.domain.usecase.AddParticipantUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.RemoveParticipantUseCase
 import com.splitit.domain.usecase.UpdateParticipantUseCase
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import com.splitit.ui.theme.SplitItAvatarColorHexes
@@ -36,8 +36,8 @@ data class ParticipantsUiState(
 val ParticipantColors: List<String> = SplitItAvatarColorHexes
 
 class ParticipantsViewModel(
-    private val sessionId: SessionId,
-    private val observeSessionDetails: ObserveSessionDetailsUseCase,
+    private val groupId: GroupId,
+    private val observeGroupDetails: ObserveGroupDetailsUseCase,
     private val addParticipant: AddParticipantUseCase,
     private val updateParticipant: UpdateParticipantUseCase,
     private val removeParticipant: RemoveParticipantUseCase,
@@ -57,7 +57,7 @@ class ParticipantsViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val participants = observeSessionDetails(sessionId).participants
+                val participants = observeGroupDetails(groupId).participants
                 _state.update {
                     it.copy(
                         participants = participants,
@@ -124,7 +124,7 @@ class ParticipantsViewModel(
             val result = runCatching {
                 val editingId = current.editingParticipantId
                 if (editingId == null) {
-                    addParticipant(sessionId, current.name, current.selectedColor)
+                    addParticipant(groupId, current.name, current.selectedColor)
                 } else {
                     updateParticipant(editingId, current.name, current.selectedColor)
                 }

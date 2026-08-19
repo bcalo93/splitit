@@ -6,7 +6,7 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class UuidGenerator : IdGenerator {
-    override fun newSessionId(): SessionId = SessionId(Uuid.random().toString())
+    override fun newGroupId(): GroupId = GroupId(Uuid.random().toString())
 
     override fun newParticipantId(): ParticipantId = ParticipantId(Uuid.random().toString())
 

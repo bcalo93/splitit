@@ -5,7 +5,7 @@ import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 import com.splitit.domain.value.TransferId
 import com.splitit.logic.optimizers.Optimizer
@@ -112,7 +112,7 @@ class PaymentOptimizerAdapterHardeningTest {
     }
 
     private class TestIdGenerator : IdGenerator {
-        override fun newSessionId(): SessionId = SessionId("session")
+        override fun newGroupId(): GroupId = GroupId("group")
         override fun newParticipantId(): ParticipantId = ParticipantId("participant")
         override fun newExpenseId(): ExpenseId = ExpenseId("expense")
         override fun newSettlementId(): SettlementId = SettlementId("settlement")

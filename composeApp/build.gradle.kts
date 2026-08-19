@@ -89,6 +89,8 @@ sqldelight {
     databases {
         create("SplitItDatabase") {
             packageName.set("com.splitit.data.database")
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
+            verifyMigrations.set(true)
         }
     }
 }

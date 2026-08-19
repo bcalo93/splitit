@@ -1,4 +1,4 @@
-package com.splitit.routes.sessions
+package com.splitit.routes.groups
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,11 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.splitit.domain.usecase.SessionDetails
+import com.splitit.domain.usecase.GroupDetails
 import com.splitit.domain.value.Money
-import com.splitit.domain.value.SessionId
-import com.splitit.presentation.sessiondetail.SessionDetailsUiState
-import com.splitit.presentation.sessiondetail.SessionDetailsViewModel
+import com.splitit.domain.value.GroupId
+import com.splitit.presentation.groupdetail.GroupDetailsUiState
+import com.splitit.presentation.groupdetail.GroupDetailsViewModel
 import com.splitit.ui.components.AvatarStack
 import com.splitit.ui.components.AvatarStackItem
 import com.splitit.ui.components.ErrorState
@@ -68,23 +68,23 @@ import splitit.composeapp.generated.resources.total_spent
 import splitit.composeapp.generated.resources.view_settlement
 
 @Composable
-fun SessionDetailsRoute(
-    sessionId: SessionId,
+fun GroupDetailsRoute(
+    groupId: GroupId,
     onBack: () -> Unit,
     onParticipants: () -> Unit,
     onExpenses: () -> Unit,
     onAddExpense: () -> Unit,
     onSettlement: () -> Unit,
-    viewModel: SessionDetailsViewModel = koinViewModel(
-        parameters = { parametersOf(sessionId) },
+    viewModel: GroupDetailsViewModel = koinViewModel(
+        parameters = { parametersOf(groupId) },
     ),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LaunchedEffect(sessionId) {
+    LaunchedEffect(groupId) {
         viewModel.refresh()
     }
 
-    SessionDetailsScreen(
+    GroupDetailsScreen(
         state = state,
         onBack = onBack,
         onParticipants = onParticipants,
@@ -97,8 +97,8 @@ fun SessionDetailsRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SessionDetailsScreen(
-    state: SessionDetailsUiState,
+private fun GroupDetailsScreen(
+    state: GroupDetailsUiState,
     onBack: () -> Unit,
     onParticipants: () -> Unit,
     onExpenses: () -> Unit,
@@ -189,7 +189,7 @@ private fun SessionDetailsScreen(
 }
 
 @Composable
-private fun GroupHeader(details: SessionDetails) {
+private fun GroupHeader(details: GroupDetails) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         AvatarStack(
             items = details.participants.map {
@@ -198,11 +198,11 @@ private fun GroupHeader(details: SessionDetails) {
             size = 40.dp,
         )
         Text(
-            text = details.session.title,
+            text = details.group.title,
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        details.session.description?.let {
+        details.group.description?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyLarge,
@@ -214,7 +214,7 @@ private fun GroupHeader(details: SessionDetails) {
 
 @Composable
 private fun SummaryPanel(
-    details: SessionDetails,
+    details: GroupDetails,
     totalSpent: Money?,
 ) {
     Surface(
@@ -294,7 +294,7 @@ private fun MetricCount(count: Int) {
 }
 
 @Composable
-private fun SettlementStatus(details: SessionDetails) {
+private fun SettlementStatus(details: GroupDetails) {
     val settlement = details.latestSettlement ?: return
     if (details.isSettlementStale) {
         StaleSettlementBanner()
@@ -335,7 +335,7 @@ private fun StaleSettlementBanner() {
 
 @Composable
 private fun SettlementAction(
-    details: SessionDetails,
+    details: GroupDetails,
     onSettlement: () -> Unit,
 ) {
     Button(
@@ -373,7 +373,7 @@ private fun SettlementAction(
 
 @Composable
 private fun ActionCards(
-    details: SessionDetails,
+    details: GroupDetails,
     onParticipants: () -> Unit,
     onExpenses: () -> Unit,
 ) {

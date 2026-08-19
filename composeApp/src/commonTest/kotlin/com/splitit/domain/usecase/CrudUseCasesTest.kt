@@ -1,19 +1,19 @@
 package com.splitit.domain.usecase
 
-import com.splitit.domain.model.SessionStatus
+import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.repository.AppSettings
 import com.splitit.domain.repository.ThemeMode
 import com.splitit.domain.value.Money
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryParticipantRepository
-import com.splitit.testutils.InMemorySessionRepository
+import com.splitit.testutils.InMemoryGroupRepository
 import com.splitit.testutils.InMemorySettingsRepository
 import com.splitit.testutils.TestClock
 import com.splitit.testutils.TestIdGenerator
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
 import com.splitit.testutils.participant
-import com.splitit.testutils.session
+import com.splitit.testutils.group
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,10 +21,10 @@ import kotlin.test.assertFailsWith
 
 class CrudUseCasesTest {
     @Test
-    fun createSessionTrimsFieldsAndPersistsIt() = runTest {
-        val repository = InMemorySessionRepository()
-        val session = CreateSessionUseCase(
-            sessionRepository = repository,
+    fun createGroupTrimsFieldsAndPersistsIt() = runTest {
+        val repository = InMemoryGroupRepository()
+        val group = CreateGroupUseCase(
+            groupRepository = repository,
             idGenerator = TestIdGenerator(),
             clock = TestClock(20L),
         )(
@@ -32,42 +32,42 @@ class CrudUseCasesTest {
             description = "  Shared costs  ",
         )
 
-        assertEquals("Weekend trip", session.title)
-        assertEquals("Shared costs", session.description)
-        assertEquals(20L, session.createdAtMillis)
-        assertEquals(listOf(session), repository.savedSessions)
+        assertEquals("Weekend trip", group.title)
+        assertEquals("Shared costs", group.description)
+        assertEquals(20L, group.createdAtMillis)
+        assertEquals(listOf(group), repository.savedGroups)
     }
 
     @Test
-    fun updateSessionPreservesIdentityCreationAndStatus() = runTest {
-        val original = session(
+    fun updateGroupPreservesIdentityCreationAndStatus() = runTest {
+        val original = group(
             createdAtMillis = 1L,
             updatedAtMillis = 1L,
-            status = SessionStatus.Archived,
+            status = GroupStatus.Archived,
         )
-        val repository = InMemorySessionRepository(listOf(original))
+        val repository = InMemoryGroupRepository(listOf(original))
 
-        val updated = UpdateSessionUseCase(repository, TestClock(20L))(
-            sessionId = original.id,
+        val updated = UpdateGroupUseCase(repository, TestClock(20L))(
+            groupId = original.id,
             title = "  New title ",
             description = " ",
         )
 
         assertEquals(original.id, updated.id)
         assertEquals(original.createdAtMillis, updated.createdAtMillis)
-        assertEquals(SessionStatus.Archived, updated.status)
+        assertEquals(GroupStatus.Archived, updated.status)
         assertEquals("New title", updated.title)
         assertEquals(null, updated.description)
         assertEquals(20L, updated.updatedAtMillis)
     }
 
     @Test
-    fun updateSessionFailsBeforeSavingWhenSessionDoesNotExist() = runTest {
-        val repository = InMemorySessionRepository()
+    fun updateGroupFailsBeforeSavingWhenGroupDoesNotExist() = runTest {
+        val repository = InMemoryGroupRepository()
 
         assertFailsWith<IllegalArgumentException> {
-            UpdateSessionUseCase(repository, TestClock())(
-                sessionId = TestIds.session,
+            UpdateGroupUseCase(repository, TestClock())(
+                groupId = TestIds.group,
                 title = "Trip",
                 description = null,
             )
@@ -77,32 +77,32 @@ class CrudUseCasesTest {
     }
 
     @Test
-    fun addParticipantRequiresSessionAndTrimsName() = runTest {
-        val sessionRepository = InMemorySessionRepository(listOf(session()))
+    fun addParticipantRequiresGroupAndTrimsName() = runTest {
+        val groupRepository = InMemoryGroupRepository(listOf(group()))
         val participantRepository = InMemoryParticipantRepository()
         val useCase = AddParticipantUseCase(
-            sessionRepository = sessionRepository,
+            groupRepository = groupRepository,
             participantRepository = participantRepository,
             idGenerator = TestIdGenerator(participantId = TestIds.charlie),
             clock = TestClock(30L),
         )
 
-        val participant = useCase(TestIds.session, "  Charlie  ", "#123456")
+        val participant = useCase(TestIds.group, "  Charlie  ", "#123456")
 
         assertEquals("Charlie", participant.name)
         assertEquals(30L, participant.createdAtMillis)
         assertEquals(listOf(participant), participantRepository.savedParticipants)
 
-        val missingSessionRepository = InMemoryParticipantRepository()
+        val missingGroupRepository = InMemoryParticipantRepository()
         assertFailsWith<IllegalArgumentException> {
             AddParticipantUseCase(
-                sessionRepository = InMemorySessionRepository(),
-                participantRepository = missingSessionRepository,
+                groupRepository = InMemoryGroupRepository(),
+                participantRepository = missingGroupRepository,
                 idGenerator = TestIdGenerator(),
                 clock = TestClock(),
-            )(TestIds.session, "Alice", null)
+            )(TestIds.group, "Alice", null)
         }
-        assertEquals(0, missingSessionRepository.saveCalls)
+        assertEquals(0, missingGroupRepository.saveCalls)
     }
 
     @Test
@@ -123,20 +123,20 @@ class CrudUseCasesTest {
 
     @Test
     fun createExpenseTrimsFieldsAndDeduplicatesParticipantIds() = runTest {
-        val sessionRepository = InMemorySessionRepository(listOf(session()))
+        val groupRepository = InMemoryGroupRepository(listOf(group()))
         val participantRepository = InMemoryParticipantRepository(
             listOf(participant(TestIds.alice), participant(TestIds.bob)),
         )
         val expenseRepository = InMemoryExpenseRepository()
 
         val created = CreateExpenseUseCase(
-            sessionRepository = sessionRepository,
+            groupRepository = groupRepository,
             participantRepository = participantRepository,
             expenseRepository = expenseRepository,
             idGenerator = TestIdGenerator(),
             clock = TestClock(40L),
         )(
-            sessionId = TestIds.session,
+            groupId = TestIds.group,
             title = "  Dinner ",
             amount = Money(1_250L, "EUR"),
             payerId = TestIds.alice,
@@ -155,11 +155,11 @@ class CrudUseCasesTest {
 
     @Test
     fun createExpenseRejectsInvalidParticipantsBeforeSaving() = runTest {
-        val sessionRepository = InMemorySessionRepository(listOf(session()))
+        val groupRepository = InMemoryGroupRepository(listOf(group()))
         val participantRepository = InMemoryParticipantRepository(listOf(participant()))
         val repository = InMemoryExpenseRepository()
         val useCase = CreateExpenseUseCase(
-            sessionRepository,
+            groupRepository,
             participantRepository,
             repository,
             TestIdGenerator(),
@@ -168,7 +168,7 @@ class CrudUseCasesTest {
 
         assertFailsWith<IllegalArgumentException> {
             useCase(
-                sessionId = TestIds.session,
+                groupId = TestIds.group,
                 title = "Dinner",
                 amount = Money(100L, "USD"),
                 payerId = TestIds.bob,
@@ -179,7 +179,7 @@ class CrudUseCasesTest {
         }
         assertFailsWith<IllegalArgumentException> {
             useCase(
-                sessionId = TestIds.session,
+                groupId = TestIds.group,
                 title = "Dinner",
                 amount = Money(100L, "USD"),
                 payerId = TestIds.alice,
@@ -192,7 +192,7 @@ class CrudUseCasesTest {
     }
 
     @Test
-    fun updateExpensePreservesIdentityAndSession() = runTest {
+    fun updateExpensePreservesIdentityAndGroup() = runTest {
         val original = expense()
         val expenseRepository = InMemoryExpenseRepository(listOf(original))
         val participantRepository = InMemoryParticipantRepository(
@@ -214,7 +214,7 @@ class CrudUseCasesTest {
         )
 
         assertEquals(original.id, updated.id)
-        assertEquals(original.sessionId, updated.sessionId)
+        assertEquals(original.groupId, updated.groupId)
         assertEquals(original.createdAtMillis, updated.createdAtMillis)
         assertEquals("Lunch", updated.title)
         assertEquals("Office", updated.note)

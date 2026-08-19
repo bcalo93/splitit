@@ -1,4 +1,4 @@
-package com.splitit.routes.sessions.participants
+package com.splitit.routes.groups.participants
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.splitit.domain.model.Participant
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.presentation.participants.ParticipantsUiState
 import com.splitit.presentation.participants.ParticipantsViewModel
 import com.splitit.ui.components.AvatarBubble
@@ -77,17 +77,17 @@ import splitit.composeapp.generated.resources.saving
 
 @Composable
 fun ParticipantsRoute(
-    sessionId: SessionId,
+    groupId: GroupId,
     onBack: () -> Unit,
     viewModel: ParticipantsViewModel = koinViewModel(
-        parameters = { parametersOf(sessionId) },
+        parameters = { parametersOf(groupId) },
     ),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var sheetVisible by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<Participant?>(null) }
 
-    LaunchedEffect(sessionId) {
+    LaunchedEffect(groupId) {
         viewModel.refresh()
     }
 

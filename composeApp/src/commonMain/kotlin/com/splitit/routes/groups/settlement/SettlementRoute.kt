@@ -1,4 +1,4 @@
-package com.splitit.routes.sessions.settlement
+package com.splitit.routes.groups.settlement
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.presentation.settlement.SettlementUiState
 import com.splitit.presentation.settlement.SettlementViewModel
 import com.splitit.ui.components.BalanceBarChart
@@ -61,14 +61,14 @@ import splitit.composeapp.generated.resources.update
 
 @Composable
 fun SettlementRoute(
-    sessionId: SessionId,
+    groupId: GroupId,
     onBack: () -> Unit,
     viewModel: SettlementViewModel = koinViewModel(
-        parameters = { parametersOf(sessionId) },
+        parameters = { parametersOf(groupId) },
     ),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LaunchedEffect(sessionId) {
+    LaunchedEffect(groupId) {
         viewModel.refresh()
     }
 

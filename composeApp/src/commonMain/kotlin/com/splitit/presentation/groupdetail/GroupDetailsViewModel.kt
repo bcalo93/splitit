@@ -1,13 +1,13 @@
-package com.splitit.presentation.sessiondetail
+package com.splitit.presentation.groupdetail
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Expense
-import com.splitit.domain.usecase.SessionDetails
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
+import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.value.Money
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
@@ -19,8 +19,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Immutable
-data class SessionDetailsUiState(
-    val details: SessionDetails? = null,
+data class GroupDetailsUiState(
+    val details: GroupDetails? = null,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
 ) {
@@ -36,13 +36,13 @@ private fun List<Expense>.totalSpent(): Money? {
         .fold(Money.zero(currency)) { acc, amount -> acc + amount }
 }
 
-class SessionDetailsViewModel(
-    private val sessionId: SessionId,
-    private val observeSessionDetails: ObserveSessionDetailsUseCase,
+class GroupDetailsViewModel(
+    private val groupId: GroupId,
+    private val observeGroupDetails: ObserveGroupDetailsUseCase,
     private val localization: LocalizationService,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(SessionDetailsUiState())
-    val state: StateFlow<SessionDetailsUiState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(GroupDetailsUiState())
+    val state: StateFlow<GroupDetailsUiState> = _state.asStateFlow()
     private var refreshJob: Job? = null
 
     init {
@@ -55,7 +55,7 @@ class SessionDetailsViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val details = observeSessionDetails(sessionId)
+                val details = observeGroupDetails(groupId)
                 _state.update {
                     it.copy(
                         details = details,

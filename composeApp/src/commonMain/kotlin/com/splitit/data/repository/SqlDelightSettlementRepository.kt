@@ -4,7 +4,7 @@ import com.splitit.data.database.SplitItDatabase
 import com.splitit.data.mapper.toDomain
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.repository.SettlementRepository
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 
 class SqlDelightSettlementRepository(
@@ -12,8 +12,8 @@ class SqlDelightSettlementRepository(
 ) : SettlementRepository {
     private val queries = database.splitItDatabaseQueries
 
-    override suspend fun getLatestSettlement(sessionId: SessionId): Settlement? {
-        val settlement = queries.selectLatestSettlement(sessionId.value).executeAsOneOrNull()
+    override suspend fun getLatestSettlement(groupId: GroupId): Settlement? {
+        val settlement = queries.selectLatestSettlement(groupId.value).executeAsOneOrNull()
             ?: return null
         return settlement.toDomain(
             transfers = queries.selectSettlementTransfers(settlement.id)
@@ -35,7 +35,7 @@ class SqlDelightSettlementRepository(
         database.transaction {
             queries.upsertSettlement(
                 id = settlement.id.value,
-                session_id = settlement.sessionId.value,
+                group_id = settlement.groupId.value,
                 generated_at = settlement.generatedAtMillis,
                 source_revision = settlement.sourceRevision,
             )
@@ -53,10 +53,10 @@ class SqlDelightSettlementRepository(
         }
     }
 
-    override suspend fun deleteSettlements(sessionId: SessionId) {
+    override suspend fun deleteSettlements(groupId: GroupId) {
         database.transaction {
-            queries.deleteSettlementTransfersBySession(sessionId.value)
-            queries.deleteSettlementsBySession(sessionId.value)
+            queries.deleteSettlementTransfersByGroup(groupId.value)
+            queries.deleteSettlementsByGroup(groupId.value)
         }
     }
 }

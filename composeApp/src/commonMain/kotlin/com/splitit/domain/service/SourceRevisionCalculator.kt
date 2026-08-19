@@ -22,7 +22,7 @@ object SourceRevisionCalculator {
             participants.sortedBy { it.id.value }.forEach { participant ->
                 appendField("participant")
                 appendField(participant.id.value)
-                appendField(participant.sessionId.value)
+                appendField(participant.groupId.value)
                 appendField(participant.name)
                 appendField(participant.avatarColor)
                 appendField(participant.createdAtMillis.toString())
@@ -33,7 +33,7 @@ object SourceRevisionCalculator {
             expenses.sortedBy { it.id.value }.forEach { expense ->
                 appendField("expense")
                 appendField(expense.id.value)
-                appendField(expense.sessionId.value)
+                appendField(expense.groupId.value)
                 appendField(expense.title)
                 appendField(expense.amount.minorUnits.toString())
                 appendField(expense.amount.currencyCode)

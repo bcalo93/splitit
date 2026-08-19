@@ -1,14 +1,14 @@
-package com.splitit.presentation.sessions
+package com.splitit.presentation.groups
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
-import com.splitit.domain.usecase.DeleteSessionUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
-import com.splitit.domain.usecase.ObserveSessionsUseCase
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.usecase.DeleteGroupUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupsUseCase
+import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
@@ -20,24 +20,24 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Immutable
-data class SessionListUiState(
-    val sessions: List<ExpenseSession> = emptyList(),
-    val visibleSessions: List<ExpenseSession> = emptyList(),
+data class GroupListUiState(
+    val groups: List<ExpenseGroup> = emptyList(),
+    val visibleGroups: List<ExpenseGroup> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val participantsBySession: Map<SessionId, List<Participant>> = emptyMap(),
-    val pendingSessionIds: Set<SessionId> = emptySet(),
+    val participantsByGroup: Map<GroupId, List<Participant>> = emptyMap(),
+    val pendingGroupIds: Set<GroupId> = emptySet(),
 )
 
-class SessionListViewModel(
-    private val observeSessions: ObserveSessionsUseCase,
-    private val observeSessionDetails: ObserveSessionDetailsUseCase,
-    private val deleteSession: DeleteSessionUseCase,
+class GroupListViewModel(
+    private val observeGroups: ObserveGroupsUseCase,
+    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val deleteGroup: DeleteGroupUseCase,
     private val localization: LocalizationService,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(SessionListUiState())
-    val state: StateFlow<SessionListUiState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(GroupListUiState())
+    val state: StateFlow<GroupListUiState> = _state.asStateFlow()
     private var refreshJob: Job? = null
 
     init {
@@ -50,17 +50,17 @@ class SessionListViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val sessions = observeSessions()
-                val participantsBySession = mutableMapOf<SessionId, List<Participant>>()
-                val pendingSessionIds = mutableSetOf<SessionId>()
-                sessions.forEach { session ->
+                val groups = observeGroups()
+                val participantsByGroup = mutableMapOf<GroupId, List<Participant>>()
+                val pendingGroupIds = mutableSetOf<GroupId>()
+                groups.forEach { group ->
                     try {
-                        val details = observeSessionDetails(session.id)
-                        participantsBySession[session.id] = details.participants
+                        val details = observeGroupDetails(group.id)
+                        participantsByGroup[group.id] = details.participants
                         val pending = details.isSettlementStale ||
                             (details.latestSettlement == null && details.expenses.isNotEmpty())
                         if (pending) {
-                            pendingSessionIds.add(session.id)
+                            pendingGroupIds.add(group.id)
                         }
                     } catch (exception: CancellationException) {
                         throw exception
@@ -70,10 +70,10 @@ class SessionListViewModel(
                 }
                 _state.update {
                     it.copy(
-                        sessions = sessions,
-                        visibleSessions = filterSessions(sessions, it.searchQuery),
-                        participantsBySession = participantsBySession,
-                        pendingSessionIds = pendingSessionIds,
+                        groups = groups,
+                        visibleGroups = filterGroups(groups, it.searchQuery),
+                        participantsByGroup = participantsByGroup,
+                        pendingGroupIds = pendingGroupIds,
                         isLoading = false,
                         errorMessage = null,
                     )
@@ -95,16 +95,16 @@ class SessionListViewModel(
         _state.update {
             it.copy(
                 searchQuery = query,
-                visibleSessions = filterSessions(it.sessions, query),
+                visibleGroups = filterGroups(it.groups, query),
                 errorMessage = null,
             )
         }
     }
 
-    fun delete(sessionId: SessionId) {
+    fun delete(groupId: GroupId) {
         viewModelScope.launch {
             try {
-                deleteSession(sessionId)
+                deleteGroup(groupId)
                 refresh()
             } catch (exception: CancellationException) {
                 throw exception
@@ -116,16 +116,16 @@ class SessionListViewModel(
         }
     }
 
-    private fun filterSessions(
-        sessions: List<ExpenseSession>,
+    private fun filterGroups(
+        groups: List<ExpenseGroup>,
         query: String,
-    ): List<ExpenseSession> {
+    ): List<ExpenseGroup> {
         val normalizedQuery = query.trim()
-        if (normalizedQuery.isEmpty()) return sessions
+        if (normalizedQuery.isEmpty()) return groups
 
-        return sessions.filter { session ->
-            session.title.contains(normalizedQuery, ignoreCase = true) ||
-                session.description?.contains(normalizedQuery, ignoreCase = true) == true
+        return groups.filter { group ->
+            group.title.contains(normalizedQuery, ignoreCase = true) ||
+                group.description?.contains(normalizedQuery, ignoreCase = true) == true
         }
     }
 }

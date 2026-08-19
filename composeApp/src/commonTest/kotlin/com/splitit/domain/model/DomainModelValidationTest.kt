@@ -6,27 +6,27 @@ import com.splitit.testutils.participant
 import com.splitit.testutils.settlement
 import com.splitit.testutils.share
 import com.splitit.testutils.transfer
-import com.splitit.testutils.session
+import com.splitit.testutils.group
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
 class DomainModelValidationTest {
     @Test
     fun rejectsBlankIds() {
-        assertFailsWith<IllegalArgumentException> { SessionId(" ") }
+        assertFailsWith<IllegalArgumentException> { GroupId(" ") }
         assertFailsWith<IllegalArgumentException> { ParticipantId("") }
         assertFailsWith<IllegalArgumentException> { ExpenseId("\t") }
     }
 
     @Test
-    fun rejectsInvalidSessionAndParticipantValues() {
-        assertFailsWith<IllegalArgumentException> { session(title = " ") }
+    fun rejectsInvalidGroupAndParticipantValues() {
+        assertFailsWith<IllegalArgumentException> { group(title = " ") }
         assertFailsWith<IllegalArgumentException> {
-            session(createdAtMillis = 2L, updatedAtMillis = 1L)
+            group(createdAtMillis = 2L, updatedAtMillis = 1L)
         }
         assertFailsWith<IllegalArgumentException> { participant(name = "") }
         assertFailsWith<IllegalArgumentException> {

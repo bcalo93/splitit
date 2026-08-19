@@ -1,12 +1,12 @@
-package com.splitit.presentation.sessions
+package com.splitit.presentation.groups
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.splitit.domain.usecase.CreateSessionUseCase
-import com.splitit.domain.usecase.ObserveSessionDetailsUseCase
-import com.splitit.domain.usecase.UpdateSessionUseCase
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.usecase.CreateGroupUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.UpdateGroupUseCase
+import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,29 +16,29 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Immutable
-data class SessionFormUiState(
+data class GroupFormUiState(
     val title: String = "",
     val description: String = "",
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val titleError: String? = null,
     val errorMessage: String? = null,
-    val savedSessionId: SessionId? = null,
+    val savedGroupId: GroupId? = null,
 )
 
-class SessionFormViewModel(
-    private val sessionId: SessionId?,
-    private val createSession: CreateSessionUseCase,
-    private val updateSession: UpdateSessionUseCase,
-    private val observeSessionDetails: ObserveSessionDetailsUseCase,
+class GroupFormViewModel(
+    private val groupId: GroupId?,
+    private val createGroup: CreateGroupUseCase,
+    private val updateGroup: UpdateGroupUseCase,
+    private val observeGroupDetails: ObserveGroupDetailsUseCase,
     private val localization: LocalizationService,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(SessionFormUiState(isLoading = sessionId != null))
-    val state: StateFlow<SessionFormUiState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(GroupFormUiState(isLoading = groupId != null))
+    val state: StateFlow<GroupFormUiState> = _state.asStateFlow()
 
     init {
-        if (sessionId != null) {
-            load(sessionId)
+        if (groupId != null) {
+            load(groupId)
         }
     }
 
@@ -66,19 +66,19 @@ class SessionFormViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true, errorMessage = null) }
             val result = runCatching {
-                if (sessionId == null) {
-                    createSession(current.title, current.description)
+                if (groupId == null) {
+                    createGroup(current.title, current.description)
                 } else {
-                    updateSession(sessionId, current.title, current.description)
+                    updateGroup(groupId, current.title, current.description)
                 }
             }
 
             result
-                .onSuccess { session ->
+                .onSuccess { group ->
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            savedSessionId = session.id,
+                            savedGroupId = group.id,
                             errorMessage = null,
                         )
                     }
@@ -94,18 +94,18 @@ class SessionFormViewModel(
         }
     }
 
-    fun consumeSavedSession() {
-        _state.update { it.copy(savedSessionId = null) }
+    fun consumeSavedGroup() {
+        _state.update { it.copy(savedGroupId = null) }
     }
 
-    private fun load(sessionId: SessionId) {
+    private fun load(groupId: GroupId) {
         viewModelScope.launch {
-            runCatching { observeSessionDetails(sessionId).session }
-                .onSuccess { session ->
+            runCatching { observeGroupDetails(groupId).group }
+                .onSuccess { group ->
                     _state.update {
                         it.copy(
-                            title = session.title,
-                            description = session.description.orEmpty(),
+                            title = group.title,
+                            description = group.description.orEmpty(),
                             isLoading = false,
                             errorMessage = null,
                         )

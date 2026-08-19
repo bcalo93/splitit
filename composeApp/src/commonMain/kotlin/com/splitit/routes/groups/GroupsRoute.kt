@@ -1,4 +1,4 @@
-package com.splitit.routes.sessions
+package com.splitit.routes.groups
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -39,11 +39,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
-import com.splitit.domain.value.SessionId
-import com.splitit.presentation.sessions.SessionListUiState
-import com.splitit.presentation.sessions.SessionListViewModel
+import com.splitit.domain.value.GroupId
+import com.splitit.presentation.groups.GroupListUiState
+import com.splitit.presentation.groups.GroupListViewModel
 import com.splitit.ui.components.AvatarBubble
 import com.splitit.ui.components.AvatarStackItem
 import com.splitit.ui.components.ConfirmDeleteDialog
@@ -78,12 +78,12 @@ import splitit.composeapp.generated.resources.no_groups_yet
 import splitit.composeapp.generated.resources.search_groups
 
 @Composable
-fun SessionsRoute(
+fun GroupsRoute(
     onCreate: () -> Unit,
-    onOpen: (SessionId) -> Unit,
-    onEdit: (SessionId) -> Unit,
+    onOpen: (GroupId) -> Unit,
+    onEdit: (GroupId) -> Unit,
     onSettings: () -> Unit,
-    viewModel: SessionListViewModel = koinViewModel(),
+    viewModel: GroupListViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
@@ -105,13 +105,13 @@ fun SessionsRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GroupsScreen(
-    state: SessionListUiState,
+    state: GroupListUiState,
     onCreate: () -> Unit,
-    onOpen: (SessionId) -> Unit,
-    onEdit: (SessionId) -> Unit,
+    onOpen: (GroupId) -> Unit,
+    onEdit: (GroupId) -> Unit,
     onSettings: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
-    onDelete: (SessionId) -> Unit,
+    onDelete: (GroupId) -> Unit,
     onRetry: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -155,10 +155,10 @@ private fun GroupsScreen(
                 .padding(paddingValues),
         ) {
             when {
-                state.isLoading && state.sessions.isEmpty() -> LoadingState(
+                state.isLoading && state.groups.isEmpty() -> LoadingState(
                     modifier = Modifier.align(Alignment.Center),
                 )
-                state.errorMessage != null && state.sessions.isEmpty() -> ErrorState(
+                state.errorMessage != null && state.groups.isEmpty() -> ErrorState(
                     message = state.errorMessage,
                     onRetry = onRetry,
                     modifier = Modifier.align(Alignment.Center),
@@ -166,7 +166,7 @@ private fun GroupsScreen(
                 else -> Column(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    if (state.sessions.isNotEmpty() || state.searchQuery.isNotBlank()) {
+                    if (state.groups.isNotEmpty() || state.searchQuery.isNotBlank()) {
                         SearchField(
                             query = state.searchQuery,
                             label = stringResource(Res.string.search_groups),
@@ -180,11 +180,11 @@ private fun GroupsScreen(
                         InlineErrorState(message = message, onRetry = onRetry)
                     }
                     when {
-                        state.sessions.isEmpty() -> GroupsEmptyState(
+                        state.groups.isEmpty() -> GroupsEmptyState(
                             onCreate = onCreate,
                             modifier = Modifier.weight(1f),
                         )
-                        state.visibleSessions.isEmpty() -> NoSearchResultsState(
+                        state.visibleGroups.isEmpty() -> NoSearchResultsState(
                             query = state.searchQuery,
                             entityName = stringResource(Res.string.entity_groups),
                             onClear = { onSearchQueryChange("") },
@@ -204,17 +204,17 @@ private fun GroupsScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(
-                                items = state.visibleSessions,
+                                items = state.visibleGroups,
                                 key = { it.id.value },
                                 contentType = { "group" },
-                            ) { session ->
+                            ) { group ->
                                 GroupRow(
-                                    session = session,
-                                    participants = state.participantsBySession[session.id].orEmpty(),
-                                    isPending = session.id in state.pendingSessionIds,
-                                    onOpen = { onOpen(session.id) },
-                                    onEdit = { onEdit(session.id) },
-                                    onDelete = { onDelete(session.id) },
+                                    group = group,
+                                    participants = state.participantsByGroup[group.id].orEmpty(),
+                                    isPending = group.id in state.pendingGroupIds,
+                                    onOpen = { onOpen(group.id) },
+                                    onEdit = { onEdit(group.id) },
+                                    onDelete = { onDelete(group.id) },
                                     modifier = Modifier.animateItem(),
                                 )
                             }
@@ -228,7 +228,7 @@ private fun GroupsScreen(
 
 @Composable
 private fun GroupRow(
-    session: ExpenseSession,
+    group: ExpenseGroup,
     participants: List<Participant>,
     isPending: Boolean,
     onOpen: () -> Unit,
@@ -242,11 +242,11 @@ private fun GroupRow(
 
     Box(modifier = modifier.fillMaxWidth()) {
         GroupCard(
-            title = session.title,
+            title = group.title,
             subtitle = stringResource(
                 Res.string.group_summary,
-                session.participantIds.size,
-                session.expenseIds.size,
+                group.participantIds.size,
+                group.expenseIds.size,
             ),
             avatarItems = avatarItems,
             status = if (isPending) StatusChipStyle.Pending else StatusChipStyle.UpToDate,

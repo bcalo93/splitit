@@ -1,4 +1,4 @@
-package com.splitit.routes.sessions.expenses
+package com.splitit.routes.groups.expenses
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -58,7 +58,7 @@ import com.splitit.domain.model.Expense
 import com.splitit.domain.model.Participant
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.presentation.expenses.ExpensesUiState
 import com.splitit.presentation.expenses.ExpensesViewModel
 import com.splitit.presentation.expenses.MILLIS_PER_DAY
@@ -129,17 +129,17 @@ import splitit.composeapp.generated.resources.unknown
 
 @Composable
 fun ExpensesRoute(
-    sessionId: SessionId,
+    groupId: GroupId,
     onBack: () -> Unit,
     openExpenseForm: Boolean = false,
     viewModel: ExpensesViewModel = koinViewModel(
-        parameters = { parametersOf(sessionId) },
+        parameters = { parametersOf(groupId) },
     ),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var formOpen by remember { mutableStateOf(openExpenseForm) }
 
-    LaunchedEffect(sessionId) {
+    LaunchedEffect(groupId) {
         viewModel.refresh()
     }
     LaunchedEffect(state.saveSucceeded) {

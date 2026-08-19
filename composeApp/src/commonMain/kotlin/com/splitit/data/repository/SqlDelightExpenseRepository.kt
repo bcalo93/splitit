@@ -5,15 +5,15 @@ import com.splitit.data.mapper.toDomain
 import com.splitit.domain.model.Expense
 import com.splitit.domain.repository.ExpenseRepository
 import com.splitit.domain.value.ExpenseId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
 class SqlDelightExpenseRepository(
     private val database: SplitItDatabase,
 ) : ExpenseRepository {
     private val queries = database.splitItDatabaseQueries
 
-    override suspend fun getExpenses(sessionId: SessionId): List<Expense> {
-        return queries.selectExpensesBySession(sessionId.value)
+    override suspend fun getExpenses(groupId: GroupId): List<Expense> {
+        return queries.selectExpensesByGroup(groupId.value)
             .executeAsList()
             .map { expense ->
                 expense.toDomain(
@@ -37,7 +37,7 @@ class SqlDelightExpenseRepository(
         database.transaction {
             queries.upsertExpense(
                 id = expense.id.value,
-                session_id = expense.sessionId.value,
+                group_id = expense.groupId.value,
                 title = expense.title,
                 amount_minor = expense.amount.minorUnits,
                 currency_code = expense.amount.currencyCode,

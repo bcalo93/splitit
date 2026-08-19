@@ -2,14 +2,14 @@ package com.splitit.domain.usecase
 
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
-import com.splitit.domain.model.SessionStatus
+import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.optimizer.PaymentOptimizerAdapter
 import com.splitit.domain.repository.ExpenseRepository
 import com.splitit.domain.repository.ParticipantRepository
-import com.splitit.domain.repository.SessionRepository
+import com.splitit.domain.repository.GroupRepository
 import com.splitit.domain.repository.SettlementRepository
 import com.splitit.domain.service.BalanceCalculator
 import com.splitit.domain.service.SourceRevisionCalculator
@@ -18,7 +18,7 @@ import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 import com.splitit.domain.value.TransferId
 import com.splitit.logic.optimizers.ComposedOptimizer
@@ -33,7 +33,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SettlementUseCasesTest {
-    private val sessionId = SessionId("session")
+    private val groupId = GroupId("group")
     private val aliceId = ParticipantId("alice")
     private val bobId = ParticipantId("bob")
     private val expenseId = ExpenseId("expense")
@@ -45,7 +45,7 @@ class SettlementUseCasesTest {
         val settlementRepository = InMemorySettlementRepository()
         val useCase = generateUseCase(settlementRepository)
 
-        val settlement = useCase(sessionId)
+        val settlement = useCase(groupId)
 
         assertEquals(settlement, settlementRepository.saved)
         assertEquals(
@@ -62,21 +62,21 @@ class SettlementUseCasesTest {
     fun detailsMarkSettlementStaleWhenSourceChangesWithoutTimestampChange() = runSuspendingTest {
         val settlementRepository = InMemorySettlementRepository()
         val useCase = generateUseCase(settlementRepository)
-        useCase(sessionId)
+        useCase(groupId)
 
-        val sessionRepository = InMemorySessionRepository(session())
-        val observeDetails = ObserveSessionDetailsUseCase(
-            sessionRepository = sessionRepository,
+        val groupRepository = InMemoryGroupRepository(group())
+        val observeDetails = ObserveGroupDetailsUseCase(
+            groupRepository = groupRepository,
             participantRepository = InMemoryParticipantRepository(participants),
             expenseRepository = InMemoryExpenseRepository(expenses),
             settlementRepository = settlementRepository,
         )
 
-        assertFalse(observeDetails(sessionId).isSettlementStale)
+        assertFalse(observeDetails(groupId).isSettlementStale)
 
         expenses[0] = expenses[0].copy(title = "Updated dinner", updatedAtMillis = 1)
 
-        assertTrue(observeDetails(sessionId).isSettlementStale)
+        assertTrue(observeDetails(groupId).isSettlementStale)
     }
 
     private fun generateUseCase(settlementRepository: InMemorySettlementRepository): GenerateSettlementUseCase {
@@ -94,21 +94,21 @@ class SettlementUseCasesTest {
         )
     }
 
-    private fun session(): ExpenseSession {
-        return ExpenseSession(
-            id = sessionId,
+    private fun group(): ExpenseGroup {
+        return ExpenseGroup(
+            id = groupId,
             title = "Trip",
             description = null,
             createdAtMillis = 1,
             updatedAtMillis = 1,
-            status = SessionStatus.Active,
+            status = GroupStatus.Active,
         )
     }
 
     private fun participant(id: ParticipantId): Participant {
         return Participant(
             id = id,
-            sessionId = sessionId,
+            groupId = groupId,
             name = id.value,
             avatarColor = null,
             createdAtMillis = 1,
@@ -119,7 +119,7 @@ class SettlementUseCasesTest {
     private fun expense(): Expense {
         return Expense(
             id = expenseId,
-            sessionId = sessionId,
+            groupId = groupId,
             title = "Dinner",
             amount = Money(1000, "USD"),
             payerId = aliceId,
@@ -139,7 +139,7 @@ class SettlementUseCasesTest {
     }
 
     private object TestIdGenerator : IdGenerator {
-        override fun newSessionId(): SessionId = SessionId("session")
+        override fun newGroupId(): GroupId = GroupId("group")
         override fun newParticipantId(): ParticipantId = ParticipantId("participant")
         override fun newExpenseId(): ExpenseId = ExpenseId("expense-new")
         override fun newSettlementId(): SettlementId = SettlementId("settlement")
@@ -147,29 +147,29 @@ class SettlementUseCasesTest {
     }
 }
 
-private class InMemorySessionRepository(
-    private var session: ExpenseSession,
-) : SessionRepository {
-    override suspend fun getSessions(): List<ExpenseSession> = listOf(session)
+private class InMemoryGroupRepository(
+    private var group: ExpenseGroup,
+) : GroupRepository {
+    override suspend fun getGroups(): List<ExpenseGroup> = listOf(group)
 
-    override suspend fun getSession(id: SessionId): ExpenseSession? {
-        return session.takeIf { it.id == id }
+    override suspend fun getGroup(id: GroupId): ExpenseGroup? {
+        return group.takeIf { it.id == id }
     }
 
-    override suspend fun saveSession(session: ExpenseSession) {
-        this.session = session
+    override suspend fun saveGroup(group: ExpenseGroup) {
+        this.group = group
     }
 
-    override suspend fun deleteSession(id: SessionId) {
-        if (session.id == id) session = session.copy(status = SessionStatus.Archived)
+    override suspend fun deleteGroup(id: GroupId) {
+        if (group.id == id) group = group.copy(status = GroupStatus.Archived)
     }
 }
 
 private class InMemoryParticipantRepository(
     private val participants: MutableList<Participant>,
 ) : ParticipantRepository {
-    override suspend fun getParticipants(sessionId: SessionId): List<Participant> {
-        return participants.filter { it.sessionId == sessionId }
+    override suspend fun getParticipants(groupId: GroupId): List<Participant> {
+        return participants.filter { it.groupId == groupId }
     }
 
     override suspend fun getParticipant(id: ParticipantId): Participant? {
@@ -191,8 +191,8 @@ private class InMemoryParticipantRepository(
 private class InMemoryExpenseRepository(
     private val expenses: MutableList<Expense>,
 ) : ExpenseRepository {
-    override suspend fun getExpenses(sessionId: SessionId): List<Expense> {
-        return expenses.filter { it.sessionId == sessionId }
+    override suspend fun getExpenses(groupId: GroupId): List<Expense> {
+        return expenses.filter { it.groupId == groupId }
     }
 
     override suspend fun getExpense(id: ExpenseId): Expense? {
@@ -213,8 +213,8 @@ private class InMemorySettlementRepository : SettlementRepository {
     var saved: Settlement? = null
         private set
 
-    override suspend fun getLatestSettlement(sessionId: SessionId): Settlement? {
-        return saved?.takeIf { it.sessionId == sessionId }
+    override suspend fun getLatestSettlement(groupId: GroupId): Settlement? {
+        return saved?.takeIf { it.groupId == groupId }
     }
 
     override suspend fun getSettlement(id: SettlementId): Settlement? {
@@ -225,8 +225,8 @@ private class InMemorySettlementRepository : SettlementRepository {
         saved = settlement
     }
 
-    override suspend fun deleteSettlements(sessionId: SessionId) {
-        if (saved?.sessionId == sessionId) saved = null
+    override suspend fun deleteSettlements(groupId: GroupId) {
+        if (saved?.groupId == groupId) saved = null
     }
 }
 
