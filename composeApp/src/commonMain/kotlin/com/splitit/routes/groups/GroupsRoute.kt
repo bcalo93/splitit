@@ -175,7 +175,7 @@ private fun GroupsScreen(
                             onQueryChange = onSearchQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = spacing.md),
+                                .padding(horizontal = spacing.xs),
                         )
                     }
                     state.errorMessage?.let { message ->
@@ -198,8 +198,8 @@ private fun GroupsScreen(
                                 .weight(1f)
                                 .nestedScroll(scrollBehavior.nestedScrollConnection),
                             contentPadding = PaddingValues(
-                                start = spacing.md,
-                                end = spacing.md,
+                                start = spacing.xs,
+                                end = spacing.xs,
                                 top = 12.dp,
                                 bottom = 88.dp,
                             ),

@@ -38,7 +38,7 @@ fun InlineErrorState(
 ) {
     val spacing = LocalSplitItSpacing.current
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = spacing.md),
+        modifier = modifier.fillMaxWidth().padding(horizontal = spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

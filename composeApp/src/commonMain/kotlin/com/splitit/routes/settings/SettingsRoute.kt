@@ -177,7 +177,7 @@ private fun SettingsScreen(
                     text = stringResource(Res.string.preferences_stored_locally),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = spacing.md, vertical = 16.dp),
+                    modifier = Modifier.padding(horizontal = spacing.xs, vertical = 16.dp),
                 )
             }
         }
@@ -202,7 +202,7 @@ private fun SectionHeader(title: String) {
         text = title,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = spacing.md, end = spacing.md, top = 24.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = spacing.xs, end = spacing.xs, top = 24.dp, bottom = 8.dp),
     )
 }
 
@@ -216,7 +216,7 @@ private fun PreferenceRow(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.md)
+            .padding(horizontal = spacing.xs)
             .then(
                 if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
             ),
@@ -265,7 +265,7 @@ private fun ThemeSegmentedButtons(
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.md),
+            .padding(horizontal = spacing.xs),
     ) {
         ThemeMode.entries.forEachIndexed { index, mode ->
             SegmentedButton(

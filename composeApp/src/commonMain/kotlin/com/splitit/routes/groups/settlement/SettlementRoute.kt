@@ -124,7 +124,7 @@ private fun SettlementContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = spacing.md, end = spacing.md, top = 8.dp, bottom = 16.dp),
+        contentPadding = PaddingValues(start = spacing.xs, end = spacing.xs, top = 8.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         state.errorMessage?.let { message ->
