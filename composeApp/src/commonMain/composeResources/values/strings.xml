@@ -73,7 +73,7 @@
     <string name="default_currency">Default currency</string>
     <string name="currency_hint">Use a 3-letter ISO code for new expenses, such as USD or EUR.</string>
     <string name="theme">Theme</string>
-    <string name="theme_system">System default</string>
+    <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system_description">Follow the device theme.</string>

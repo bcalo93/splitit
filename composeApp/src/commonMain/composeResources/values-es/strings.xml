@@ -73,7 +73,7 @@
     <string name="default_currency">Moneda predeterminada</string>
     <string name="currency_hint">Usa un código ISO de 3 letras para nuevos gastos, como USD o EUR.</string>
     <string name="theme">Tema</string>
-    <string name="theme_system">Predeterminado del sistema</string>
+    <string name="theme_system">Sistema</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
     <string name="theme_system_description">Seguir el tema del dispositivo.</string>
