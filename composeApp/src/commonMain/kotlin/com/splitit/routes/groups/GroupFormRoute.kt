@@ -116,7 +116,7 @@ private fun GroupFormScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = spacing.lg, vertical = spacing.xl),
+                .padding(horizontal = spacing.md, vertical = spacing.xl),
             verticalArrangement = Arrangement.spacedBy(spacing.xl),
         ) {
             if (state.isLoading) {

@@ -80,6 +80,7 @@ import com.splitit.ui.components.SplitItIcons
 import com.splitit.ui.components.SplitItScaffold
 import com.splitit.ui.components.SplitItTopBar
 import com.splitit.ui.theme.LocalSplitItMoneyStyles
+import com.splitit.ui.theme.LocalSplitItSpacing
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -193,6 +194,7 @@ private fun ExpensesScreen(
     onDelete: (ExpenseId) -> Unit,
     onRetry: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     val participantById = remember(state.participants) {
         state.participants.associateBy { it.id }
     }
@@ -247,7 +249,7 @@ private fun ExpensesScreen(
                             onQueryChange = onSearchQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(horizontal = spacing.md),
                         )
                     }
                     state.errorMessage?.let { message ->
@@ -272,8 +274,8 @@ private fun ExpensesScreen(
                                 .fillMaxWidth()
                                 .weight(1f),
                             contentPadding = PaddingValues(
-                                start = 16.dp,
-                                end = 16.dp,
+                                start = spacing.md,
+                                end = spacing.md,
                                 top = 4.dp,
                                 bottom = 88.dp,
                             ),
@@ -438,6 +440,7 @@ private fun ExpenseFormScreen(
     onShareWeightChanged: (ParticipantId, Int) -> Unit,
     onSave: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     val isEditing = state.editingExpenseId != null
     val amountFocusRequester = remember { FocusRequester() }
 
@@ -468,7 +471,7 @@ private fun ExpenseFormScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = spacing.md, vertical = 12.dp),
                 )
             }
         },
@@ -478,7 +481,7 @@ private fun ExpenseFormScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = spacing.md, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             AmountField(

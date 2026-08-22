@@ -56,6 +56,7 @@ import com.splitit.ui.components.PrimaryButton
 import com.splitit.ui.components.SplitItIcons
 import com.splitit.ui.components.SplitItScaffold
 import com.splitit.ui.components.SplitItTopBar
+import com.splitit.ui.theme.LocalSplitItSpacing
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -148,6 +149,7 @@ private fun ParticipantsScreen(
     onDeleteClick: (Participant) -> Unit,
     onRetry: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     SplitItScaffold(
         modifier = Modifier.safeContentPadding(),
         topBar = {
@@ -192,8 +194,8 @@ private fun ParticipantsScreen(
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
+                        start = spacing.md,
+                        end = spacing.md,
                         top = 12.dp,
                         bottom = 88.dp,
                     ),

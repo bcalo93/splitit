@@ -41,6 +41,7 @@ import com.splitit.ui.components.SplitItScaffold
 import com.splitit.ui.components.SplitItTopBar
 import com.splitit.ui.components.TransferCard
 import com.splitit.ui.theme.LocalSplitItSemanticColors
+import com.splitit.ui.theme.LocalSplitItSpacing
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -137,6 +138,7 @@ private fun SettlementContent(
     onGenerate: () -> Unit,
     onRetry: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     val participantNames = remember(state.participants) {
         state.participants.associate { participant -> participant.id to participant.name }
     }
@@ -146,7 +148,7 @@ private fun SettlementContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+        contentPadding = PaddingValues(start = spacing.md, end = spacing.md, top = 8.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         state.errorMessage?.let { message ->
@@ -218,11 +220,12 @@ private fun SettlementBottomBar(
     state: SettlementUiState,
     onGenerate: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     Surface(color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(spacing.md),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (state.canGenerateSettlement) {

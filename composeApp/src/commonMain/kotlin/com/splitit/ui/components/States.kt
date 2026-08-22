@@ -18,6 +18,7 @@ import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.clear_search
 import splitit.composeapp.generated.resources.no_results_match
 import splitit.composeapp.generated.resources.retry
+import com.splitit.ui.theme.LocalSplitItSpacing
 
 @Composable
 fun LoadingState(
@@ -35,8 +36,9 @@ fun InlineErrorState(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val spacing = LocalSplitItSpacing.current
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

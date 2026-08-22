@@ -50,6 +50,7 @@ import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.SplitItIcons
 import com.splitit.ui.components.SplitItScaffold
 import com.splitit.ui.components.SplitItTopBar
+import com.splitit.ui.theme.LocalSplitItSpacing
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -117,6 +118,7 @@ private fun SettingsScreen(
     onThemeModeSelected: (ThemeMode) -> Unit,
     onRetry: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     var showCurrencyDialog by remember { mutableStateOf(false) }
 
     SplitItScaffold(
@@ -175,7 +177,7 @@ private fun SettingsScreen(
                     text = stringResource(Res.string.preferences_stored_locally),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                    modifier = Modifier.padding(horizontal = spacing.md, vertical = 16.dp),
                 )
             }
         }
@@ -195,11 +197,12 @@ private fun SettingsScreen(
 
 @Composable
 private fun SectionHeader(title: String) {
+    val spacing = LocalSplitItSpacing.current
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = spacing.md, end = spacing.md, top = 24.dp, bottom = 8.dp),
     )
 }
 
@@ -209,10 +212,11 @@ private fun PreferenceRow(
     value: String?,
     onClick: (() -> Unit)? = null,
 ) {
+    val spacing = LocalSplitItSpacing.current
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = spacing.md)
             .then(
                 if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
             ),
@@ -257,10 +261,11 @@ private fun ThemeSegmentedButtons(
     enabled: Boolean,
     onSelect: (ThemeMode) -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = spacing.md),
     ) {
         ThemeMode.entries.forEachIndexed { index, mode ->
             SegmentedButton(

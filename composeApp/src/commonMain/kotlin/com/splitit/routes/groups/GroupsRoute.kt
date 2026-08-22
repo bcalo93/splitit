@@ -58,6 +58,7 @@ import com.splitit.ui.components.SplitItIcons
 import com.splitit.ui.components.SplitItLargeTopBar
 import com.splitit.ui.components.SplitItScaffold
 import com.splitit.ui.components.StatusChipStyle
+import com.splitit.ui.theme.LocalSplitItSpacing
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -114,6 +115,7 @@ private fun GroupsScreen(
     onDelete: (GroupId) -> Unit,
     onRetry: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val fabExpanded = scrollBehavior.state.collapsedFraction < 0.5f
 
@@ -173,7 +175,7 @@ private fun GroupsScreen(
                             onQueryChange = onSearchQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(horizontal = spacing.md),
                         )
                     }
                     state.errorMessage?.let { message ->
@@ -196,8 +198,8 @@ private fun GroupsScreen(
                                 .weight(1f)
                                 .nestedScroll(scrollBehavior.nestedScrollConnection),
                             contentPadding = PaddingValues(
-                                start = 16.dp,
-                                end = 16.dp,
+                                start = spacing.md,
+                                end = spacing.md,
                                 top = 12.dp,
                                 bottom = 88.dp,
                             ),

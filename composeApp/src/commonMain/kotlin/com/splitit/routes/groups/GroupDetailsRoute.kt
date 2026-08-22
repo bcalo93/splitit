@@ -52,6 +52,7 @@ import com.splitit.ui.components.SplitItTopBar
 import com.splitit.ui.components.StatusChip
 import com.splitit.ui.components.StatusChipStyle
 import com.splitit.ui.components.pressScale
+import com.splitit.ui.theme.LocalSplitItSpacing
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -106,6 +107,7 @@ private fun GroupDetailsScreen(
     onSettlement: () -> Unit,
     onRetry: () -> Unit,
 ) {
+    val spacing = LocalSplitItSpacing.current
     SplitItScaffold(
         modifier = Modifier.safeContentPadding(),
         topBar = {
@@ -147,8 +149,8 @@ private fun GroupDetailsScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
+                            start = spacing.md,
+                            end = spacing.md,
                             top = 8.dp,
                             bottom = 96.dp,
                         ),
