@@ -279,6 +279,7 @@ private fun ExpensesScreen(
                                 top = 4.dp,
                                 bottom = 88.dp,
                             ),
+                            verticalArrangement = Arrangement.spacedBy(spacing.md),
                         ) {
                             state.groupedExpenses.forEach { group ->
                                 stickyHeader(key = group.dayMillis) {
