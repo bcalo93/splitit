@@ -48,6 +48,7 @@ data class Expenses(val groupId: String, val openExpenseForm: Boolean = false)
 data class Settlement(val groupId: String)
 
 private const val TRANSITION_DURATION_MS = 300
+private const val SETTINGS_TRANSITION_DURATION_MS = 400
 
 private fun NavBackStackEntry.isFadeDestination(): Boolean =
     destination.hasRoute<Settings>()
@@ -170,7 +171,12 @@ fun SplitItRoutes(
             )
         }
 
-        composable<Settings> {
+        composable<Settings>(
+            enterTransition = { fadeIn(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+            exitTransition = { fadeOut(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+            popEnterTransition = { fadeIn(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+            popExitTransition = { fadeOut(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+        ) {
             SettingsRoute(
                 onBack = { navController.popBackStack() },
                 viewModel = settingsViewModel,
