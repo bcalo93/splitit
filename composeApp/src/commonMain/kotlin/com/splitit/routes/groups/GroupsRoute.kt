@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -120,7 +119,6 @@ private fun GroupsScreen(
     val fabExpanded = scrollBehavior.state.collapsedFraction < 0.5f
 
     SplitItScaffold(
-        modifier = Modifier.safeContentPadding(),
         topBar = {
             SplitItLargeTopBar(
                 title = stringResource(Res.string.groups_title),

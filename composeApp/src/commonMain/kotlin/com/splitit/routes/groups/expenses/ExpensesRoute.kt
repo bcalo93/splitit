@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -201,7 +200,6 @@ private fun ExpensesScreen(
     val unknownLabel = stringResource(Res.string.unknown)
 
     SplitItScaffold(
-        modifier = Modifier.safeContentPadding(),
         topBar = {
             SplitItTopBar(
                 title = stringResource(Res.string.expenses),
@@ -446,7 +444,6 @@ private fun ExpenseFormScreen(
     val amountFocusRequester = remember { FocusRequester() }
 
     SplitItScaffold(
-        modifier = Modifier.safeContentPadding(),
         topBar = {
             SplitItTopBar(
                 title = stringResource(

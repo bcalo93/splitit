@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -78,7 +77,6 @@ private fun SettlementScreen(
     onRetry: () -> Unit,
 ) {
     SplitItScaffold(
-        modifier = Modifier.safeContentPadding(),
         topBar = {
             SplitItTopBar(
                 title = stringResource(Res.string.settlement),

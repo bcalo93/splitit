@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -109,7 +108,6 @@ private fun GroupDetailsScreen(
 ) {
     val spacing = LocalSplitItSpacing.current
     SplitItScaffold(
-        modifier = Modifier.safeContentPadding(),
         topBar = {
             SplitItTopBar(
                 title = "",
