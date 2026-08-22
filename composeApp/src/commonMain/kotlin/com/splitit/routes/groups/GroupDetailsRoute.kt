@@ -147,8 +147,8 @@ private fun GroupDetailsScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
-                            start = spacing.md,
-                            end = spacing.md,
+                            start = spacing.xl,
+                            end = spacing.xl,
                             top = 8.dp,
                             bottom = 96.dp,
                         ),

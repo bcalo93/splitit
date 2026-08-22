@@ -192,8 +192,8 @@ private fun ParticipantsScreen(
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
-                        start = spacing.md,
-                        end = spacing.md,
+                        start = spacing.xl,
+                        end = spacing.xl,
                         top = 12.dp,
                         bottom = 88.dp,
                     ),
