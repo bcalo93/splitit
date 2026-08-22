@@ -100,14 +100,24 @@ class SettlementViewModel(
     }
 
     private suspend fun loadSnapshot(): SettlementSnapshot {
-        val details = observeGroupDetails(groupId)
+        var details = observeGroupDetails(groupId)
+        val canGenerateSettlement = details.participants.size >= 2 && details.expenses.isNotEmpty()
+        val shouldGenerateSettlement = canGenerateSettlement &&
+            (details.latestSettlement == null || details.isSettlementStale)
+
+        if (shouldGenerateSettlement) {
+            _state.update { it.copy(isGenerating = true) }
+            generateSettlement(groupId)
+            details = observeGroupDetails(groupId)
+        }
+
         return SettlementSnapshot(
             participants = details.participants,
             balances = calculateGroupBalances(groupId),
             settlement = details.latestSettlement,
             currentSourceRevision = details.currentSourceRevision,
             isSettlementStale = details.isSettlementStale,
-            canGenerateSettlement = details.participants.size >= 2 && details.expenses.isNotEmpty(),
+            canGenerateSettlement = canGenerateSettlement,
         )
     }
 

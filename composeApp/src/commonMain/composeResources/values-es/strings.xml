@@ -50,7 +50,7 @@
     <string name="edit_group">Editar grupo</string>
 
     <string name="settlement">Liquidación</string>
-    <string name="settlement_empty_title">Genera la liquidación para ver quién debe a quién</string>
+    <string name="settlement_empty_title">Todavía no hay una liquidación para mostrar</string>
     <string name="settlement_stale_banner">Los gastos cambiaron desde la última liquidación</string>
     <string name="update">Actualizar</string>
     <string name="settlement_all_settled_title">Cuentas claras, amistades largas 🎉</string>

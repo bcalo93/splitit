@@ -50,7 +50,7 @@
     <string name="edit_group">Edit group</string>
 
     <string name="settlement">Settlement</string>
-    <string name="settlement_empty_title">Generate the settlement to see who owes who</string>
+    <string name="settlement_empty_title">No settlement to show yet</string>
     <string name="settlement_stale_banner">Expenses changed since the last settlement</string>
     <string name="update">Update</string>
     <string name="settlement_all_settled_title">Clear accounts, long friendships 🎉</string>

@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
 
 class SettlementViewModelTest {
     @Test
-    fun generatesSettlementAndMarksItStaleAfterSourceChanges() = runViewModelTest {
+    fun calculatesSettlementOnLoadAndRefreshesItAfterSourceChanges() = runViewModelTest {
         val participantRepository = InMemoryParticipantRepository(
             listOf(participant(TestIds.alice), participant(TestIds.bob)),
         )
@@ -45,11 +45,6 @@ class SettlementViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.state.value.canGenerateSettlement)
-        assertEquals(null, viewModel.state.value.settlement)
-
-        viewModel.generate()
-        advanceUntilIdle()
-
         assertNotNull(viewModel.state.value.settlement)
         assertFalse(viewModel.state.value.isSettlementStale)
         assertEquals(1, viewModel.state.value.settlement?.transfers?.size)
@@ -58,7 +53,8 @@ class SettlementViewModelTest {
         viewModel.refresh()
         advanceUntilIdle()
 
-        assertTrue(viewModel.state.value.isSettlementStale)
+        assertFalse(viewModel.state.value.isSettlementStale)
+        assertEquals(2, settlementRepository.saveCalls)
     }
 
     @Test

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,9 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,12 +32,10 @@ import com.splitit.ui.components.EmptyState
 import com.splitit.ui.components.ErrorState
 import com.splitit.ui.components.InlineErrorState
 import com.splitit.ui.components.LoadingState
-import com.splitit.ui.components.PrimaryButton
 import com.splitit.ui.components.SplitItIcons
 import com.splitit.ui.components.SplitItScaffold
 import com.splitit.ui.components.SplitItTopBar
 import com.splitit.ui.components.TransferCard
-import com.splitit.ui.theme.LocalSplitItSemanticColors
 import com.splitit.ui.theme.LocalSplitItSpacing
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -49,16 +44,12 @@ import org.koin.core.parameter.parametersOf
 import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.balances
 import splitit.composeapp.generated.resources.everyone_settled
-import splitit.composeapp.generated.resources.generate_settlement
-import splitit.composeapp.generated.resources.regenerate_settlement
 import splitit.composeapp.generated.resources.settlement
 import splitit.composeapp.generated.resources.settlement_all_settled_title
 import splitit.composeapp.generated.resources.settlement_empty_title
 import splitit.composeapp.generated.resources.settlement_requirements
-import splitit.composeapp.generated.resources.settlement_stale_banner
 import splitit.composeapp.generated.resources.transfers
 import splitit.composeapp.generated.resources.unknown
-import splitit.composeapp.generated.resources.update
 
 @Composable
 fun SettlementRoute(
@@ -76,7 +67,6 @@ fun SettlementRoute(
     SettlementScreen(
         state = state,
         onBack = onBack,
-        onGenerate = viewModel::generate,
         onRetry = viewModel::refresh,
     )
 }
@@ -85,12 +75,8 @@ fun SettlementRoute(
 private fun SettlementScreen(
     state: SettlementUiState,
     onBack: () -> Unit,
-    onGenerate: () -> Unit,
     onRetry: () -> Unit,
 ) {
-    val showContent = !(state.isLoading && state.participants.isEmpty()) &&
-        !(state.errorMessage != null && state.participants.isEmpty())
-
     SplitItScaffold(
         modifier = Modifier.safeContentPadding(),
         topBar = {
@@ -98,14 +84,6 @@ private fun SettlementScreen(
                 title = stringResource(Res.string.settlement),
                 onBack = onBack,
             )
-        },
-        bottomBar = {
-            if (showContent) {
-                SettlementBottomBar(
-                    state = state,
-                    onGenerate = onGenerate,
-                )
-            }
         },
     ) { paddingValues ->
         Box(
@@ -124,7 +102,6 @@ private fun SettlementScreen(
                 )
                 else -> SettlementContent(
                     state = state,
-                    onGenerate = onGenerate,
                     onRetry = onRetry,
                 )
             }
@@ -135,7 +112,6 @@ private fun SettlementScreen(
 @Composable
 private fun SettlementContent(
     state: SettlementUiState,
-    onGenerate: () -> Unit,
     onRetry: () -> Unit,
 ) {
     val spacing = LocalSplitItSpacing.current
@@ -180,12 +156,6 @@ private fun SettlementContent(
                 }
             }
 
-            if (state.isSettlementStale) {
-                item {
-                    StaleBanner(onUpdate = onGenerate)
-                }
-            }
-
             val settlement = state.settlement
             if (settlement.transfers.isEmpty()) {
                 item {
@@ -210,44 +180,6 @@ private fun SettlementContent(
                         amount = transfer.amount,
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettlementBottomBar(
-    state: SettlementUiState,
-    onGenerate: () -> Unit,
-) {
-    val spacing = LocalSplitItSpacing.current
-    Surface(color = MaterialTheme.colorScheme.background) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(spacing.md),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (state.canGenerateSettlement) {
-                PrimaryButton(
-                    text = stringResource(
-                        if (state.settlement == null) {
-                            Res.string.generate_settlement
-                        } else {
-                            Res.string.regenerate_settlement
-                        },
-                    ),
-                    onClick = onGenerate,
-                    modifier = Modifier.fillMaxWidth(),
-                    isLoading = state.isGenerating,
-                    icon = SplitItIcons.AccountBalanceWallet,
-                )
-            } else {
-                Text(
-                    text = stringResource(Res.string.settlement_requirements),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
@@ -296,42 +228,6 @@ private fun CelebrationState() {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-    }
-}
-
-@Composable
-private fun StaleBanner(onUpdate: () -> Unit) {
-    val semantic = LocalSplitItSemanticColors.current
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        shape = MaterialTheme.shapes.small,
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                painter = painterResource(SplitItIcons.WarningAmber),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = semantic.staleWarning,
-            )
-            Text(
-                text = stringResource(Res.string.settlement_stale_banner),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
-            )
-            TextButton(onClick = onUpdate) {
-                Text(
-                    text = stringResource(Res.string.update),
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                )
-            }
-        }
     }
 }
 
