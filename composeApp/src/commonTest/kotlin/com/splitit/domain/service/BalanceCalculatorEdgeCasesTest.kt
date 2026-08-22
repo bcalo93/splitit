@@ -22,7 +22,7 @@ class BalanceCalculatorEdgeCasesTest {
             expenses = emptyList(),
         )
 
-        assertEquals(listOf(Balance(TestIds.alice, Money.zero("USD"))), balances)
+        assertEquals(listOf(Balance(TestIds.alice, Money.zero("UYU"))), balances)
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.splitit.domain.model.Balance
 import com.splitit.domain.model.Debt
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.Participant
+import com.splitit.domain.repository.DefaultCurrencyCode
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
 
@@ -135,6 +136,6 @@ class BalanceCalculator {
     )
 
     private fun defaultCurrency(expenses: List<Expense>): String {
-        return expenses.firstOrNull()?.amount?.currencyCode ?: "USD"
+        return expenses.firstOrNull()?.amount?.currencyCode ?: DefaultCurrencyCode
     }
 }

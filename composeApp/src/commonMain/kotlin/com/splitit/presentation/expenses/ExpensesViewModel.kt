@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.Participant
+import com.splitit.domain.repository.DefaultCurrencyCode
 import com.splitit.domain.usecase.CreateExpenseUseCase
 import com.splitit.domain.usecase.DeleteExpenseUseCase
 import com.splitit.domain.usecase.GetSettingsUseCase
@@ -370,8 +371,6 @@ class ExpensesViewModel(
         )
     }
 }
-
-const val DefaultCurrencyCode = "USD"
 
 fun parseAmount(input: String): Long? {
     val normalized = input.trim()
