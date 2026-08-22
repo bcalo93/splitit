@@ -24,6 +24,7 @@ import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ExpensesShareWeightTest {
     @Test
@@ -114,7 +115,7 @@ class ExpensesShareWeightTest {
         advanceUntilIdle()
 
         val saved = expenseRepository.savedExpenses.single()
-        assert(saved.participantShares.all { it.shareWeight == 1 })
+        assertTrue(saved.participantShares.all { it.shareWeight == 1 })
     }
 
     private fun createViewModel(
