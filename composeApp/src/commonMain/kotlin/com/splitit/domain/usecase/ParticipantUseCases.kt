@@ -2,31 +2,31 @@ package com.splitit.domain.usecase
 
 import com.splitit.domain.model.Participant
 import com.splitit.domain.repository.ParticipantRepository
-import com.splitit.domain.repository.SessionRepository
+import com.splitit.domain.repository.GroupRepository
 import com.splitit.domain.value.Clock
 import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
 class AddParticipantUseCase(
-    private val sessionRepository: SessionRepository,
+    private val groupRepository: GroupRepository,
     private val participantRepository: ParticipantRepository,
     private val idGenerator: IdGenerator,
     private val clock: Clock,
 ) {
     suspend operator fun invoke(
-        sessionId: SessionId,
+        groupId: GroupId,
         name: String,
         avatarColor: String?,
     ): Participant {
-        requireNotNull(sessionRepository.getSession(sessionId)) {
-            "Session ${sessionId.value} was not found."
+        requireNotNull(groupRepository.getGroup(groupId)) {
+            "Group ${groupId.value} was not found."
         }
 
         val now = clock.nowMillis()
         val participant = Participant(
             id = idGenerator.newParticipantId(),
-            sessionId = sessionId,
+            groupId = groupId,
             name = name.trim(),
             avatarColor = avatarColor,
             createdAtMillis = now,

@@ -1,187 +1,186 @@
 package com.splitit.routes
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import com.splitit.domain.value.SessionId
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.splitit.domain.value.GroupId
 import com.splitit.presentation.settings.SettingsViewModel
-import com.splitit.routes.sessions.SessionDetailsRoute
-import com.splitit.routes.sessions.SessionFormRoute
-import com.splitit.routes.sessions.SessionsRoute
-import com.splitit.routes.sessions.expenses.ExpensesRoute
-import com.splitit.routes.sessions.participants.ParticipantsRoute
-import com.splitit.routes.sessions.settlement.SettlementRoute
+import com.splitit.routes.groups.GroupDetailsRoute
+import com.splitit.routes.groups.GroupFormRoute
+import com.splitit.routes.groups.GroupsRoute
+import com.splitit.routes.groups.expenses.ExpensesRoute
+import com.splitit.routes.groups.participants.ParticipantsRoute
+import com.splitit.routes.groups.settlement.SettlementRoute
 import com.splitit.routes.settings.SettingsRoute
+import kotlinx.serialization.Serializable
 
-private const val DELIMITER = "|"
+@Serializable
+data object Groups
 
-private const val ROUTE_SESSIONS = "sessions"
-private const val ROUTE_DETAILS = "details"
-private const val ROUTE_FORM = "form"
-private const val ROUTE_PARTICIPANTS = "participants"
-private const val ROUTE_EXPENSES = "expenses"
-private const val ROUTE_SETTLEMENT = "settlement"
-private const val ROUTE_SETTINGS = "settings"
+@Serializable
+data object Settings
 
-sealed class Route(val key: String) {
-    @Composable
-    abstract fun Content(
-        settingsViewModel: SettingsViewModel,
-        onNavigate: (Route) -> Unit,
-        nextFormKey: () -> Int,
-    )
+@Serializable
+data class GroupDetails(val groupId: String)
 
-    data object Sessions : Route(ROUTE_SESSIONS) {
-        @Composable
-        override fun Content(
-            settingsViewModel: SettingsViewModel,
-            onNavigate: (Route) -> Unit,
-            nextFormKey: () -> Int,
-        ) {
-            SessionsRoute(
-                onCreate = { onNavigate(Form(null, nextFormKey())) },
-                onOpen = { sessionId -> onNavigate(Details(sessionId)) },
-                onEdit = { sessionId -> onNavigate(Form(sessionId, nextFormKey())) },
-                onSettings = { onNavigate(Settings) },
-            )
-        }
+@Serializable
+data class GroupForm(val groupId: String? = null)
+
+@Serializable
+data class Participants(val groupId: String)
+
+@Serializable
+data class Expenses(val groupId: String, val openExpenseForm: Boolean = false)
+
+@Serializable
+data class Settlement(val groupId: String)
+
+private const val TRANSITION_DURATION_MS = 300
+private const val SETTINGS_TRANSITION_DURATION_MS = 400
+
+private fun NavBackStackEntry.isFadeDestination(): Boolean =
+    destination.hasRoute<Settings>()
+
+private fun enterFor(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition =
+    if (initial.isFadeDestination() || target.isFadeDestination()) {
+        fadeIn(tween(TRANSITION_DURATION_MS))
+    } else {
+        slideInHorizontally(
+            animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing),
+            initialOffsetX = { it },
+        )
     }
 
-    data class Details(val sessionId: SessionId) : Route(ROUTE_DETAILS) {
-        @Composable
-        override fun Content(
-            settingsViewModel: SettingsViewModel,
-            onNavigate: (Route) -> Unit,
-            nextFormKey: () -> Int,
-        ) {
-            SessionDetailsRoute(
-                sessionId = sessionId,
-                onBack = { onNavigate(Sessions) },
-                onEdit = { onNavigate(Form(sessionId, nextFormKey())) },
-                onParticipants = { onNavigate(Participants(sessionId)) },
-                onExpenses = { onNavigate(Expenses(sessionId)) },
-                onSettlement = { onNavigate(Settlement(sessionId)) },
-            )
-        }
+private fun exitFor(initial: NavBackStackEntry, target: NavBackStackEntry): ExitTransition =
+    if (initial.isFadeDestination() || target.isFadeDestination()) {
+        fadeOut(tween(TRANSITION_DURATION_MS))
+    } else {
+        slideOutHorizontally(
+            animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing),
+            targetOffsetX = { -it },
+        )
     }
 
-    data class Form(val sessionId: SessionId?, val formKey: Int) : Route(ROUTE_FORM) {
-        @Composable
-        override fun Content(
-            settingsViewModel: SettingsViewModel,
-            onNavigate: (Route) -> Unit,
-            nextFormKey: () -> Int,
-        ) {
-            SessionFormRoute(
-                sessionId = sessionId,
-                formKey = formKey,
-                onBack = { onNavigate(Sessions) },
-                onSaved = { savedSessionId -> onNavigate(Details(savedSessionId)) },
-            )
-        }
+private fun popEnterFor(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition =
+    if (initial.isFadeDestination() || target.isFadeDestination()) {
+        fadeIn(tween(TRANSITION_DURATION_MS))
+    } else {
+        slideInHorizontally(
+            animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing),
+            initialOffsetX = { -it },
+        )
     }
 
-    data class Participants(val sessionId: SessionId) : Route(ROUTE_PARTICIPANTS) {
-        @Composable
-        override fun Content(
-            settingsViewModel: SettingsViewModel,
-            onNavigate: (Route) -> Unit,
-            nextFormKey: () -> Int,
-        ) {
-            ParticipantsRoute(
-                sessionId = sessionId,
-                onBack = { onNavigate(Details(sessionId)) },
-            )
-        }
+private fun popExitFor(initial: NavBackStackEntry, target: NavBackStackEntry): ExitTransition =
+    if (initial.isFadeDestination() || target.isFadeDestination()) {
+        fadeOut(tween(TRANSITION_DURATION_MS))
+    } else {
+        slideOutHorizontally(
+            animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing),
+            targetOffsetX = { it },
+        )
     }
-
-    data class Expenses(val sessionId: SessionId) : Route(ROUTE_EXPENSES) {
-        @Composable
-        override fun Content(
-            settingsViewModel: SettingsViewModel,
-            onNavigate: (Route) -> Unit,
-            nextFormKey: () -> Int,
-        ) {
-            ExpensesRoute(
-                sessionId = sessionId,
-                onBack = { onNavigate(Details(sessionId)) },
-            )
-        }
-    }
-
-    data class Settlement(val sessionId: SessionId) : Route(ROUTE_SETTLEMENT) {
-        @Composable
-        override fun Content(
-            settingsViewModel: SettingsViewModel,
-            onNavigate: (Route) -> Unit,
-            nextFormKey: () -> Int,
-        ) {
-            SettlementRoute(
-                sessionId = sessionId,
-                onBack = { onNavigate(Details(sessionId)) },
-            )
-        }
-    }
-
-    data object Settings : Route(ROUTE_SETTINGS) {
-        @Composable
-        override fun Content(
-            settingsViewModel: SettingsViewModel,
-            onNavigate: (Route) -> Unit,
-            nextFormKey: () -> Int,
-        ) {
-            SettingsRoute(
-                onBack = { onNavigate(Sessions) },
-                viewModel = settingsViewModel,
-            )
-        }
-    }
-}
-
-private fun routeSaver(): Saver<Route, String> = Saver(
-    save = { route ->
-        when (route) {
-            is Route.Sessions -> route.key
-            is Route.Details -> "${route.key}${DELIMITER}${route.sessionId.value}"
-            is Route.Form -> "${route.key}${DELIMITER}${route.sessionId?.value ?: ""}${DELIMITER}${route.formKey}"
-            is Route.Participants -> "${route.key}${DELIMITER}${route.sessionId.value}"
-            is Route.Expenses -> "${route.key}${DELIMITER}${route.sessionId.value}"
-            is Route.Settlement -> "${route.key}${DELIMITER}${route.sessionId.value}"
-            is Route.Settings -> route.key
-        }
-    },
-    restore = { value ->
-        val parts = value.split(DELIMITER)
-        when (parts.firstOrNull()) {
-            ROUTE_SESSIONS -> Route.Sessions
-            ROUTE_DETAILS -> Route.Details(SessionId(parts[1]))
-            ROUTE_FORM -> Route.Form(
-                sessionId = parts[1].takeIf { it.isNotBlank() }?.let(::SessionId),
-                formKey = parts.getOrNull(2)?.toIntOrNull() ?: 0,
-            )
-            ROUTE_PARTICIPANTS -> Route.Participants(SessionId(parts[1]))
-            ROUTE_EXPENSES -> Route.Expenses(SessionId(parts[1]))
-            ROUTE_SETTLEMENT -> Route.Settlement(SessionId(parts[1]))
-            ROUTE_SETTINGS -> Route.Settings
-            else -> Route.Sessions
-        }
-    },
-)
 
 @Composable
 fun SplitItRoutes(
     settingsViewModel: SettingsViewModel,
 ) {
-    var currentRoute by rememberSaveable(stateSaver = routeSaver()) { mutableStateOf<Route>(Route.Sessions) }
-    var formKeyCounter by rememberSaveable { mutableIntStateOf(0) }
+    val navController = rememberNavController()
 
-    currentRoute.Content(
-        settingsViewModel = settingsViewModel,
-        onNavigate = { route -> currentRoute = route },
-        nextFormKey = { ++formKeyCounter },
-    )
+    NavHost(
+        navController = navController,
+        startDestination = Groups,
+        enterTransition = { enterFor(initialState, targetState) },
+        exitTransition = { exitFor(initialState, targetState) },
+        popEnterTransition = { popEnterFor(initialState, targetState) },
+        popExitTransition = { popExitFor(initialState, targetState) },
+    ) {
+        composable<Groups> {
+            GroupsRoute(
+                onCreate = { navController.navigate(GroupForm()) },
+                onOpen = { groupId -> navController.navigate(GroupDetails(groupId.value)) },
+                onEdit = { groupId -> navController.navigate(GroupForm(groupId.value)) },
+                onSettings = { navController.navigate(Settings) },
+            )
+        }
+
+        composable<GroupDetails> { backStackEntry ->
+            val route = backStackEntry.toRoute<GroupDetails>()
+            GroupDetailsRoute(
+                groupId = GroupId(route.groupId),
+                onBack = { navController.popBackStack() },
+                onParticipants = { navController.navigate(Participants(route.groupId)) },
+                onExpenses = { navController.navigate(Expenses(route.groupId)) },
+                onAddExpense = { navController.navigate(Expenses(route.groupId, openExpenseForm = true)) },
+                onSettlement = { navController.navigate(Settlement(route.groupId)) },
+            )
+        }
+
+        composable<GroupForm> { backStackEntry ->
+            val route = backStackEntry.toRoute<GroupForm>()
+            val groupId = route.groupId?.let(::GroupId)
+            GroupFormRoute(
+                groupId = groupId,
+                onBack = { navController.popBackStack() },
+                onSaved = { savedGroupId ->
+                    if (groupId == null) {
+                        navController.navigate(GroupDetails(savedGroupId.value)) {
+                            popUpTo<GroupForm> { inclusive = true }
+                        }
+                    } else {
+                        navController.popBackStack()
+                    }
+                },
+            )
+        }
+
+        composable<Participants> { backStackEntry ->
+            val route = backStackEntry.toRoute<Participants>()
+            ParticipantsRoute(
+                groupId = GroupId(route.groupId),
+                onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Expenses> { backStackEntry ->
+            val route = backStackEntry.toRoute<Expenses>()
+            ExpensesRoute(
+                groupId = GroupId(route.groupId),
+                onBack = { navController.popBackStack() },
+                openExpenseForm = route.openExpenseForm,
+            )
+        }
+
+        composable<Settlement> { backStackEntry ->
+            val route = backStackEntry.toRoute<Settlement>()
+            SettlementRoute(
+                groupId = GroupId(route.groupId),
+                onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Settings>(
+            enterTransition = { fadeIn(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+            exitTransition = { fadeOut(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+            popEnterTransition = { fadeIn(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+            popExitTransition = { fadeOut(tween(SETTINGS_TRANSITION_DURATION_MS)) },
+        ) {
+            SettingsRoute(
+                onBack = { navController.popBackStack() },
+                viewModel = settingsViewModel,
+            )
+        }
+    }
 }

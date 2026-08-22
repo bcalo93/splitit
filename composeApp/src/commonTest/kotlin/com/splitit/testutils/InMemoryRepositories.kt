@@ -1,24 +1,24 @@
 package com.splitit.testutils
 
 import com.splitit.domain.model.Expense
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.repository.AppSettings
 import com.splitit.domain.repository.ExpenseRepository
 import com.splitit.domain.repository.ParticipantRepository
-import com.splitit.domain.repository.SessionRepository
+import com.splitit.domain.repository.GroupRepository
 import com.splitit.domain.repository.SettingsRepository
 import com.splitit.domain.repository.SettlementRepository
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 
-class InMemorySessionRepository(
-    initialSessions: Iterable<ExpenseSession> = emptyList(),
-) : SessionRepository {
-    private val sessions = initialSessions.associateBy { it.id }.toMutableMap()
+class InMemoryGroupRepository(
+    initialGroups: Iterable<ExpenseGroup> = emptyList(),
+) : GroupRepository {
+    private val groups = initialGroups.associateBy { it.id }.toMutableMap()
 
     var getError: Throwable? = null
     var saveError: Throwable? = null
@@ -28,29 +28,29 @@ class InMemorySessionRepository(
     var deleteCalls: Int = 0
         private set
 
-    val savedSessions: List<ExpenseSession>
-        get() = sessions.values.toList()
+    val savedGroups: List<ExpenseGroup>
+        get() = groups.values.toList()
 
-    override suspend fun getSessions(): List<ExpenseSession> {
+    override suspend fun getGroups(): List<ExpenseGroup> {
         getError?.let { throw it }
-        return sessions.values.toList()
+        return groups.values.toList()
     }
 
-    override suspend fun getSession(id: SessionId): ExpenseSession? {
+    override suspend fun getGroup(id: GroupId): ExpenseGroup? {
         getError?.let { throw it }
-        return sessions[id]
+        return groups[id]
     }
 
-    override suspend fun saveSession(session: ExpenseSession) {
+    override suspend fun saveGroup(group: ExpenseGroup) {
         saveError?.let { throw it }
         saveCalls++
-        sessions[session.id] = session
+        groups[group.id] = group
     }
 
-    override suspend fun deleteSession(id: SessionId) {
+    override suspend fun deleteGroup(id: GroupId) {
         deleteError?.let { throw it }
         deleteCalls++
-        sessions.remove(id)
+        groups.remove(id)
     }
 }
 
@@ -71,9 +71,9 @@ class InMemoryParticipantRepository(
     val savedParticipants: List<Participant>
         get() = participants.values.toList()
 
-    override suspend fun getParticipants(sessionId: SessionId): List<Participant> {
+    override suspend fun getParticipants(groupId: GroupId): List<Participant> {
         getError?.let { throw it }
-        return participants.values.filter { it.sessionId == sessionId }
+        return participants.values.filter { it.groupId == groupId }
     }
 
     override suspend fun getParticipant(id: ParticipantId): Participant? {
@@ -115,9 +115,9 @@ class InMemoryExpenseRepository(
     val savedExpenses: List<Expense>
         get() = expenses.values.toList()
 
-    override suspend fun getExpenses(sessionId: SessionId): List<Expense> {
+    override suspend fun getExpenses(groupId: GroupId): List<Expense> {
         getError?.let { throw it }
-        return expenses.values.filter { it.sessionId == sessionId }
+        return expenses.values.filter { it.groupId == groupId }
     }
 
     override suspend fun getExpense(id: ExpenseId): Expense? {
@@ -154,10 +154,10 @@ class InMemorySettlementRepository(
     val savedSettlements: List<Settlement>
         get() = settlements.values.toList()
 
-    override suspend fun getLatestSettlement(sessionId: SessionId): Settlement? {
+    override suspend fun getLatestSettlement(groupId: GroupId): Settlement? {
         getError?.let { throw it }
         return settlements.values
-            .filter { it.sessionId == sessionId }
+            .filter { it.groupId == groupId }
             .maxWithOrNull(compareBy<Settlement> { it.generatedAtMillis }.thenBy { it.id.value })
     }
 
@@ -172,10 +172,10 @@ class InMemorySettlementRepository(
         settlements[settlement.id] = settlement
     }
 
-    override suspend fun deleteSettlements(sessionId: SessionId) {
+    override suspend fun deleteSettlements(groupId: GroupId) {
         deleteError?.let { throw it }
         deleteCalls++
-        settlements.values.removeAll { it.sessionId == sessionId }
+        settlements.values.removeAll { it.groupId == groupId }
     }
 }
 

@@ -3,11 +3,11 @@ package com.splitit.data.repository
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.splitit.data.database.SplitItDatabase
 import com.splitit.domain.repository.ThemeMode
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
 import com.splitit.testutils.participant
-import com.splitit.testutils.session
+import com.splitit.testutils.group
 import com.splitit.testutils.settlement
 import com.splitit.testutils.share
 import com.splitit.testutils.transfer
@@ -19,48 +19,48 @@ import kotlin.test.assertNull
 
 class SqlDelightRepositoryHardeningTest {
     @Test
-    fun sessionsAreOrderedNewestFirstAndIsolatedById() = runSuspendingTest {
+    fun groupsAreOrderedNewestFirstAndIsolatedById() = runSuspendingTest {
         val repositories = testRepositories()
-        val first = session(id = TestIds.session, createdAtMillis = 1L)
-        val second = session(id = TestIds.secondSession, createdAtMillis = 2L)
-        repositories.sessionRepository.saveSession(first)
-        repositories.sessionRepository.saveSession(second)
+        val first = group(id = TestIds.group, createdAtMillis = 1L)
+        val second = group(id = TestIds.secondGroup, createdAtMillis = 2L)
+        repositories.groupRepository.saveGroup(first)
+        repositories.groupRepository.saveGroup(second)
 
-        assertEquals(listOf(second, first), repositories.sessionRepository.getSessions())
-        assertEquals(first, repositories.sessionRepository.getSession(first.id))
-        assertNull(repositories.sessionRepository.getSession(SessionId("missing")))
+        assertEquals(listOf(second, first), repositories.groupRepository.getGroups())
+        assertEquals(first, repositories.groupRepository.getGroup(first.id))
+        assertNull(repositories.groupRepository.getGroup(GroupId("missing")))
     }
 
     @Test
-    fun updatingSessionPreservesParticipantsExpensesAndSettlements() = runSuspendingTest {
+    fun updatingGroupPreservesParticipantsExpensesAndSettlements() = runSuspendingTest {
         val repositories = testRepositories()
-        val originalSession = session()
+        val originalGroup = group()
         val alice = participant(TestIds.alice)
         val bob = participant(TestIds.bob)
         val savedExpense = expense()
         val savedSettlement = settlement(
             transfers = listOf(transfer()),
         )
-        repositories.sessionRepository.saveSession(originalSession)
+        repositories.groupRepository.saveGroup(originalGroup)
         repositories.participantRepository.saveParticipant(alice)
         repositories.participantRepository.saveParticipant(bob)
         repositories.expenseRepository.saveExpense(savedExpense)
         repositories.settlementRepository.saveSettlement(savedSettlement)
 
-        repositories.sessionRepository.saveSession(
-            originalSession.copy(title = "Updated", updatedAtMillis = 2L),
+        repositories.groupRepository.saveGroup(
+            originalGroup.copy(title = "Updated", updatedAtMillis = 2L),
         )
 
-        assertEquals(listOf(alice, bob), repositories.participantRepository.getParticipants(originalSession.id))
+        assertEquals(listOf(alice, bob), repositories.participantRepository.getParticipants(originalGroup.id))
         assertEquals(savedExpense, repositories.expenseRepository.getExpense(savedExpense.id))
-        assertEquals(savedSettlement, repositories.settlementRepository.getLatestSettlement(originalSession.id))
-        assertEquals("Updated", repositories.sessionRepository.getSession(originalSession.id)?.title)
+        assertEquals(savedSettlement, repositories.settlementRepository.getLatestSettlement(originalGroup.id))
+        assertEquals("Updated", repositories.groupRepository.getGroup(originalGroup.id)?.title)
     }
 
     @Test
     fun participantsAndExpensesUseTheirDeclaredOrdering() = runSuspendingTest {
         val repositories = testRepositories()
-        repositories.sessionRepository.saveSession(session())
+        repositories.groupRepository.saveGroup(group())
         val firstParticipant = participant(TestIds.alice, createdAtMillis = 2L)
         val secondParticipant = participant(TestIds.bob, createdAtMillis = 1L)
         repositories.participantRepository.saveParticipant(firstParticipant)
@@ -83,21 +83,21 @@ class SqlDelightRepositoryHardeningTest {
 
         assertEquals(
             listOf(secondParticipant, firstParticipant),
-            repositories.participantRepository.getParticipants(TestIds.session),
+            repositories.participantRepository.getParticipants(TestIds.group),
         )
         assertEquals(
             listOf(newerExpense, olderExpense),
-            repositories.expenseRepository.getExpenses(TestIds.session),
+            repositories.expenseRepository.getExpenses(TestIds.group),
         )
     }
 
     @Test
     fun expenseSaveRollsBackHeaderAndSharesWhenForeignKeyFails() = runSuspendingTest {
         val repositories = testRepositories()
-        val savedSession = session()
+        val savedGroup = group()
         val alice = participant(TestIds.alice)
         val original = expense(participantIds = listOf(TestIds.alice))
-        repositories.sessionRepository.saveSession(savedSession)
+        repositories.groupRepository.saveGroup(savedGroup)
         repositories.participantRepository.saveParticipant(alice)
         repositories.expenseRepository.saveExpense(original)
 
@@ -115,8 +115,8 @@ class SqlDelightRepositoryHardeningTest {
     @Test
     fun settlementSaveRollsBackHeaderAndTransfersWhenForeignKeyFails() = runSuspendingTest {
         val repositories = testRepositories()
-        val savedSession = session()
-        repositories.sessionRepository.saveSession(savedSession)
+        val savedGroup = group()
+        repositories.groupRepository.saveGroup(savedGroup)
         repositories.participantRepository.saveParticipant(participant(TestIds.alice))
         repositories.participantRepository.saveParticipant(participant(TestIds.bob))
         val original = settlement(transfers = listOf(transfer()))
@@ -136,13 +136,13 @@ class SqlDelightRepositoryHardeningTest {
     @Test
     fun latestSettlementUsesIdAsStableTieBreaker() = runSuspendingTest {
         val repositories = testRepositories()
-        repositories.sessionRepository.saveSession(session())
+        repositories.groupRepository.saveGroup(group())
         val first = settlement(id = TestIds.settlement, generatedAtMillis = 10L)
         val second = settlement(id = TestIds.secondSettlement, generatedAtMillis = 10L)
         repositories.settlementRepository.saveSettlement(first)
         repositories.settlementRepository.saveSettlement(second)
 
-        assertEquals(second, repositories.settlementRepository.getLatestSettlement(TestIds.session))
+        assertEquals(second, repositories.settlementRepository.getLatestSettlement(TestIds.group))
     }
 
     @Test
@@ -162,7 +162,7 @@ class SqlDelightRepositoryHardeningTest {
     @Test
     fun deletingExpenseRemovesSharesAndUsageReferences() = runSuspendingTest {
         val repositories = testRepositories()
-        repositories.sessionRepository.saveSession(session())
+        repositories.groupRepository.saveGroup(group())
         repositories.participantRepository.saveParticipant(participant(TestIds.alice))
         val savedExpense = expense(participantIds = listOf(TestIds.alice))
         repositories.expenseRepository.saveExpense(savedExpense)
@@ -177,16 +177,16 @@ class SqlDelightRepositoryHardeningTest {
     @Test
     fun deletingSettlementsRemovesTheirTransfers() = runSuspendingTest {
         val repositories = testRepositories()
-        repositories.sessionRepository.saveSession(session())
+        repositories.groupRepository.saveGroup(group())
         repositories.participantRepository.saveParticipant(participant(TestIds.alice))
         repositories.participantRepository.saveParticipant(participant(TestIds.bob))
         val savedSettlement = settlement(transfers = listOf(transfer()))
         repositories.settlementRepository.saveSettlement(savedSettlement)
 
-        repositories.settlementRepository.deleteSettlements(TestIds.session)
+        repositories.settlementRepository.deleteSettlements(TestIds.group)
 
         assertNull(repositories.settlementRepository.getSettlement(savedSettlement.id))
-        assertNull(repositories.settlementRepository.getLatestSettlement(TestIds.session))
+        assertNull(repositories.settlementRepository.getLatestSettlement(TestIds.group))
     }
 
     private fun testRepositories(): TestRepositories {
@@ -196,7 +196,7 @@ class SqlDelightRepositoryHardeningTest {
         val database = SplitItDatabase(driver)
         return TestRepositories(
             database = database,
-            sessionRepository = SqlDelightSessionRepository(database),
+            groupRepository = SqlDelightGroupRepository(database),
             participantRepository = SqlDelightParticipantRepository(database),
             expenseRepository = SqlDelightExpenseRepository(database),
             settlementRepository = SqlDelightSettlementRepository(database),
@@ -206,7 +206,7 @@ class SqlDelightRepositoryHardeningTest {
 
     private data class TestRepositories(
         val database: SplitItDatabase,
-        val sessionRepository: SqlDelightSessionRepository,
+        val groupRepository: SqlDelightGroupRepository,
         val participantRepository: SqlDelightParticipantRepository,
         val expenseRepository: SqlDelightExpenseRepository,
         val settlementRepository: SqlDelightSettlementRepository,

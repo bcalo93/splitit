@@ -7,14 +7,14 @@ import com.splitit.domain.model.Participant
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class BalanceCalculatorTest {
     private val calculator = BalanceCalculator()
-    private val sessionId = SessionId("session")
+    private val groupId = GroupId("group")
     private val aliceId = ParticipantId("alice")
     private val bobId = ParticipantId("bob")
     private val charlieId = ParticipantId("charlie")
@@ -29,7 +29,7 @@ class BalanceCalculatorTest {
     fun calculateBalancesForPartialExpenseParticipants() {
         val expense = Expense(
             id = expenseId,
-            sessionId = sessionId,
+            groupId = groupId,
             title = "Dinner",
             amount = Money(1200, "USD"),
             payerId = aliceId,
@@ -55,7 +55,7 @@ class BalanceCalculatorTest {
     fun calculateDebtsFromBalances() {
         val expense = Expense(
             id = expenseId,
-            sessionId = sessionId,
+            groupId = groupId,
             title = "Dinner",
             amount = Money(1200, "USD"),
             payerId = aliceId,
@@ -170,7 +170,7 @@ class BalanceCalculatorTest {
     ): Expense {
         return Expense(
             id = id,
-            sessionId = sessionId,
+            groupId = groupId,
             title = "Expense",
             amount = Money(amount, currencyCode),
             payerId = payerId,
@@ -187,7 +187,7 @@ class BalanceCalculatorTest {
     private fun participant(id: ParticipantId): Participant {
         return Participant(
             id = id,
-            sessionId = sessionId,
+            groupId = groupId,
             name = id.value,
             avatarColor = null,
             createdAtMillis = 1,

@@ -3,11 +3,11 @@ package com.splitit.domain.model
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
 data class Expense(
     val id: ExpenseId,
-    val sessionId: SessionId,
+    val groupId: GroupId,
     val title: String,
     val amount: Money,
     val payerId: ParticipantId,

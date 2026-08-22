@@ -2,9 +2,9 @@ package com.splitit.testutils
 
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
-import com.splitit.domain.model.ExpenseSession
+import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
-import com.splitit.domain.model.SessionStatus
+import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.model.SettlementTransfer
 import com.splitit.domain.value.Clock
@@ -12,13 +12,13 @@ import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 import com.splitit.domain.value.TransferId
 
 object TestIds {
-    val session = SessionId("session")
-    val secondSession = SessionId("session-2")
+    val group = GroupId("group")
+    val secondGroup = GroupId("group-2")
     val alice = ParticipantId("alice")
     val bob = ParticipantId("bob")
     val charlie = ParticipantId("charlie")
@@ -34,13 +34,13 @@ class TestClock(var currentTimeMillis: Long = 10L) : Clock {
 }
 
 class TestIdGenerator(
-    private val sessionId: SessionId = TestIds.session,
+    private val groupId: GroupId = TestIds.group,
     private val participantId: ParticipantId = TestIds.alice,
     private val expenseId: ExpenseId = TestIds.expense,
     private val settlementId: SettlementId = TestIds.settlement,
     private val transferId: TransferId = TestIds.transfer,
 ) : IdGenerator {
-    override fun newSessionId(): SessionId = sessionId
+    override fun newGroupId(): GroupId = groupId
 
     override fun newParticipantId(): ParticipantId = participantId
 
@@ -51,17 +51,17 @@ class TestIdGenerator(
     override fun newTransferId(): TransferId = transferId
 }
 
-fun session(
-    id: SessionId = TestIds.session,
+fun group(
+    id: GroupId = TestIds.group,
     title: String = "Trip",
     description: String? = null,
     createdAtMillis: Long = 1L,
     updatedAtMillis: Long = createdAtMillis,
     participantIds: Set<ParticipantId> = emptySet(),
     expenseIds: Set<ExpenseId> = emptySet(),
-    status: SessionStatus = SessionStatus.Active,
-): ExpenseSession {
-    return ExpenseSession(
+    status: GroupStatus = GroupStatus.Active,
+): ExpenseGroup {
+    return ExpenseGroup(
         id = id,
         title = title,
         description = description,
@@ -75,7 +75,7 @@ fun session(
 
 fun participant(
     id: ParticipantId = TestIds.alice,
-    sessionId: SessionId = TestIds.session,
+    groupId: GroupId = TestIds.group,
     name: String = id.value,
     avatarColor: String? = null,
     createdAtMillis: Long = 1L,
@@ -83,7 +83,7 @@ fun participant(
 ): Participant {
     return Participant(
         id = id,
-        sessionId = sessionId,
+        groupId = groupId,
         name = name,
         avatarColor = avatarColor,
         createdAtMillis = createdAtMillis,
@@ -93,7 +93,7 @@ fun participant(
 
 fun expense(
     id: ExpenseId = TestIds.expense,
-    sessionId: SessionId = TestIds.session,
+    groupId: GroupId = TestIds.group,
     title: String = "Dinner",
     amount: Money = Money(1_000L, "USD"),
     payerId: ParticipantId = TestIds.alice,
@@ -106,7 +106,7 @@ fun expense(
 ): Expense {
     return Expense(
         id = id,
-        sessionId = sessionId,
+        groupId = groupId,
         title = title,
         amount = amount,
         payerId = payerId,
@@ -134,14 +134,14 @@ fun share(
 
 fun settlement(
     id: SettlementId = TestIds.settlement,
-    sessionId: SessionId = TestIds.session,
+    groupId: GroupId = TestIds.group,
     generatedAtMillis: Long = 10L,
     sourceRevision: Long = 1L,
     transfers: List<SettlementTransfer> = emptyList(),
 ): Settlement {
     return Settlement(
         id = id,
-        sessionId = sessionId,
+        groupId = groupId,
         generatedAtMillis = generatedAtMillis,
         sourceRevision = sourceRevision,
         transfers = transfers,

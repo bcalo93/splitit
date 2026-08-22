@@ -1,7 +1,7 @@
 package com.splitit.domain.value
 
 interface IdGenerator {
-    fun newSessionId(): SessionId
+    fun newGroupId(): GroupId
     fun newParticipantId(): ParticipantId
     fun newExpenseId(): ExpenseId
     fun newSettlementId(): SettlementId

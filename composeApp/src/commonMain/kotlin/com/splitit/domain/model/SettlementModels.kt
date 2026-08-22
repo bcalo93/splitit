@@ -2,7 +2,7 @@ package com.splitit.domain.model
 
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 import com.splitit.domain.value.TransferId
 
@@ -24,7 +24,7 @@ data class Debt(
 
 data class Settlement(
     val id: SettlementId,
-    val sessionId: SessionId,
+    val groupId: GroupId,
     val generatedAtMillis: Long,
     val sourceRevision: Long,
     val transfers: List<SettlementTransfer>,

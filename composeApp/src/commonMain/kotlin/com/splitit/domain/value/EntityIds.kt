@@ -3,9 +3,9 @@ package com.splitit.domain.value
 import kotlin.jvm.JvmInline
 
 @JvmInline
-value class SessionId(val value: String) {
+value class GroupId(val value: String) {
     init {
-        require(value.isNotBlank()) { "SessionId cannot be blank." }
+        require(value.isNotBlank()) { "GroupId cannot be blank." }
     }
 }
 

@@ -6,13 +6,13 @@ import com.splitit.domain.model.Participant
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
 class SourceRevisionCalculatorTest {
-    private val sessionId = SessionId("session")
+    private val groupId = GroupId("group")
     private val aliceId = ParticipantId("alice")
     private val bobId = ParticipantId("bob")
     private val expenseId = ExpenseId("expense")
@@ -53,7 +53,7 @@ class SourceRevisionCalculatorTest {
     private fun participant(id: ParticipantId): Participant {
         return Participant(
             id = id,
-            sessionId = sessionId,
+            groupId = groupId,
             name = id.value,
             avatarColor = null,
             createdAtMillis = 1,
@@ -64,7 +64,7 @@ class SourceRevisionCalculatorTest {
     private fun expense(): Expense {
         return Expense(
             id = expenseId,
-            sessionId = sessionId,
+            groupId = groupId,
             title = "Dinner",
             amount = Money(1000, "USD"),
             payerId = aliceId,

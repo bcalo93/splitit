@@ -5,7 +5,18 @@
 - This is a Kotlin Multiplatform project with two Gradle modules: `:composeApp` (KMP shared library) and `:androidApp` (Android application). `:composeApp` targets Android (library), `iosArm64`, and `iosSimulatorArm64`.
 - Put shared UI, domain, data, DI, and presentation changes under `composeApp/src/commonMain`; platform integrations belong in `composeApp/src/androidMain`, `composeApp/src/iosMain`, or `:androidApp` for Android-specific app wiring.
 - Android starts Koin and Compose from `MainActivity` in `:androidApp`; iOS does the equivalent from `MainViewController` in `:composeApp`, hosted by the `iosApp` Xcode project.
-- The main Compose navigation and screen wiring is in `composeApp/src/commonMain/kotlin/com/splitit/App.kt`; business behavior is organized into domain use cases/repositories and presentation view models.
+- The Compose entry point is `composeApp/src/commonMain/kotlin/com/splitit/App.kt` (theme + `SplitItRoutes`); the `NavHost`, type-safe `@Serializable` routes and navigation transitions live in `composeApp/src/commonMain/kotlin/com/splitit/routes/Routes.kt`. Business behavior is organized into domain use cases/repositories and presentation view models.
+- Navigation uses `org.jetbrains.androidx.navigation:navigation-compose` with type-safe `@Serializable` destinations declared in `Routes.kt`: `Groups` (group list), `GroupDetails`, `GroupForm`, `Participants`, `Expenses`, `Settlement`, and `Settings`. Screen composables live under `routes/groups/` (`GroupsRoute.kt`, `GroupDetailsRoute.kt`, `GroupFormRoute.kt`, `expenses/`, `participants/`, `settlement/`) and `routes/settings/`; transitions (slide horizontal for hierarchy, fade for `Settings`) are configured in `Routes.kt`.
+
+## Design System
+
+- The visual system lives in `composeApp/src/commonMain/kotlin/com/splitit/ui/theme/`: color palette (light/dark) and semantic domain colors (`SplitItSemanticColors`, e.g. `credit`/`debt`/`settled`) in `Color.kt`, the typography scale and `tnum` money styles in `Type.kt`, shape and spacing tokens in `Shape.kt`/`Spacing.kt`, and the `SplitItTheme` entry point in `Theme.kt`.
+- Reusable components live in `composeApp/src/commonMain/kotlin/com/splitit/ui/components/`: `AvatarBubble`/`AvatarStack`, `MoneyText`, `StatusChip`, `GroupCard`/`ExpenseCard`, `BalanceBarChart`, `ConfirmDeleteDialog`, `EmptyState`, `SearchField`, `FormTextField`, `PrimaryButton`/`SecondaryButton`, `Skeleton`, and the shared icon set (`SplitItIcons`). Prefer these components and theme tokens over ad-hoc styling.
+
+## Naming: Groups
+
+- **Visible copy** (UI strings) uses "Groups"/"Grupos" vocabulary. All user-facing strings live in `composeApp/src/commonMain/composeResources/values/strings.xml` (EN) and `values-es/strings.xml` (ES); every new string must be added to both.
+- The domain and data layer use the "Group" vocabulary (`ExpenseGroup`, `GroupId`, `GroupDetails`, the SQLDelight `groups` table, and route classes `Groups`/`GroupDetails`/`GroupForm`). Legacy "Session" names have been removed from the codebase; do not reintroduce them.
 
 ## Commands
 
@@ -20,6 +31,7 @@
 
 - SQLDelight schema and queries live in `composeApp/src/commonMain/sqldelight`; edit the `.sq` source, not generated files under `build/`.
 - SQLDelight generates `SplitItDatabase` during the normal build. The explicit interface task is `./gradlew :composeApp:generateCommonMainSplitItDatabaseInterface`; migration verification is `./gradlew :composeApp:verifyCommonMainSplitItDatabaseMigration`.
+- Migrations live in `composeApp/src/commonMain/sqldelight/migrations/*.sqm`. The SQLDelight baseline schema is version 1 and already uses the `groups` table; there is no historical `sessions` migration left. The version-1 schema snapshot is `composeApp/src/commonMain/sqldelight/databases/1.db` (regenerate with `./gradlew :composeApp:generateCommonMainSplitItDatabaseSchema` when adding a new migration).
 - Shared tests are in `commonTest` and Android/JDBC SQLDelight repository tests are in `androidHostTest`; the latter uses an in-memory SQLite database and needs no external service.
 - Android SDK settings are local (`local.properties` is ignored); do not commit that file or other generated/build output.
 

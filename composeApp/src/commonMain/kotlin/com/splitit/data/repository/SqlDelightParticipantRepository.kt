@@ -5,15 +5,15 @@ import com.splitit.data.mapper.toDomain
 import com.splitit.domain.model.Participant
 import com.splitit.domain.repository.ParticipantRepository
 import com.splitit.domain.value.ParticipantId
-import com.splitit.domain.value.SessionId
+import com.splitit.domain.value.GroupId
 
 class SqlDelightParticipantRepository(
     database: SplitItDatabase,
 ) : ParticipantRepository {
     private val queries = database.splitItDatabaseQueries
 
-    override suspend fun getParticipants(sessionId: SessionId): List<Participant> {
-        return queries.selectParticipantsBySession(sessionId.value)
+    override suspend fun getParticipants(groupId: GroupId): List<Participant> {
+        return queries.selectParticipantsByGroup(groupId.value)
             .executeAsList()
             .map { it.toDomain() }
     }
@@ -27,7 +27,7 @@ class SqlDelightParticipantRepository(
     override suspend fun saveParticipant(participant: Participant) {
         queries.upsertParticipant(
             id = participant.id.value,
-            session_id = participant.sessionId.value,
+            group_id = participant.groupId.value,
             name = participant.name,
             avatar_color = participant.avatarColor,
             created_at = participant.createdAtMillis,

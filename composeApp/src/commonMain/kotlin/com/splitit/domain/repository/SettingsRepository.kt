@@ -1,9 +1,11 @@
 package com.splitit.domain.repository
 
 data class AppSettings(
-    val defaultCurrencyCode: String = "USD",
+    val defaultCurrencyCode: String = DefaultCurrencyCode,
     val themeMode: ThemeMode = ThemeMode.System,
 )
+
+const val DefaultCurrencyCode = "UYU"
 
 enum class ThemeMode {
     System,

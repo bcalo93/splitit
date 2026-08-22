@@ -25,6 +25,7 @@ class SettingsViewModelTest {
         )
         advanceUntilIdle()
 
+        assertEquals("UYU", viewModel.state.value.settings.defaultCurrencyCode)
         viewModel.onCurrencyCodeChange("eur123")
         viewModel.onThemeModeSelected(ThemeMode.Dark)
         assertEquals("EUR", viewModel.state.value.draftSettings.defaultCurrencyCode)
