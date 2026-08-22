@@ -67,8 +67,10 @@ fun GroupCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Spacer(Modifier.width(8.dp))
-            StatusChip(style = status, label = statusLabel)
+            if (status != StatusChipStyle.UpToDate) {
+                Spacer(Modifier.width(8.dp))
+                StatusChip(style = status, label = statusLabel)
+            }
             if (onMoreClick != null) {
                 IconButton(onClick = onMoreClick) {
                     Icon(

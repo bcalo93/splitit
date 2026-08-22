@@ -3,10 +3,10 @@ package com.splitit.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -88,21 +88,25 @@ fun AvatarStack(
 
     val totalWidth = size + (size - overlap) * (count - 1)
 
-    Row(modifier = modifier.width(totalWidth)) {
+    Box(
+        modifier = modifier
+            .requiredWidth(totalWidth)
+            .height(size),
+    ) {
         visible.forEachIndexed { index, item ->
             AvatarBubble(
                 name = item.name,
                 colorHex = item.colorHex,
                 size = size,
                 borderWidth = 2.dp,
-                modifier = if (index > 0) Modifier.offset(x = -(overlap * index)) else Modifier,
+                modifier = Modifier.offset(x = (size - overlap) * index),
             )
         }
         if (extra > 0) {
             OverflowAvatarBubble(
                 count = extra,
                 size = size,
-                modifier = Modifier.offset(x = -(overlap * visible.size)),
+                modifier = Modifier.offset(x = (size - overlap) * visible.size),
             )
         }
     }
