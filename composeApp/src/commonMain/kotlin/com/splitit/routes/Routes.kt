@@ -10,6 +10,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -49,7 +50,7 @@ data class Settlement(val groupId: String)
 private const val TRANSITION_DURATION_MS = 300
 
 private fun NavBackStackEntry.isFadeDestination(): Boolean =
-    destination.route == Settings::class.qualifiedName
+    destination.hasRoute<Settings>()
 
 private fun enterFor(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition =
     if (initial.isFadeDestination() || target.isFadeDestination()) {
