@@ -247,7 +247,7 @@ private fun ExpensesScreen(
                             onQueryChange = onSearchQueryChange,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = spacing.xs),
+                                .padding(horizontal = spacing.md),
                         )
                     }
                     state.errorMessage?.let { message ->
@@ -272,8 +272,8 @@ private fun ExpensesScreen(
                                 .fillMaxWidth()
                                 .weight(1f),
                             contentPadding = PaddingValues(
-                                start = spacing.xs,
-                                end = spacing.xs,
+                                start = spacing.md,
+                                end = spacing.md,
                                 top = 4.dp,
                                 bottom = 88.dp,
                             ),
@@ -469,7 +469,7 @@ private fun ExpenseFormScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = spacing.xs, vertical = 12.dp),
+                        .padding(horizontal = spacing.md, vertical = 12.dp),
                 )
             }
         },
@@ -479,7 +479,7 @@ private fun ExpenseFormScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = spacing.xs, vertical = 8.dp),
+                .padding(horizontal = spacing.md, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             AmountField(
