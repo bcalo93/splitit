@@ -765,13 +765,14 @@ private fun SplitModeSelector(
             selected = mode == SplitMode.Weighted,
             onClick = { onModeChange(SplitMode.Weighted) },
             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            icon = {
+                Icon(
+                    painter = painterResource(SplitItIcons.Tune),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            },
         ) {
-            Icon(
-                painter = painterResource(SplitItIcons.Tune),
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-            Spacer(Modifier.width(6.dp))
             Text(stringResource(Res.string.split_mode_weighted))
         }
     }
