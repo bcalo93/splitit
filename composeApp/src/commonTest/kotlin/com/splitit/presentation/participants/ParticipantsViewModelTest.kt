@@ -20,6 +20,7 @@ import com.splitit.testutils.testLocalizationService
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ParticipantsViewModelTest {
@@ -57,6 +58,9 @@ class ParticipantsViewModelTest {
         assertTrue(repository.savedParticipants.any { it.name == "Charlie" })
         assertEquals("", viewModel.state.value.name)
         assertEquals(null, viewModel.state.value.editingParticipantId)
+        assertTrue(viewModel.state.value.saveSucceeded)
+        viewModel.consumeSaveSuccess()
+        assertFalse(viewModel.state.value.saveSucceeded)
     }
 
     @Test

@@ -31,6 +31,7 @@ data class ParticipantsUiState(
     val editingParticipantId: ParticipantId? = null,
     val nameError: String? = null,
     val errorMessage: String? = null,
+    val saveSucceeded: Boolean = false,
 )
 
 val ParticipantColors: List<String> = SplitItAvatarColorHexes
@@ -112,6 +113,10 @@ class ParticipantsViewModel(
         _state.update { it.emptyForm() }
     }
 
+    fun consumeSaveSuccess() {
+        _state.update { it.copy(saveSucceeded = false) }
+    }
+
     fun save() {
         val current = _state.value
         if (current.name.isBlank()) {
@@ -132,7 +137,7 @@ class ParticipantsViewModel(
 
             result
                 .onSuccess {
-                    _state.update { it.emptyForm().copy(isSaving = false) }
+                    _state.update { it.emptyForm().copy(isSaving = false, saveSucceeded = true) }
                     refresh()
                 }
                 .onFailure { throwable ->

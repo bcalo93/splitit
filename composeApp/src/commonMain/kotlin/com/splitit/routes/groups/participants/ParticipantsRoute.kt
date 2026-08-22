@@ -90,6 +90,12 @@ fun ParticipantsRoute(
     LaunchedEffect(groupId) {
         viewModel.refresh()
     }
+    LaunchedEffect(state.saveSucceeded) {
+        if (state.saveSucceeded) {
+            viewModel.consumeSaveSuccess()
+            sheetVisible = false
+        }
+    }
 
     ParticipantsScreen(
         state = state,
