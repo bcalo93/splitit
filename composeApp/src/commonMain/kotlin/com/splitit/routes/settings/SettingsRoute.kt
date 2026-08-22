@@ -1,5 +1,9 @@
 package com.splitit.routes.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -83,6 +87,9 @@ fun SettingsRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val contentVisible = remember {
+        MutableTransitionState(false).apply { targetState = true }
+    }
     val settingsSavedMessage = stringResource(Res.string.settings_saved)
 
     LaunchedEffect(state.saveCompleted) {
@@ -92,20 +99,25 @@ fun SettingsRoute(
         }
     }
 
-    SettingsScreen(
-        state = state,
-        onBack = onBack,
-        snackbarHostState = snackbarHostState,
-        onCurrencySelected = { code ->
-            viewModel.onCurrencyCodeChange(code)
-            viewModel.save()
-        },
-        onThemeModeSelected = { mode ->
-            viewModel.onThemeModeSelected(mode)
-            viewModel.save()
-        },
-        onRetry = viewModel::refresh,
-    )
+    AnimatedVisibility(
+        visibleState = contentVisible,
+        enter = fadeIn(animationSpec = tween(400)),
+    ) {
+        SettingsScreen(
+            state = state,
+            onBack = onBack,
+            snackbarHostState = snackbarHostState,
+            onCurrencySelected = { code ->
+                viewModel.onCurrencyCodeChange(code)
+                viewModel.save()
+            },
+            onThemeModeSelected = { mode ->
+                viewModel.onThemeModeSelected(mode)
+                viewModel.save()
+            },
+            onRetry = viewModel::refresh,
+        )
+    }
 }
 
 @Composable
