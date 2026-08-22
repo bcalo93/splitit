@@ -16,7 +16,7 @@
 ## Naming: Groups
 
 - **Visible copy** (UI strings) uses "Groups"/"Grupos" vocabulary. All user-facing strings live in `composeApp/src/commonMain/composeResources/values/strings.xml` (EN) and `values-es/strings.xml` (ES); every new string must be added to both.
-- The domain and data layer use the "Group" vocabulary (`ExpenseGroup`, `GroupId`, `GroupDetails`, the SQLDelight `groups` table, and route classes `Groups`/`GroupDetails`/`GroupForm`). Legacy "Session" names survive only in migration history (`1.sqm` and the `1.db` schema snapshot); do not reintroduce them.
+- The domain and data layer use the "Group" vocabulary (`ExpenseGroup`, `GroupId`, `GroupDetails`, the SQLDelight `groups` table, and route classes `Groups`/`GroupDetails`/`GroupForm`). Legacy "Session" names have been removed from the codebase; do not reintroduce them.
 
 ## Commands
 
@@ -31,7 +31,7 @@
 
 - SQLDelight schema and queries live in `composeApp/src/commonMain/sqldelight`; edit the `.sq` source, not generated files under `build/`.
 - SQLDelight generates `SplitItDatabase` during the normal build. The explicit interface task is `./gradlew :composeApp:generateCommonMainSplitItDatabaseInterface`; migration verification is `./gradlew :composeApp:verifyCommonMainSplitItDatabaseMigration`.
-- Migrations live in `composeApp/src/commonMain/sqldelight/migrations/*.sqm`; the `1.sqm` migration renames the `sessions` table/columns to `groups`. The version-1 schema snapshot is `composeApp/src/commonMain/sqldelight/databases/1.db` (regenerate with `./gradlew :composeApp:generateCommonMainSplitItDatabaseSchema` when adding a new migration).
+- Migrations live in `composeApp/src/commonMain/sqldelight/migrations/*.sqm`. The SQLDelight baseline schema is version 1 and already uses the `groups` table; there is no historical `sessions` migration left. The version-1 schema snapshot is `composeApp/src/commonMain/sqldelight/databases/1.db` (regenerate with `./gradlew :composeApp:generateCommonMainSplitItDatabaseSchema` when adding a new migration).
 - Shared tests are in `commonTest` and Android/JDBC SQLDelight repository tests are in `androidHostTest`; the latter uses an in-memory SQLite database and needs no external service.
 - Android SDK settings are local (`local.properties` is ignored); do not commit that file or other generated/build output.
 
