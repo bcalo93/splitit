@@ -1,17 +1,35 @@
 # SplitIt Agent Notes
 
+## Start Here
+
+Before exploring the codebase, read the project documentation. It is kept up-to-date with the architecture and design decisions and will save you from scanning the entire project on every session:
+
+- **[`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)** — full architecture overview: layers, package responsibilities, patterns, and design decisions. Use this to understand where a change belongs.
+- **[`docs/DESIGN.md`](./docs/DESIGN.md)** — visual design system ("Cuentas claras"), per-screen specs, component inventory, motion, and copy rules. Use this before changing UI.
+- **[`README.md`](./README.md)** — project summary, documentation links, build/test commands, and screenshot placeholders.
+
+Use these documents as the source of truth. Only dive into specific source files once the docs have oriented you.
+
+## Documentation Maintenance
+
+When you modify anything covered by the docs, keep the documentation consistent with the code:
+
+- Update `docs/ARCHITECTURE.md` if you add/remove packages, change layer responsibilities, introduce new patterns, alter the navigation graph, or modify the DI wiring.
+- Update `docs/DESIGN.md` if you change the design system, add/remove screens, modify components, or change user-facing copy/flow.
+- Update `README.md` if you change build/test commands, project structure, or have new screenshots to add.
+- Prefer editing existing docs over duplicating information. Keep summaries concise and factual.
+
 ## Project Boundaries
 
-- This is a Kotlin Multiplatform project with two Gradle modules: `:composeApp` (KMP shared library) and `:androidApp` (Android application). `:composeApp` targets Android (library), `iosArm64`, and `iosSimulatorArm64`.
-- Put shared UI, domain, data, DI, and presentation changes under `composeApp/src/commonMain`; platform integrations belong in `composeApp/src/androidMain`, `composeApp/src/iosMain`, or `:androidApp` for Android-specific app wiring.
-- Android starts Koin and Compose from `MainActivity` in `:androidApp`; iOS does the equivalent from `MainViewController` in `:composeApp`, hosted by the `iosApp` Xcode project.
-- The Compose entry point is `composeApp/src/commonMain/kotlin/com/splitit/App.kt` (theme + `SplitItRoutes`); the `NavHost`, type-safe `@Serializable` routes and navigation transitions live in `composeApp/src/commonMain/kotlin/com/splitit/routes/Routes.kt`. Business behavior is organized into domain use cases/repositories and presentation view models.
-- Navigation uses `org.jetbrains.androidx.navigation:navigation-compose` with type-safe `@Serializable` destinations declared in `Routes.kt`: `Groups` (group list), `GroupDetails`, `GroupForm`, `Participants`, `Expenses`, `Settlement`, and `Settings`. Screen composables live under `routes/groups/` (`GroupsRoute.kt`, `GroupDetailsRoute.kt`, `GroupFormRoute.kt`, `expenses/`, `participants/`, `settlement/`) and `routes/settings/`; transitions (slide horizontal for hierarchy, fade for `Settings`) are configured in `Routes.kt`.
+This is a Kotlin Multiplatform project with two Gradle modules: `:composeApp` (KMP shared library) and `:androidApp` (Android application). `:composeApp` targets Android (library), `iosArm64`, and `iosSimulatorArm64`.
+
+- Put shared UI, domain, data, DI, and presentation changes under `composeApp/src/commonMain`.
+- Put platform integrations in `composeApp/src/androidMain`, `composeApp/src/iosMain`, or `:androidApp`.
+- See `docs/ARCHITECTURE.md` for the full layer breakdown, package responsibilities, navigation graph, and DI wiring.
 
 ## Design System
 
-- The visual system lives in `composeApp/src/commonMain/kotlin/com/splitit/ui/theme/`: color palette (light/dark) and semantic domain colors (`SplitItSemanticColors`, e.g. `credit`/`debt`/`settled`) in `Color.kt`, the typography scale and `tnum` money styles in `Type.kt`, shape and spacing tokens in `Shape.kt`/`Spacing.kt`, and the `SplitItTheme` entry point in `Theme.kt`.
-- Reusable components live in `composeApp/src/commonMain/kotlin/com/splitit/ui/components/`: `AvatarBubble`/`AvatarStack`, `MoneyText`, `StatusChip`, `GroupCard`/`ExpenseCard`, `BalanceBarChart`, `ConfirmDeleteDialog`, `EmptyState`, `SearchField`, `FormTextField`, `PrimaryButton`/`SecondaryButton`, `Skeleton`, and the shared icon set (`SplitItIcons`). Prefer these components and theme tokens over ad-hoc styling.
+The visual system and component inventory are fully documented in `docs/DESIGN.md`. Prefer the existing theme tokens and reusable components in `ui/theme/` and `ui/components/` over ad-hoc styling.
 
 ## Naming: Groups
 
@@ -30,9 +48,12 @@
 ## Data And Tests
 
 - SQLDelight schema and queries live in `composeApp/src/commonMain/sqldelight`; edit the `.sq` source, not generated files under `build/`.
-- SQLDelight generates `SplitItDatabase` during the normal build. The explicit interface task is `./gradlew :composeApp:generateCommonMainSplitItDatabaseInterface`; migration verification is `./gradlew :composeApp:verifyCommonMainSplitItDatabaseMigration`.
-- Migrations live in `composeApp/src/commonMain/sqldelight/migrations/*.sqm`. The SQLDelight baseline schema is version 1 and already uses the `groups` table; there is no historical `sessions` migration left. The version-1 schema snapshot is `composeApp/src/commonMain/sqldelight/databases/1.db` (regenerate with `./gradlew :composeApp:generateCommonMainSplitItDatabaseSchema` when adding a new migration).
-- Shared tests are in `commonTest` and Android/JDBC SQLDelight repository tests are in `androidHostTest`; the latter uses an in-memory SQLite database and needs no external service.
+- See `docs/ARCHITECTURE.md` for the testing strategy (`commonTest` vs `androidHostTest`) and the data layer overview.
+- Useful SQLDelight tasks:
+  - Generate interface: `./gradlew :composeApp:generateCommonMainSplitItDatabaseInterface`
+  - Verify migrations: `./gradlew :composeApp:verifyCommonMainSplitItDatabaseMigration`
+  - Regenerate baseline snapshot: `./gradlew :composeApp:generateCommonMainSplitItDatabaseSchema`
+- Migrations live in `composeApp/src/commonMain/sqldelight/migrations/*.sqm`. The baseline schema is version 1 and already uses the `groups` table.
 - Android SDK settings are local (`local.properties` is ignored); do not commit that file or other generated/build output.
 
 ## Known Warnings
