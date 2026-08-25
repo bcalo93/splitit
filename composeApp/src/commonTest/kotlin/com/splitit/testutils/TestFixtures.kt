@@ -3,6 +3,7 @@ package com.splitit.testutils
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
 import com.splitit.domain.model.ExpenseGroup
+import com.splitit.domain.model.ExpenseType
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
@@ -103,6 +104,7 @@ fun expense(
     note: String? = null,
     createdAtMillis: Long = 1L,
     updatedAtMillis: Long = createdAtMillis,
+    type: ExpenseType = ExpenseType.EXPENSE,
 ): Expense {
     return Expense(
         id = id,
@@ -121,6 +123,7 @@ fun expense(
         note = note,
         createdAtMillis = createdAtMillis,
         updatedAtMillis = updatedAtMillis,
+        type = type,
     )
 }
 

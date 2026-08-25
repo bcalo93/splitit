@@ -20,12 +20,14 @@ import splitit.composeapp.generated.resources.error_could_not_save_expense
 import splitit.composeapp.generated.resources.error_could_not_save_participant
 import splitit.composeapp.generated.resources.error_could_not_save_group
 import splitit.composeapp.generated.resources.error_could_not_save_settings
+import splitit.composeapp.generated.resources.error_could_not_record_payment
 import splitit.composeapp.generated.resources.error_enter_expense_title
 import splitit.composeapp.generated.resources.error_enter_participant_name
 import splitit.composeapp.generated.resources.error_enter_positive_amount
 import splitit.composeapp.generated.resources.error_enter_group_name
 import splitit.composeapp.generated.resources.error_invalid_currency
 import splitit.composeapp.generated.resources.error_participant_used_by_expenses
+import splitit.composeapp.generated.resources.payment_title
 
 interface LocalizationService {
     fun getString(key: LocalizedString): String
@@ -74,6 +76,8 @@ class DefaultLocalizationService : LocalizationService {
                 LocalizedString.ErrorCouldNotLoadSettings -> getString(Res.string.error_could_not_load_settings)
                 LocalizedString.ErrorInvalidCurrency -> getString(Res.string.error_invalid_currency)
                 LocalizedString.ErrorCouldNotSaveSettings -> getString(Res.string.error_could_not_save_settings)
+                LocalizedString.PaymentTitle -> getString(Res.string.payment_title)
+                LocalizedString.ErrorCouldNotRecordPayment -> getString(Res.string.error_could_not_record_payment)
             }
         } catch (e: Exception) {
             key.key

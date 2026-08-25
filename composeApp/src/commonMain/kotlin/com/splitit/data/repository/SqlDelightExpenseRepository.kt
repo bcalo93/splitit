@@ -46,6 +46,7 @@ class SqlDelightExpenseRepository(
                 note = expense.note,
                 created_at = expense.createdAtMillis,
                 updated_at = expense.updatedAtMillis,
+                type = expense.type.name,
             )
             queries.deleteExpenseParticipants(expense.id.value)
             expense.participantShares.forEach { share ->

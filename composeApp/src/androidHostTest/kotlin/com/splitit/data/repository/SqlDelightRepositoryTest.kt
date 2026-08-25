@@ -5,6 +5,7 @@ import com.splitit.data.database.SplitItDatabase
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
 import com.splitit.domain.model.ExpenseGroup
+import com.splitit.domain.model.ExpenseType
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
@@ -136,6 +137,39 @@ class SqlDelightRepositoryTest {
 
         assertEquals(settlement, repositories.settlementRepository.getLatestSettlement(group.id))
         assertEquals(settlement, repositories.settlementRepository.getSettlement(settlement.id))
+    }
+
+    @Test
+    fun persistTransferPaymentExpenseType() = runSuspendingTest {
+        val repositories = testRepositories()
+        val group = group()
+        val alice = participant(ParticipantId("alice"))
+        val bob = participant(ParticipantId("bob"))
+        val payment = Expense(
+            id = ExpenseId("payment"),
+            groupId = group.id,
+            title = "Payment: bob → alice",
+            amount = Money(500, "USD"),
+            payerId = bob.id,
+            participantShares = listOf(
+                ExpenseParticipantShare(ExpenseId("payment"), alice.id),
+            ),
+            dateMillis = 2,
+            note = null,
+            createdAtMillis = 2,
+            updatedAtMillis = 2,
+            type = ExpenseType.TRANSFER_PAYMENT,
+        )
+
+        repositories.groupRepository.saveGroup(group)
+        repositories.participantRepository.saveParticipant(alice)
+        repositories.participantRepository.saveParticipant(bob)
+        repositories.expenseRepository.saveExpense(payment)
+
+        val loaded = repositories.expenseRepository.getExpense(payment.id)
+
+        assertEquals(payment, loaded)
+        assertEquals(ExpenseType.TRANSFER_PAYMENT, loaded?.type)
     }
 
     @Test

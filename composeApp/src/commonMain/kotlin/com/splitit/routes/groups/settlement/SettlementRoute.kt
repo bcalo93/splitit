@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.splitit.domain.model.SettlementTransfer
 import com.splitit.domain.value.GroupId
 import com.splitit.presentation.settlement.SettlementUiState
 import com.splitit.presentation.settlement.SettlementViewModel
@@ -67,6 +68,7 @@ fun SettlementRoute(
         state = state,
         onBack = onBack,
         onRetry = viewModel::refresh,
+        onMarkPaid = viewModel::recordTransferPayment,
     )
 }
 
@@ -75,6 +77,7 @@ private fun SettlementScreen(
     state: SettlementUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onMarkPaid: (SettlementTransfer) -> Unit,
 ) {
     SplitItScaffold(
         topBar = {
@@ -101,6 +104,7 @@ private fun SettlementScreen(
                 else -> SettlementContent(
                     state = state,
                     onRetry = onRetry,
+                    onMarkPaid = onMarkPaid,
                 )
             }
         }
@@ -111,6 +115,7 @@ private fun SettlementScreen(
 private fun SettlementContent(
     state: SettlementUiState,
     onRetry: () -> Unit,
+    onMarkPaid: (SettlementTransfer) -> Unit,
 ) {
     val spacing = LocalSplitItSpacing.current
     val participantNames = remember(state.participants) {
@@ -176,6 +181,8 @@ private fun SettlementContent(
                             ?: stringResource(Res.string.unknown),
                         toColorHex = participantColors[transfer.toParticipantId],
                         amount = transfer.amount,
+                        isRecording = state.recordingTransferId == transfer.id,
+                        onMarkPaid = { onMarkPaid(transfer) },
                     )
                 }
             }

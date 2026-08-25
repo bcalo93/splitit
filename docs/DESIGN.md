@@ -293,7 +293,7 @@ Convenciones comunes a todas las pantallas:
 - **Lista agrupada por fecha**: headers de día pegajosos ("Hoy", "Ayer", "12 ago") usando `dateMillis`. La agrupación se hace en el ViewModel (con test) y los headers usan `stickyHeader` de LazyColumn.
 - **ExpenseCard**:
   - Izquierda: `AvatarBubble` 40 dp del **pagador** (semántica: "quién puso el dinero").
-  - Centro: título del gasto + metadatos "Pagó Ana · entre 4" (`bodyMedium`).
+  - Centro: título del gasto + metadatos "Pagó Ana · entre 4" (`bodyMedium`). Los gastos de tipo **pago de transferencia** muestran metadata distinta: "Pago a Luis", sin opción de editar; solo borrar.
   - Derecha: **importe** en `moneyRow` + moneda (`onSurfaceVariant`). Nota (si hay) como `bodySmall` truncada a 1 línea.
   - Overflow con edit/delete + confirmación.
 - **Buscador** idéntico al de Grupos.
@@ -318,7 +318,7 @@ Convenciones comunes a todas las pantallas:
   - Eje central invisible; cada fila: avatar + nombre, y barra horizontal que crece a la **derecha en teal** (recibe, con `arrow_downward` + "+12,50") o a la **izquierda en coral** (debe, con `arrow_upward` + "−30,00").
   - Ancho de barra proporcional al mayor |balance|; animación de entrada (barras que crecen, 400 ms, `FastOutSlowIn`).
   - "Al día": sin barra, icono `check` + texto neutro.
-- **Sección Transfers**: lista de **TransferCard**: `AvatarBubble` A → flecha `swap_horiz`/chevron sobre línea → `AvatarBubble` B, con importe `moneyRow` centrado bajo la flecha. Copy accesible: "Ana paga a Luis 12,50 €".
+- **Sección Transfers**: lista de **TransferCard**: `AvatarBubble` A → flecha `swap_horiz`/chevron sobre línea → `AvatarBubble` B, con importe `moneyRow` centrado bajo la flecha. Copy accesible: "Ana paga a Luis 12,50 €". Cada fila incluye un botón secundario **"Marcar como pagado"** (`check`) que registra el pago como un gasto de tipo `TRANSFER_PAYMENT` y regenera la liquidación.
 - **Estado stale**: banner `tertiaryContainer` con `warning_amber` + "Los gastos cambiaron desde la última liquidación" + botón "Actualizar".
 - **Generar/Regenerar**: botón primario inferior; con progreso inline.
 - **Todos al día**: estado de **celebración** — ilustración `celebration`, copy positivo ("Cuentas claras, amistades largas 🎉" — el claim del concepto), teal dominante.

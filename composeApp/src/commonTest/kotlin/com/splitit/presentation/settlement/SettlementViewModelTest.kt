@@ -7,6 +7,7 @@ import com.splitit.domain.service.BalanceCalculator
 import com.splitit.domain.usecase.CalculateGroupBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementUseCase
 import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.RecordTransferPaymentUseCase
 import com.splitit.logic.optimizers.ComposedOptimizer
 import com.splitit.logic.optimizers.debt.CycleOptimizer
 import com.splitit.logic.optimizers.debt.TransitiveOptimizer
@@ -58,6 +59,32 @@ class SettlementViewModelTest {
     }
 
     @Test
+    fun recordsTransferPaymentAndRegeneratesSettlement() = runViewModelTest {
+        val participantRepository = InMemoryParticipantRepository(
+            listOf(participant(TestIds.alice), participant(TestIds.bob)),
+        )
+        val expenseRepository = InMemoryExpenseRepository(listOf(expense()))
+        val settlementRepository = InMemorySettlementRepository()
+        val viewModel = createViewModel(
+            participantRepository = participantRepository,
+            expenseRepository = expenseRepository,
+            settlementRepository = settlementRepository,
+        )
+        advanceUntilIdle()
+
+        val transfer = viewModel.state.value.settlement?.transfers?.first()
+        assertNotNull(transfer)
+        assertEquals(1, viewModel.state.value.settlement?.transfers?.size)
+
+        viewModel.recordTransferPayment(transfer)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.settlement?.transfers.isNullOrEmpty())
+        assertEquals(2, settlementRepository.saveCalls)
+        assertEquals(1, expenseRepository.saveCalls)
+    }
+
+    @Test
     fun blocksGenerationWhenThereAreNotEnoughParticipantsOrExpenses() = runViewModelTest {
         val viewModel = createViewModel(
             participantRepository = InMemoryParticipantRepository(listOf(participant())),
@@ -78,6 +105,8 @@ class SettlementViewModelTest {
     ): SettlementViewModel {
         val groupRepository = InMemoryGroupRepository(listOf(group()))
         val balanceCalculator = BalanceCalculator()
+        val idGenerator = TestIdGenerator(expenseId = TestIds.secondExpense)
+        val clock = TestClock(20L)
         return SettlementViewModel(
             groupId = TestIds.group,
             observeGroupDetails = ObserveGroupDetailsUseCase(
@@ -98,10 +127,18 @@ class SettlementViewModelTest {
                 balanceCalculator = balanceCalculator,
                 optimizerAdapter = PaymentOptimizerAdapter(
                     optimizer = ComposedOptimizer(listOf(CycleOptimizer(), TransitiveOptimizer())),
-                    idGenerator = TestIdGenerator(),
+                    idGenerator = idGenerator,
                 ),
-                idGenerator = TestIdGenerator(),
-                clock = TestClock(20L),
+                idGenerator = idGenerator,
+                clock = clock,
+            ),
+            recordTransferPaymentUseCase = RecordTransferPaymentUseCase(
+                groupRepository = groupRepository,
+                participantRepository = participantRepository,
+                expenseRepository = expenseRepository,
+                idGenerator = idGenerator,
+                clock = clock,
+                localization = testLocalizationService,
             ),
             localization = testLocalizationService,
         )

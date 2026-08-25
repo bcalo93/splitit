@@ -2,6 +2,7 @@ package com.splitit.domain.usecase
 
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
+import com.splitit.domain.model.ExpenseType
 import com.splitit.domain.repository.ExpenseRepository
 import com.splitit.domain.repository.ParticipantRepository
 import com.splitit.domain.repository.GroupRepository
@@ -28,6 +29,7 @@ class CreateExpenseUseCase(
         dateMillis: Long,
         note: String?,
         shareWeights: Map<ParticipantId, Int> = emptyMap(),
+        type: ExpenseType = ExpenseType.EXPENSE,
     ): Expense {
         requireNotNull(groupRepository.getGroup(groupId)) {
             "Group ${groupId.value} was not found."
@@ -53,6 +55,7 @@ class CreateExpenseUseCase(
             note = note?.trim()?.takeIf { it.isNotEmpty() },
             createdAtMillis = now,
             updatedAtMillis = now,
+            type = type,
         )
 
         expenseRepository.saveExpense(expense)

@@ -6,10 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Balance
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.Settlement
+import com.splitit.domain.model.SettlementTransfer
 import com.splitit.domain.usecase.CalculateGroupBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementUseCase
 import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.RecordTransferPaymentUseCase
 import com.splitit.domain.value.GroupId
+import com.splitit.domain.value.TransferId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 import kotlinx.coroutines.CancellationException
@@ -30,6 +33,7 @@ data class SettlementUiState(
     val canGenerateSettlement: Boolean = false,
     val isLoading: Boolean = true,
     val isGenerating: Boolean = false,
+    val recordingTransferId: TransferId? = null,
     val errorMessage: String? = null,
 )
 
@@ -38,6 +42,7 @@ class SettlementViewModel(
     private val observeGroupDetails: ObserveGroupDetailsUseCase,
     private val calculateGroupBalances: CalculateGroupBalancesUseCase,
     private val generateSettlement: GenerateSettlementUseCase,
+    private val recordTransferPaymentUseCase: RecordTransferPaymentUseCase,
     private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettlementUiState())
@@ -99,6 +104,40 @@ class SettlementViewModel(
         }
     }
 
+    fun recordTransferPayment(transfer: SettlementTransfer) {
+        val current = _state.value
+        if (current.isLoading || current.isGenerating || current.recordingTransferId != null) return
+
+        viewModelScope.launch {
+            _state.update { it.copy(recordingTransferId = transfer.id, errorMessage = null) }
+            try {
+                recordTransferPaymentUseCase(
+                    groupId = groupId,
+                    fromParticipantId = transfer.fromParticipantId,
+                    toParticipantId = transfer.toParticipantId,
+                    amount = transfer.amount,
+                )
+                val snapshot = loadSnapshot()
+                _state.update {
+                    it.apply(snapshot).copy(
+                        recordingTransferId = null,
+                        isLoading = false,
+                        isGenerating = false,
+                    )
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (throwable: Throwable) {
+                _state.update {
+                    it.copy(
+                        recordingTransferId = null,
+                        errorMessage = throwable.message ?: localization.getString(LocalizedString.ErrorCouldNotRecordPayment),
+                    )
+                }
+            }
+        }
+    }
+
     private suspend fun loadSnapshot(): SettlementSnapshot {
         var details = observeGroupDetails(groupId)
         val canGenerateSettlement = details.participants.size >= 2 && details.expenses.isNotEmpty()
@@ -129,6 +168,7 @@ class SettlementViewModel(
             currentSourceRevision = snapshot.currentSourceRevision,
             isSettlementStale = snapshot.isSettlementStale,
             canGenerateSettlement = snapshot.canGenerateSettlement,
+            recordingTransferId = null,
             errorMessage = null,
         )
     }

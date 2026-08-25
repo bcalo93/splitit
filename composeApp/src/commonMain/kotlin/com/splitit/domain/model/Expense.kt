@@ -5,6 +5,11 @@ import com.splitit.domain.value.Money
 import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.GroupId
 
+enum class ExpenseType {
+    EXPENSE,
+    TRANSFER_PAYMENT,
+}
+
 data class Expense(
     val id: ExpenseId,
     val groupId: GroupId,
@@ -16,6 +21,7 @@ data class Expense(
     val note: String?,
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
+    val type: ExpenseType = ExpenseType.EXPENSE,
 ) {
     init {
         require(title.isNotBlank()) { "Expense title cannot be blank." }
@@ -31,6 +37,9 @@ data class Expense(
             "Expense updatedAtMillis cannot be earlier than createdAtMillis."
         }
     }
+
+    val isTransferPayment: Boolean
+        get() = type == ExpenseType.TRANSFER_PAYMENT
 }
 
 data class ExpenseParticipantShare(

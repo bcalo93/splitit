@@ -115,6 +115,7 @@ import splitit.composeapp.generated.resources.new_expense
 import splitit.composeapp.generated.resources.no_participants_yet
 import splitit.composeapp.generated.resources.note
 import splitit.composeapp.generated.resources.paid_by
+import splitit.composeapp.generated.resources.payment_metadata
 import splitit.composeapp.generated.resources.save
 import splitit.composeapp.generated.resources.saving
 import splitit.composeapp.generated.resources.search_expenses
@@ -291,14 +292,21 @@ private fun ExpensesScreen(
                                     contentType = { "expense" },
                                 ) { expense ->
                                     val payer = participantById[expense.payerId]
-                                    ExpenseRowItem(
-                                        expense = expense,
-                                        payerName = payer?.name ?: unknownLabel,
-                                        payerColorHex = payer?.avatarColor,
-                                        onEdit = { onEdit(expense) },
-                                        onDelete = { onDelete(expense.id) },
-                                        modifier = Modifier.animateItem(),
-                                    )
+                                val recipient = if (expense.isTransferPayment) {
+                                    expense.participantShares.firstOrNull()?.participantId
+                                        ?.let { participantById[it] }
+                                } else {
+                                    null
+                                }
+                                ExpenseRowItem(
+                                    expense = expense,
+                                    payerName = payer?.name ?: unknownLabel,
+                                    payerColorHex = payer?.avatarColor,
+                                    recipientName = recipient?.name,
+                                    onEdit = { onEdit(expense) },
+                                    onDelete = { onDelete(expense.id) },
+                                    modifier = Modifier.animateItem(),
+                                )
                                 }
                             }
                         }
@@ -358,6 +366,7 @@ private fun ExpenseRowItem(
     expense: Expense,
     payerName: String,
     payerColorHex: String?,
+    recipientName: String?,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -365,16 +374,22 @@ private fun ExpenseRowItem(
     var menuExpanded by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+    val metadata = if (expense.isTransferPayment && recipientName != null) {
+        stringResource(Res.string.payment_metadata, recipientName)
+    } else {
+        stringResource(
+            Res.string.expense_metadata,
+            payerName,
+            expense.participantShares.size,
+        )
+    }
+
     Box(modifier = modifier.fillMaxWidth()) {
         ExpenseCard(
             title = expense.title,
             payerName = payerName,
             payerColorHex = payerColorHex,
-            metadata = stringResource(
-                Res.string.expense_metadata,
-                payerName,
-                expense.participantShares.size,
-            ),
+            metadata = metadata,
             amount = expense.amount,
             note = expense.note,
             onMoreClick = { menuExpanded = true },
@@ -383,19 +398,21 @@ private fun ExpenseRowItem(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
         ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.edit)) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(SplitItIcons.Edit),
-                        contentDescription = null,
-                    )
-                },
-                onClick = {
-                    menuExpanded = false
-                    onEdit()
-                },
-            )
+            if (!expense.isTransferPayment) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(Res.string.edit)) },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(SplitItIcons.Edit),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        menuExpanded = false
+                        onEdit()
+                    },
+                )
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(Res.string.delete)) },
                 leadingIcon = {

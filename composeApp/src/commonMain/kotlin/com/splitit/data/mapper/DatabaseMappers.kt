@@ -10,6 +10,7 @@ import com.splitit.data.database.Settlements
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseParticipantShare
 import com.splitit.domain.model.ExpenseGroup
+import com.splitit.domain.model.ExpenseType
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
@@ -62,6 +63,7 @@ fun Expenses.toDomain(shares: List<ExpenseParticipantShare>): Expense {
         note = note,
         createdAtMillis = created_at,
         updatedAtMillis = updated_at,
+        type = ExpenseType.valueOf(type),
     )
 }
 
