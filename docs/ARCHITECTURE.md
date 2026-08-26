@@ -136,7 +136,7 @@ El dominio es independiente de Android, iOS, Compose y SQLDelight. Contiene enti
 |-------------------------------------|---------------------------------------------------------------------------------------------------------------------|
 | `ExpenseGroup`                      | Grupo de gastos con título, descripción, estado (Active/Archived), timestamps y referencias a participantes/gastos. |
 | `Participant`                       | Persona que pertenece a un grupo: nombre y color de avatar.                                                         |
-| `Expense`                           | Gasto individual: título, importe (`Money`), pagador, reparto (`ExpenseParticipantShare`), fecha y nota.            |
+| `Expense` / `ExpenseType`           | Gasto individual: título, importe (`Money`), pagador, reparto (`ExpenseParticipantShare`), fecha, nota y tipo. `ExpenseType` distingue gastos normales (`EXPENSE`) de pagos de transferencia (`TRANSFER_PAYMENT`). |
 | `Settlement` / `SettlementTransfer` | Liquidación generada y las transferencias necesarias para saldar.                                                   |
 | `Balance` / `Debt`                  | Resultados intermedios del cálculo de balances.                                                                     |
 
@@ -182,7 +182,7 @@ Cada caso de uso representa una operación de negocio atómica. Se definen como 
 | Grupos        | `CreateGroupUseCase`, `UpdateGroupUseCase`, `DeleteGroupUseCase`, `ObserveGroupsUseCase`, `ObserveGroupDetailsUseCase` |
 | Participantes | `AddParticipantUseCase`, `UpdateParticipantUseCase`, `RemoveParticipantUseCase`                                        |
 | Gastos        | `CreateExpenseUseCase`, `UpdateExpenseUseCase`, `DeleteExpenseUseCase`                                                 |
-| Liquidación   | `CalculateGroupBalancesUseCase`, `GenerateSettlementUseCase`                                                           |
+| Liquidación   | `CalculateGroupBalancesUseCase`, `GenerateSettlementUseCase`, `RecordTransferPaymentUseCase`                           |
 | Ajustes       | `GetSettingsUseCase`, `SaveSettingsUseCase`                                                                            |
 
 `ObserveGroupDetailsUseCase` devuelve `GroupDetails`, un agregado de lectura que expone `currentSourceRevision` e `isSettlementStale`.
@@ -415,7 +415,33 @@ sequenceDiagram
     UC-->>VM: Settlement
 ```
 
-### 10.3 Detección de liquidación desactualizada (stale)
+### 10.3 Registrar un pago de transferencia
+
+Cada transferencia sugerida por una liquidación puede marcarse como pagada desde la pantalla de liquidación. El pago se persiste como un gasto más del grupo, lo que garantiza que futuros gastos o regeneraciones de la liquidación lo tengan en cuenta y no generen desface.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Route as SettlementRoute
+    participant VM as SettlementViewModel
+    participant UC as RecordTransferPaymentUseCase
+    participant Gen as GenerateSettlementUseCase
+    participant Repo as SqlDelightExpenseRepository
+
+    User->>Route: Toca "Marcar como pagado" en una transferencia
+    Route->>VM: recordTransferPayment(transfer)
+    VM->>UC: invoke(groupId, from, to, amount)
+    UC->>UC: Crea Expense de tipo TRANSFER_PAYMENT
+    UC->>Repo: saveExpense(payment)
+    Repo-->>UC: OK
+    UC-->>VM: Expense
+    VM->>Gen: Regenera liquidación (ahora stale)
+    VM-->>Route: UiState actualizado
+```
+
+El `Expense` creado usa como pagador al deudor (`fromParticipantId`) y como único participante al acreedor (`toParticipantId`), con lo cual el `BalanceCalculator` compensa exactamente la deuda correspondiente. El tipo `TRANSFER_PAYMENT` permite mostrarlo distinto en la lista de gastos e impedir su edición.
+
+### 10.4 Detección de liquidación desactualizada (stale)
 
 1. `ObserveGroupDetailsUseCase` devuelve `GroupDetails`.
 2. `GroupDetails.currentSourceRevision` recalcula el fingerprint con `SourceRevisionCalculator`.

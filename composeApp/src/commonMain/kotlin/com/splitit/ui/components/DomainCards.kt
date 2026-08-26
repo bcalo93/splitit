@@ -33,6 +33,7 @@ import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.cd_delete
 import splitit.composeapp.generated.resources.cd_edit
 import splitit.composeapp.generated.resources.cd_more_vert
+import splitit.composeapp.generated.resources.mark_as_paid
 import splitit.composeapp.generated.resources.transfer_content_description
 
 @Composable
@@ -194,6 +195,8 @@ fun TransferCard(
     toColorHex: String?,
     amount: Money,
     modifier: Modifier = Modifier,
+    isRecording: Boolean = false,
+    onMarkPaid: (() -> Unit)? = null,
 ) {
     val description = stringResource(
         Res.string.transfer_content_description,
@@ -224,6 +227,15 @@ fun TransferCard(
                 variant = MoneyTextVariant.Row,
                 showCurrency = true,
             )
+            if (onMarkPaid != null) {
+                SecondaryButton(
+                    text = stringResource(Res.string.mark_as_paid),
+                    onClick = onMarkPaid,
+                    icon = SplitItIcons.Check,
+                    isLoading = isRecording,
+                    enabled = !isRecording,
+                )
+            }
         }
     }
 }

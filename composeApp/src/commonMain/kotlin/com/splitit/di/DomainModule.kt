@@ -15,6 +15,7 @@ import com.splitit.domain.usecase.GenerateSettlementUseCase
 import com.splitit.domain.usecase.GetSettingsUseCase
 import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.ObserveGroupsUseCase
+import com.splitit.domain.usecase.RecordTransferPaymentUseCase
 import com.splitit.domain.usecase.RemoveParticipantUseCase
 import com.splitit.domain.usecase.SaveSettingsUseCase
 import com.splitit.domain.usecase.UpdateExpenseUseCase
@@ -63,6 +64,7 @@ val domainModule = module {
 
     factory { CalculateGroupBalancesUseCase(get(), get(), get()) }
     factory { GenerateSettlementUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    factory { RecordTransferPaymentUseCase(get(), get(), get(), get(), get(), get()) }
 
     factory { GetSettingsUseCase(get()) }
     factory { SaveSettingsUseCase(get()) }

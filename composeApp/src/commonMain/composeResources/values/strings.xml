@@ -68,6 +68,9 @@
     <string name="owes_amount">%1$s owes %2$s %3$s</string>
     <string name="is_settled">%s is settled</string>
     <string name="pays_to">%1$s pays %2$s</string>
+    <string name="mark_as_paid">Mark as paid</string>
+    <string name="payment_title">Payment: %1$s → %2$s</string>
+    <string name="payment_metadata">Payment to %1$s</string>
 
     <string name="preferences_stored_locally">Preferences are stored only on this device.</string>
     <string name="default_currency">Default currency</string>
@@ -130,6 +133,7 @@
     <string name="error_could_not_load_settlement">Could not load settlement.</string>
     <string name="error_add_participants_and_expense">Add at least two participants and an expense first.</string>
     <string name="error_could_not_generate_settlement">Could not generate settlement.</string>
+    <string name="error_could_not_record_payment">Could not record payment.</string>
     <string name="error_could_not_load_settings">Could not load settings.</string>
     <string name="error_invalid_currency">Use a 3-letter currency code, such as USD or EUR.</string>
     <string name="error_could_not_save_settings">Could not save settings.</string>

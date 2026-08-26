@@ -25,4 +25,6 @@ enum class LocalizedString(val key: String) {
     ErrorCouldNotLoadSettings("error_could_not_load_settings"),
     ErrorInvalidCurrency("error_invalid_currency"),
     ErrorCouldNotSaveSettings("error_could_not_save_settings"),
+    PaymentTitle("payment_title"),
+    ErrorCouldNotRecordPayment("error_could_not_record_payment"),
 }

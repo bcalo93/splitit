@@ -33,6 +33,8 @@ class TestLocalizationService : LocalizationService {
         LocalizedString.ErrorCouldNotLoadSettings to "Could not load settings.",
         LocalizedString.ErrorInvalidCurrency to "Use a 3-letter currency code, such as USD or EUR.",
         LocalizedString.ErrorCouldNotSaveSettings to "Could not save settings.",
+        LocalizedString.PaymentTitle to "Payment: %1\$s → %2\$s",
+        LocalizedString.ErrorCouldNotRecordPayment to "Could not record payment.",
     )
 }
 

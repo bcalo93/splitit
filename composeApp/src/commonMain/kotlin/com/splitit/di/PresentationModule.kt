@@ -17,6 +17,6 @@ val presentationModule = module {
     viewModel { (groupId: GroupId) -> GroupDetailsViewModel(groupId, get(), get()) }
     viewModel { (groupId: GroupId) -> ParticipantsViewModel(groupId, get(), get(), get(), get(), get()) }
     viewModel { (groupId: GroupId) -> ExpensesViewModel(groupId, get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { (groupId: GroupId) -> SettlementViewModel(groupId, get(), get(), get(), get()) }
+    viewModel { (groupId: GroupId) -> SettlementViewModel(groupId, get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get()) }
 }

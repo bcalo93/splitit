@@ -29,6 +29,7 @@ CREATE TABLE expenses (
     note TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
+    type TEXT NOT NULL DEFAULT 'EXPENSE',
     deleted_at INTEGER
 );
 
@@ -167,9 +168,10 @@ INSERT OR REPLACE INTO expenses(
     note,
     created_at,
     updated_at,
+    type,
     deleted_at
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL);
 
 deleteExpense:
 DELETE FROM expenses
