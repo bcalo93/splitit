@@ -172,9 +172,15 @@
     <string name="new_expense">New expense</string>
     <string name="split_mode">Split mode</string>
     <string name="split_mode_equal">Equal parts</string>
-    <string name="split_mode_weighted">By parts</string>
+    <string name="split_mode_by_amount">By amount</string>
     <string name="select_all">All</string>
-    <string name="total_parts">%1$d parts in total</string>
+    <string name="amount_remaining">Remaining: %1$s %2$s</string>
+    <string name="amount_distributed">All distributed ✓</string>
+    <string name="amount_over_limit">Exceeds total by %1$s %2$s</string>
+    <string name="amount_per_participant_hint">0</string>
+    <string name="error_share_amounts_remaining">Remaining to distribute:</string>
+    <string name="error_share_amounts_excess">Exceeds total by:</string>
+    <string name="error_share_amounts_negative">Share amounts cannot be negative.</string>
     <string name="expense_metadata">Paid by %1$s · between %2$d</string>
     <string name="day_today">Today</string>
     <string name="day_yesterday">Yesterday</string>

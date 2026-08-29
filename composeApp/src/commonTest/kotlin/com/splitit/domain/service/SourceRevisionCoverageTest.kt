@@ -1,5 +1,7 @@
 package com.splitit.domain.service
 
+import com.splitit.domain.model.ExpenseParticipantShare
+import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
@@ -37,9 +39,10 @@ class SourceRevisionCoverageTest {
             baseExpense.copy(createdAtMillis = 2L, updatedAtMillis = 2L),
             baseExpense.copy(updatedAtMillis = 2L),
             baseExpense.copy(
-                participantShares = baseExpense.participantShares.map {
-                    if (it.participantId == TestIds.alice) it.copy(shareWeight = 2) else it
-                },
+                participantShares = listOf(
+                    ExpenseParticipantShare(ExpenseId("expense"), TestIds.alice, 200L),
+                    ExpenseParticipantShare(ExpenseId("expense"), TestIds.bob, 500L),
+                ),
             ),
         )
 

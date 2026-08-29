@@ -45,9 +45,9 @@ data class Expense(
 data class ExpenseParticipantShare(
     val expenseId: ExpenseId,
     val participantId: ParticipantId,
-    val shareWeight: Int = 1,
+    val amountMinorUnits: Long,
 ) {
     init {
-        require(shareWeight > 0) { "Share weight must be positive." }
+        require(amountMinorUnits >= 0) { "Share amount must be non-negative." }
     }
 }

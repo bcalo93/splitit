@@ -97,6 +97,7 @@ class ExpensesViewModelTest {
         advanceUntilIdle()
 
         viewModel.startEditing(original)
+        viewModel.onSplitModeChanged(SplitMode.Equal)
         viewModel.onAmountChange("20")
         viewModel.save()
         advanceUntilIdle()

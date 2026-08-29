@@ -99,7 +99,7 @@ fun expense(
     amount: Money = Money(1_000L, "USD"),
     payerId: ParticipantId = TestIds.alice,
     participantIds: List<ParticipantId> = listOf(TestIds.alice, TestIds.bob),
-    weights: Map<ParticipantId, Int> = emptyMap(),
+    shareAmounts: Map<ParticipantId, Long> = emptyMap(),
     dateMillis: Long = 1L,
     note: String? = null,
     createdAtMillis: Long = 1L,
@@ -116,7 +116,8 @@ fun expense(
             ExpenseParticipantShare(
                 expenseId = id,
                 participantId = participantId,
-                shareWeight = weights[participantId] ?: 1,
+                amountMinorUnits = shareAmounts[participantId]
+                    ?: (amount.minorUnits / participantIds.size),
             )
         },
         dateMillis = dateMillis,
@@ -130,9 +131,9 @@ fun expense(
 fun share(
     expenseId: ExpenseId = TestIds.expense,
     participantId: ParticipantId = TestIds.alice,
-    shareWeight: Int = 1,
+    amountMinorUnits: Long = 500L,
 ): ExpenseParticipantShare {
-    return ExpenseParticipantShare(expenseId, participantId, shareWeight)
+    return ExpenseParticipantShare(expenseId, participantId, amountMinorUnits)
 }
 
 fun settlement(

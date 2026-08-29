@@ -59,7 +59,7 @@ class RecordTransferPaymentUseCase(
                 ExpenseParticipantShare(
                     expenseId = expenseId,
                     participantId = toParticipantId,
-                    shareWeight = 1,
+                    amountMinorUnits = amount.minorUnits,
                 ),
             ),
             dateMillis = now,

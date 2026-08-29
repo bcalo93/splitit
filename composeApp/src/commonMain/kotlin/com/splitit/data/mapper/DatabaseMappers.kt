@@ -71,7 +71,7 @@ fun Expense_participants.toDomain(): ExpenseParticipantShare {
     return ExpenseParticipantShare(
         expenseId = ExpenseId(expense_id),
         participantId = ParticipantId(participant_id),
-        shareWeight = share_weight.toInt(),
+        amountMinorUnits = amount_minor,
     )
 }
 

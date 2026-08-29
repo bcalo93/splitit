@@ -34,8 +34,8 @@ class BalanceCalculatorTest {
             amount = Money(1200, "USD"),
             payerId = aliceId,
             participantShares = listOf(
-                ExpenseParticipantShare(expenseId, aliceId),
-                ExpenseParticipantShare(expenseId, charlieId),
+                ExpenseParticipantShare(expenseId, aliceId, 600L),
+                ExpenseParticipantShare(expenseId, charlieId, 600L),
             ),
             dateMillis = 1,
             note = null,
@@ -60,8 +60,8 @@ class BalanceCalculatorTest {
             amount = Money(1200, "USD"),
             payerId = aliceId,
             participantShares = listOf(
-                ExpenseParticipantShare(expenseId, aliceId),
-                ExpenseParticipantShare(expenseId, charlieId),
+                ExpenseParticipantShare(expenseId, aliceId, 600L),
+                ExpenseParticipantShare(expenseId, charlieId, 600L),
             ),
             dateMillis = 1,
             note = null,
@@ -97,17 +97,17 @@ class BalanceCalculatorTest {
     }
 
     @Test
-    fun distributesRemainderByLargestFractionAndStableParticipantId() {
+    fun distributesAmountsExplicitly() {
         val expense = expense(
             amount = 100,
             payerId = aliceId,
             participantIds = listOf(charlieId, bobId, aliceId),
+            shareAmounts = mapOf(aliceId to 34L, bobId to 33L, charlieId to 33L),
         )
 
         val balances = calculator.calculateBalances(participants, listOf(expense))
             .associate { it.participantId to it.amount.minorUnits }
 
-        // The extra minor unit goes to Alice because equal remainders use ID order.
         assertEquals(66, balances.getValue(aliceId))
         assertEquals(-33, balances.getValue(bobId))
         assertEquals(-33, balances.getValue(charlieId))
@@ -120,7 +120,7 @@ class BalanceCalculatorTest {
             amount = 100,
             payerId = aliceId,
             participantIds = listOf(bobId, charlieId),
-            weights = mapOf(bobId to 2, charlieId to 1),
+            shareAmounts = mapOf(bobId to 67L, charlieId to 33L),
         )
 
         val balances = calculator.calculateBalances(participants, listOf(expense))
@@ -165,9 +165,14 @@ class BalanceCalculatorTest {
         amount: Long,
         payerId: ParticipantId,
         participantIds: List<ParticipantId>,
-        weights: Map<ParticipantId, Int> = emptyMap(),
+        shareAmounts: Map<ParticipantId, Long> = emptyMap(),
         currencyCode: String = "USD",
     ): Expense {
+        val amountPerParticipant = if (shareAmounts.isEmpty()) {
+            amount / participantIds.size
+        } else {
+            0L
+        }
         return Expense(
             id = id,
             groupId = groupId,
@@ -175,7 +180,11 @@ class BalanceCalculatorTest {
             amount = Money(amount, currencyCode),
             payerId = payerId,
             participantShares = participantIds.map { participantId ->
-                ExpenseParticipantShare(id, participantId, weights[participantId] ?: 1)
+                ExpenseParticipantShare(
+                    id,
+                    participantId,
+                    shareAmounts[participantId] ?: amountPerParticipant,
+                )
             },
             dateMillis = 1,
             note = null,

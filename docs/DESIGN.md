@@ -179,7 +179,7 @@ El dinero es un ciudadano de primera clase. Se define un `CompositionLocal` (`Sp
 
 ### 5.2 Espaciado (grid de 4 dp, tokens nombrados)
 
-`SplitItSpacing` vía CompositionLocal: `xs=4`, `sm=8`, `md=12`, `lg=16`, `xl=20`, `xxl=24`, `xxxl=32`, `huge=48`.
+`SplitItSpacing` vía CompositionLocal: `xxs=2`, `xs=4`, `sm=8`, `md=12`, `lg=16`, `xl=20`, `xxl=24`, `xxxl=32`, `huge=48`.
 
 Reglas de aplicación:
 
@@ -302,11 +302,10 @@ Convenciones comunes a todas las pantallas:
   - Título y nota.
   - **"Pagado por"**: fila horizontal de `AvatarBubble` seleccionables (selección única, anillo `primary` en el elegido).
   - **"Dividir entre"**: chips multi-seleccionables con avatar mini 24 dp + nombre; acceso rápido "Todos".
-  - **Modo de reparto**: segmented control "Partes iguales" / "Por partes" (icono `tune`).
-    - **Partes iguales** (default): peso 1 por participante seleccionado; camino de 1 tap.
-    - **Por partes**: cada participante seleccionado muestra un **stepper** de partes (botones −/+ de 48 dp, valor 1–99) y su **importe resultante en vivo** (`moneyCaption`), recalculado al editar importe o partes.
-    - Validación: ≥ 1 participante seleccionado; total de partes visible ("8 partes en total").
-    - **Sin cambio de dominio**: `ExpenseParticipantShare.shareWeight` ya existe, se persiste en `expense_participants` y `BalanceCalculator` ya reparte proporcionalmente al peso — solo se añade UI + lógica de ViewModel.
+  - **Modo de reparto**: segmented control "Partes iguales" / "Por monto" (icono `tune`).
+    - **Partes iguales** (default): calcula y almacena montos iguales explícitos; camino de 1 tap.
+    - **Por monto**: cada participante seleccionado muestra un campo de monto (`OutlinedTextField`) con prefijo de moneda. Indicador en tiempo real del monto restante o excedente. Validación al guardar: la suma debe igualar el total del gasto.
+    - Validación: ≥ 1 participante seleccionado; error específico si los montos no coinciden con el total ("Falta distribuir: 500 UYU" / "Excede el total por: 200 UYU").
   - Guardar como botón primario inferior a todo lo ancho.
 - **Vacíos**: sin gastos → ilustración recibo + "Apunta el primer gasto"; búsqueda sin resultados → estado dedicado.
 
@@ -350,7 +349,7 @@ Todos en `ui/components/`, cada uno con `@Preview` en light/dark:
 | `ConfirmDeleteDialog` | Unifica los diálogos de confirmación de borrado |
 | `SearchField` | Rediseño con leading icon y clear con icono |
 | `ColorSelector` | Grid de 8 colores con selección |
-| `ShareWeightStepper` | Stepper de partes (−/+ 48 dp) + importe resultante en vivo, para el reparto por pesos |
+| `AmountParticipantCard` | Tarjeta de participante con campo de monto para reparto por monto |
 | `FormTextField` | TextField con icono, error y contador estandarizados |
 | `PrimaryButton` / `SecondaryButton` | Wrappers con estado de carga inline |
 | `Skeleton` / `SkeletonList` | Placeholders de carga con shimmer |

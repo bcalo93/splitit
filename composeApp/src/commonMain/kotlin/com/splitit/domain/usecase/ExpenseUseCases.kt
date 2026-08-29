@@ -28,7 +28,7 @@ class CreateExpenseUseCase(
         participantIds: List<ParticipantId>,
         dateMillis: Long,
         note: String?,
-        shareWeights: Map<ParticipantId, Int> = emptyMap(),
+        shareAmounts: Map<ParticipantId, Long> = emptyMap(),
         type: ExpenseType = ExpenseType.EXPENSE,
     ): Expense {
         requireNotNull(groupRepository.getGroup(groupId)) {
@@ -48,7 +48,7 @@ class CreateExpenseUseCase(
                 ExpenseParticipantShare(
                     expenseId = expenseId,
                     participantId = it,
-                    shareWeight = shareWeights[it]?.coerceAtLeast(1) ?: 1,
+                    amountMinorUnits = shareAmounts[it] ?: 0L,
                 )
             },
             dateMillis = dateMillis,
@@ -89,7 +89,7 @@ class UpdateExpenseUseCase(
         participantIds: List<ParticipantId>,
         dateMillis: Long,
         note: String?,
-        shareWeights: Map<ParticipantId, Int> = emptyMap(),
+        shareAmounts: Map<ParticipantId, Long> = emptyMap(),
     ): Expense {
         val current = requireNotNull(expenseRepository.getExpense(expenseId)) {
             "Expense ${expenseId.value} was not found."
@@ -113,7 +113,7 @@ class UpdateExpenseUseCase(
                 ExpenseParticipantShare(
                     expenseId = expenseId,
                     participantId = it,
-                    shareWeight = shareWeights[it]?.coerceAtLeast(1) ?: 1,
+                    amountMinorUnits = shareAmounts[it] ?: 0L,
                 )
             },
             dateMillis = dateMillis,

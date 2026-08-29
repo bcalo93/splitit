@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class SplitMode { Equal, Weighted }
+enum class SplitMode { Equal, ByAmount }
 
 @Immutable
 data class ExpensesUiState(
@@ -44,7 +44,8 @@ data class ExpensesUiState(
     val payerId: ParticipantId? = null,
     val selectedParticipantIds: Set<ParticipantId> = emptySet(),
     val splitMode: SplitMode = SplitMode.Equal,
-    val shareWeights: Map<ParticipantId, Int> = emptyMap(),
+    val shareAmounts: Map<ParticipantId, String> = emptyMap(),
+    val hasShareAmountInteraction: Boolean = false,
     val note: String = "",
     val editingExpenseId: ExpenseId? = null,
     val editingCurrencyCode: String? = null,
@@ -52,24 +53,24 @@ data class ExpensesUiState(
     val amountError: String? = null,
     val payerError: String? = null,
     val participantsError: String? = null,
+    val shareAmountsError: String? = null,
     val errorMessage: String? = null,
     val saveSucceeded: Boolean = false,
 ) {
-    val totalParts: Int
-        get() = selectedParticipantIds.sumOf { shareWeights[it] ?: 1 }
+    val parsedShareAmounts: Map<ParticipantId, Long>
+        get() = shareAmounts.mapValues { (_, value) -> parseAmount(value) ?: 0L }
 
-    val weightedShareAmounts: Map<ParticipantId, Money>?
-        get() = if (splitMode != SplitMode.Weighted) {
-            null
-        } else {
-            parseAmount(amount)?.let { parsed ->
-                computeWeightedShares(
-                    amountMinorUnits = parsed,
-                    weights = selectedParticipantIds.associateWith { shareWeights[it] ?: 1 },
-                    currencyCode = editingCurrencyCode ?: defaultCurrencyCode,
-                )
-            }
-        }
+    val shareAmountsSum: Long
+        get() = parsedShareAmounts.values.sum()
+
+    val expenseAmountMinorUnits: Long
+        get() = parseAmount(amount) ?: 0L
+
+    val shareAmountsRemainder: Long
+        get() = expenseAmountMinorUnits - shareAmountsSum
+
+    val isShareAmountsComplete: Boolean
+        get() = selectedParticipantIds.all { it in shareAmounts && (parseAmount(shareAmounts[it] ?: "") ?: 0L) > 0L }
 }
 
 class ExpensesViewModel(
@@ -148,7 +149,16 @@ class ExpensesViewModel(
     }
 
     fun onAmountChange(amount: String) {
-        _state.update { it.copy(amount = amount, amountError = null, errorMessage = null) }
+        _state.update {
+            it.copy(
+                amount = amount,
+                amountError = null,
+                shareAmounts = if (it.splitMode == SplitMode.ByAmount) emptyMap() else it.shareAmounts,
+                hasShareAmountInteraction = false,
+                shareAmountsError = null,
+                errorMessage = null,
+            )
+        }
     }
 
     fun onNoteChange(note: String) {
@@ -174,9 +184,12 @@ class ExpensesViewModel(
             } else {
                 it.selectedParticipantIds + participantId
             }
+            val newShareAmounts = it.shareAmounts.filterKeys { id -> id in selected }
             it.copy(
                 selectedParticipantIds = selected,
+                shareAmounts = newShareAmounts,
                 participantsError = null,
+                shareAmountsError = null,
                 errorMessage = null,
             )
         }
@@ -193,33 +206,44 @@ class ExpensesViewModel(
     }
 
     fun onSplitModeChanged(mode: SplitMode) {
-        _state.update { it.copy(splitMode = mode, errorMessage = null) }
-    }
-
-    fun onShareWeightChanged(participantId: ParticipantId, weight: Int) {
         _state.update {
             it.copy(
-                shareWeights = it.shareWeights + (participantId to weight.coerceIn(1, 99)),
+                splitMode = mode,
+                shareAmounts = if (mode == SplitMode.ByAmount) it.shareAmounts else emptyMap(),
+                hasShareAmountInteraction = false,
+                shareAmountsError = null,
                 errorMessage = null,
             )
         }
     }
 
+    fun onShareAmountChanged(participantId: ParticipantId, amountString: String) {
+        _state.update { state ->
+            state.copy(
+                shareAmounts = state.shareAmounts + (participantId to amountString),
+                hasShareAmountInteraction = true,
+                shareAmountsError = null,
+            )
+        }
+    }
+
     fun startEditing(expense: Expense) {
+        val allHaveAmount = expense.participantShares.all { it.amountMinorUnits > 0 }
         _state.update {
             it.copy(
                 title = expense.title,
                 amount = formatMinorUnits(expense.amount.minorUnits),
                 payerId = expense.payerId,
                 selectedParticipantIds = expense.participantShares.map { share -> share.participantId }.toSet(),
-                splitMode = if (expense.participantShares.any { share -> share.shareWeight != 1 }) {
-                    SplitMode.Weighted
+                splitMode = if (allHaveAmount) SplitMode.ByAmount else SplitMode.Equal,
+                shareAmounts = if (allHaveAmount) {
+                    expense.participantShares.associate { share ->
+                        share.participantId to formatMinorUnits(share.amountMinorUnits)
+                    }
                 } else {
-                    SplitMode.Equal
+                    emptyMap()
                 },
-                shareWeights = expense.participantShares.associate { share ->
-                    share.participantId to share.shareWeight
-                },
+                hasShareAmountInteraction = allHaveAmount,
                 note = expense.note.orEmpty(),
                 editingExpenseId = expense.id,
                 editingCurrencyCode = expense.amount.currencyCode,
@@ -227,6 +251,7 @@ class ExpensesViewModel(
                 amountError = null,
                 payerError = null,
                 participantsError = null,
+                shareAmountsError = null,
                 errorMessage = null,
             )
         }
@@ -262,7 +287,18 @@ class ExpensesViewModel(
             hasError = true
             _state.update { it.copy(participantsError = localization.getString(LocalizedString.ErrorChooseAtLeastOneParticipant)) }
         }
-        if (hasError || parsedAmount == null || payerId == null) return
+
+        val shareAmounts = if (current.splitMode == SplitMode.ByAmount) {
+            computeShareAmounts(current, parsedAmount)
+        } else {
+            computeEqualShareAmounts(current, parsedAmount)
+        }
+
+        if (shareAmounts == null) {
+            hasError = true
+        }
+
+        if (hasError || parsedAmount == null || payerId == null || shareAmounts == null) return
 
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true, errorMessage = null) }
@@ -275,11 +311,6 @@ class ExpensesViewModel(
                         ?: current.expenses.firstOrNull { it.id == editingId }?.amount?.currencyCode
                         ?: current.defaultCurrencyCode
                 }
-                val weights = if (current.splitMode == SplitMode.Weighted) {
-                    current.selectedParticipantIds.associateWith { current.shareWeights[it] ?: 1 }
-                } else {
-                    emptyMap()
-                }
                 if (editingId == null) {
                     createExpense(
                         groupId = groupId,
@@ -289,7 +320,7 @@ class ExpensesViewModel(
                         participantIds = current.selectedParticipantIds.toList(),
                         dateMillis = clock.nowMillis(),
                         note = current.note,
-                        shareWeights = weights,
+                        shareAmounts = shareAmounts,
                     )
                 } else {
                     updateExpense(
@@ -300,7 +331,7 @@ class ExpensesViewModel(
                         participantIds = current.selectedParticipantIds.toList(),
                         dateMillis = current.expenses.first { it.id == editingId }.dateMillis,
                         note = current.note,
-                        shareWeights = weights,
+                        shareAmounts = shareAmounts,
                     )
                 }
             }
@@ -319,6 +350,60 @@ class ExpensesViewModel(
                     }
                 }
         }
+    }
+
+    private fun computeShareAmounts(
+        state: ExpensesUiState,
+        expenseAmount: Long?,
+    ): Map<ParticipantId, Long>? {
+        if (expenseAmount == null || expenseAmount <= 0) return null
+
+        val selected = state.selectedParticipantIds
+        val parsed = selected.associateWith { id ->
+            parseAmount(state.shareAmounts[id] ?: "") ?: 0L
+        }
+
+        val sum = parsed.values.sum()
+        if (sum != expenseAmount) {
+            val diff = expenseAmount - sum
+            val diffFormatted = formatMinorUnits(kotlin.math.abs(diff))
+            val currencyCode = state.editingCurrencyCode ?: state.defaultCurrencyCode
+            val baseMsg = if (diff > 0) {
+                localization.getString(LocalizedString.ErrorShareAmountsRemaining)
+            } else {
+                localization.getString(LocalizedString.ErrorShareAmountsExcess)
+            }
+            _state.update { it.copy(shareAmountsError = "$baseMsg $diffFormatted $currencyCode") }
+            return null
+        }
+
+        if (parsed.any { it.value < 0 }) {
+            _state.update {
+                it.copy(shareAmountsError = localization.getString(LocalizedString.ErrorShareAmountsNegative))
+            }
+            return null
+        }
+
+        return parsed
+    }
+
+    private fun computeEqualShareAmounts(
+        state: ExpensesUiState,
+        expenseAmount: Long?,
+    ): Map<ParticipantId, Long>? {
+        if (expenseAmount == null || expenseAmount <= 0) return null
+
+        val selected = state.selectedParticipantIds.toList().sortedBy { it.value }
+        val count = selected.size
+        if (count == 0) return null
+
+        val base = expenseAmount / count
+        val remainder = expenseAmount % count
+
+        return selected.mapIndexed { index, id ->
+            val extra = if (index < remainder) 1L else 0L
+            id to (base + extra)
+        }.toMap()
     }
 
     fun delete(expenseId: ExpenseId) {
@@ -359,7 +444,8 @@ class ExpensesViewModel(
             payerId = defaultPayer,
             selectedParticipantIds = defaultPayer?.let { setOf(it) } ?: emptySet(),
             splitMode = SplitMode.Equal,
-            shareWeights = emptyMap(),
+            shareAmounts = emptyMap(),
+            hasShareAmountInteraction = false,
             note = "",
             editingExpenseId = null,
             editingCurrencyCode = null,
@@ -367,6 +453,7 @@ class ExpensesViewModel(
             amountError = null,
             payerError = null,
             participantsError = null,
+            shareAmountsError = null,
             errorMessage = null,
         )
     }
@@ -401,46 +488,4 @@ fun formatMinorUnits(minorUnits: Long): String {
     } else {
         "$major.${minor.toString().padStart(2, '0')}"
     }
-}
-
-fun computeWeightedShares(
-    amountMinorUnits: Long,
-    weights: Map<ParticipantId, Int>,
-    currencyCode: String,
-): Map<ParticipantId, Money> {
-    val totalWeight = weights.values.sumOf { it.toLong() }
-    if (totalWeight <= 0L) return emptyMap()
-
-    val sorted = weights.entries.sortedBy { it.key.value }
-    val baseQuotient = amountMinorUnits / totalWeight
-    val amountRemainder = amountMinorUnits % totalWeight
-
-    data class Allocation(
-        val participantId: ParticipantId,
-        val minorUnits: Long,
-        val remainder: Long,
-    )
-
-    val allocations = sorted.map { (participantId, weight) ->
-        val weightedRemainder = amountRemainder * weight
-        Allocation(
-            participantId = participantId,
-            minorUnits = baseQuotient * weight + weightedRemainder / totalWeight,
-            remainder = weightedRemainder % totalWeight,
-        )
-    }
-
-    var remainingMinorUnits = amountMinorUnits - allocations.sumOf { it.minorUnits }
-    val roundedMinorUnits = allocations.associate { it.participantId to it.minorUnits }.toMutableMap()
-    val roundedUpParticipantIds = allocations
-        .sortedWith(compareByDescending<Allocation> { it.remainder }.thenBy { it.participantId.value })
-        .map { it.participantId }
-
-    for (participantId in roundedUpParticipantIds) {
-        if (remainingMinorUnits == 0L) break
-        roundedMinorUnits[participantId] = roundedMinorUnits.getValue(participantId) + 1
-        remainingMinorUnits--
-    }
-
-    return roundedMinorUnits.mapValues { (_, minorUnits) -> Money(minorUnits, currencyCode) }
 }
