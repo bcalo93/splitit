@@ -132,13 +132,13 @@ El dominio es independiente de Android, iOS, Compose y SQLDelight. Contiene enti
 
 ### 4.1 Entidades (`domain/model/`)
 
-| Clave                               | Descripción                                                                                                         |
-|-------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `ExpenseGroup`                      | Grupo de gastos con título, descripción, estado (Active/Archived), timestamps y referencias a participantes/gastos. |
-| `Participant`                       | Persona que pertenece a un grupo: nombre y color de avatar.                                                         |
+| Clave                               | Descripción                                                                                                                                                                                                                               |
+|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ExpenseGroup`                      | Grupo de gastos con título, descripción, estado (Active/Archived), timestamps y referencias a participantes/gastos.                                                                                                                       |
+| `Participant`                       | Persona que pertenece a un grupo: nombre y color de avatar.                                                                                                                                                                               |
 | `Expense` / `ExpenseType`           | Gasto individual: título, importe (`Money`), pagador, reparto (`ExpenseParticipantShare` con `amountMinorUnits`), fecha, nota y tipo. `ExpenseType` distingue gastos normales (`EXPENSE`) de pagos de transferencia (`TRANSFER_PAYMENT`). |
-| `Settlement` / `SettlementTransfer` | Liquidación generada y las transferencias necesarias para saldar.                                                   |
-| `Balance` / `Debt`                  | Resultados intermedios del cálculo de balances.                                                                     |
+| `Settlement` / `SettlementTransfer` | Liquidación generada y las transferencias necesarias para saldar.                                                                                                                                                                         |
+| `Balance` / `Debt`                  | Resultados intermedios del cálculo de balances.                                                                                                                                                                                           |
 
 Los constructores validan invariantes (título no vacío, importe positivo, al menos un participante, etc.).
 
@@ -152,14 +152,14 @@ Los constructores validan invariantes (título no vacío, importe positivo, al m
 
 ### 4.3 Reglas de negocio (`domain/service/` y `logic/`)
 
-| Componente                 | Responsabilidad                                                                                                                           |
-|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| Componente                 | Responsabilidad                                                                                                                                            |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `BalanceCalculator`        | Calcula balances netos por participante a partir de gastos y repartos por monto directo (`amountMinorUnits`). Genera deudas simplificadas deudor→acreedor. |
-| `SourceRevisionCalculator` | Crea un *fingerprint* estable (FNV-1a) del estado actual de participantes y gastos para detectar si una liquidación quedó desactualizada. |
-| `PaymentOptimizerAdapter`  | Adapta las deudas del dominio al modelo `Payment`/`Participant` del optimizador heredado y devuelve `SettlementTransfer`s.                |
-| `ComposedOptimizer`        | Orquesta una lista de optimizadores de deuda hasta que ninguno pueda mejorar el resultado.                                                |
-| `CycleOptimizer`           | Elimina deudas mutuas (A→B y B→A) compensando importes.                                                                                   |
-| `TransitiveOptimizer`      | Reduce cadenas transitivas (A→B→C) a transferencias directas.                                                                             |
+| `SourceRevisionCalculator` | Crea un *fingerprint* estable (FNV-1a) del estado actual de participantes y gastos para detectar si una liquidación quedó desactualizada.                  |
+| `PaymentOptimizerAdapter`  | Adapta las deudas del dominio al modelo `Payment`/`Participant` del optimizador heredado y devuelve `SettlementTransfer`s.                                 |
+| `ComposedOptimizer`        | Orquesta una lista de optimizadores de deuda hasta que ninguno pueda mejorar el resultado.                                                                 |
+| `CycleOptimizer`           | Elimina deudas mutuas (A→B y B→A) compensando importes.                                                                                                    |
+| `TransitiveOptimizer`      | Reduce cadenas transitivas (A→B→C) a transferencias directas.                                                                                              |
 
 > **Nota histórica:** los tipos `com.splitit.domain.Payment` y `com.splitit.domain.Participant` (optimizador) son un modelo interno más antiguo usado exclusivamente por los optimizadores de deuda. El resto del dominio utiliza los modelos en `domain/model/`.
 
