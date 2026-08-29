@@ -53,7 +53,7 @@ class SqlDelightExpenseRepository(
                 queries.insertExpenseParticipant(
                     expense_id = share.expenseId.value,
                     participant_id = share.participantId.value,
-                    share_weight = share.shareWeight.toLong(),
+                    amount_minor = share.amountMinorUnits,
                 )
             }
         }

@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 // Espaciado en grid de 4 dp (§5.2)
 @Immutable
 data class SplitItSpacing(
+    val xxs: Dp = 2.dp,
     val xs: Dp = 4.dp,
     val sm: Dp = 8.dp,
     val md: Dp = 12.dp,

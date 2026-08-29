@@ -27,4 +27,7 @@ enum class LocalizedString(val key: String) {
     ErrorCouldNotSaveSettings("error_could_not_save_settings"),
     PaymentTitle("payment_title"),
     ErrorCouldNotRecordPayment("error_could_not_record_payment"),
+    ErrorShareAmountsRemaining("error_share_amounts_remaining"),
+    ErrorShareAmountsExcess("error_share_amounts_excess"),
+    ErrorShareAmountsNegative("error_share_amounts_negative"),
 }

@@ -36,7 +36,7 @@ CREATE TABLE expenses (
 CREATE TABLE expense_participants (
     expense_id TEXT NOT NULL REFERENCES expenses(id) ON DELETE CASCADE,
     participant_id TEXT NOT NULL REFERENCES participants(id),
-    share_weight INTEGER NOT NULL,
+    amount_minor INTEGER NOT NULL,
     PRIMARY KEY(expense_id, participant_id)
 );
 
@@ -197,7 +197,7 @@ insertExpenseParticipant:
 INSERT INTO expense_participants(
     expense_id,
     participant_id,
-    share_weight
+    amount_minor
 )
 VALUES (?, ?, ?);
 

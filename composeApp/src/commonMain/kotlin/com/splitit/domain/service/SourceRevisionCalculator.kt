@@ -47,7 +47,7 @@ object SourceRevisionCalculator {
                     .sortedBy { it.participantId.value }
                     .forEach { share ->
                         appendField(share.participantId.value)
-                        appendField(share.shareWeight.toString())
+                        appendField(share.amountMinorUnits.toString())
                     }
             }
         }

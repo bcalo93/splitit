@@ -46,9 +46,10 @@ class DomainModelValidationTest {
             expense(participantIds = listOf(TestIds.alice, TestIds.alice))
         }
         assertFailsWith<IllegalArgumentException> {
-            expense(
-                participantIds = listOf(TestIds.alice),
-                weights = mapOf(TestIds.alice to 0),
+            ExpenseParticipantShare(
+                expenseId = TestIds.expense,
+                participantId = TestIds.alice,
+                amountMinorUnits = -1L,
             )
         }
         assertFailsWith<IllegalArgumentException> {

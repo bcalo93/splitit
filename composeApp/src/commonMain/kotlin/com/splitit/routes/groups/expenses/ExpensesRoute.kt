@@ -63,6 +63,7 @@ import com.splitit.presentation.expenses.ExpensesViewModel
 import com.splitit.presentation.expenses.MILLIS_PER_DAY
 import com.splitit.presentation.expenses.SplitMode
 import com.splitit.presentation.expenses.civilDate
+import com.splitit.presentation.expenses.formatMinorUnits
 import com.splitit.presentation.expenses.startOfDay
 import com.splitit.ui.components.AvatarBubble
 import com.splitit.ui.components.ConfirmDeleteDialog
@@ -74,7 +75,6 @@ import com.splitit.ui.components.LoadingState
 import com.splitit.ui.components.NoSearchResultsState
 import com.splitit.ui.components.PrimaryButton
 import com.splitit.ui.components.SearchField
-import com.splitit.ui.components.ShareWeightStepper
 import com.splitit.ui.components.SplitItIcons
 import com.splitit.ui.components.SplitItScaffold
 import com.splitit.ui.components.SplitItTopBar
@@ -87,6 +87,10 @@ import org.koin.core.parameter.parametersOf
 import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.add_expense
 import splitit.composeapp.generated.resources.add_participants_before_expenses
+import splitit.composeapp.generated.resources.amount_distributed
+import splitit.composeapp.generated.resources.amount_over_limit
+import splitit.composeapp.generated.resources.amount_per_participant_hint
+import splitit.composeapp.generated.resources.amount_remaining
 import splitit.composeapp.generated.resources.day_full_date
 import splitit.composeapp.generated.resources.day_today
 import splitit.composeapp.generated.resources.day_yesterday
@@ -122,10 +126,9 @@ import splitit.composeapp.generated.resources.search_expenses
 import splitit.composeapp.generated.resources.select_all
 import splitit.composeapp.generated.resources.split_between
 import splitit.composeapp.generated.resources.split_mode
+import splitit.composeapp.generated.resources.split_mode_by_amount
 import splitit.composeapp.generated.resources.split_mode_equal
-import splitit.composeapp.generated.resources.split_mode_weighted
 import splitit.composeapp.generated.resources.title
-import splitit.composeapp.generated.resources.total_parts
 import splitit.composeapp.generated.resources.unknown
 
 @Composable
@@ -164,7 +167,7 @@ fun ExpensesRoute(
             onParticipantToggled = viewModel::onParticipantToggled,
             onSelectAll = viewModel::selectAllParticipants,
             onSplitModeChanged = viewModel::onSplitModeChanged,
-            onShareWeightChanged = viewModel::onShareWeightChanged,
+            onShareAmountChanged = viewModel::onShareAmountChanged,
             onSave = viewModel::save,
         )
     } else {
@@ -453,7 +456,7 @@ private fun ExpenseFormScreen(
     onParticipantToggled: (ParticipantId) -> Unit,
     onSelectAll: () -> Unit,
     onSplitModeChanged: (SplitMode) -> Unit,
-    onShareWeightChanged: (ParticipantId, Int) -> Unit,
+    onShareAmountChanged: (ParticipantId, String) -> Unit,
     onSave: () -> Unit,
 ) {
     val spacing = LocalSplitItSpacing.current
@@ -569,21 +572,24 @@ private fun ExpenseFormScreen(
                 onModeChange = onSplitModeChanged,
             )
 
-            if (state.splitMode == SplitMode.Weighted) {
-                Text(
-                    text = stringResource(Res.string.total_parts, state.totalParts),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+            if (state.splitMode == SplitMode.ByAmount) {
+                val currencyCode = state.editingCurrencyCode ?: state.defaultCurrencyCode
+                AmountDistributionIndicator(
+                    remainder = state.shareAmountsRemainder,
+                    expenseAmount = state.expenseAmountMinorUnits,
+                    hasInteraction = state.hasShareAmountInteraction,
+                    currencyCode = currencyCode,
+                    error = state.shareAmountsError,
                 )
                 state.participants
                     .filter { it.id in state.selectedParticipantIds }
                     .forEach { participant ->
-                        WeightedParticipantCard(
+                        AmountParticipantCard(
                             participant = participant,
-                            weight = state.shareWeights[participant.id] ?: 1,
-                            resultAmount = state.weightedShareAmounts?.get(participant.id),
-                            onWeightChange = { weight ->
-                                onShareWeightChanged(participant.id, weight)
+                            amountText = state.shareAmounts[participant.id] ?: "",
+                            currencyCode = currencyCode,
+                            onAmountChange = { text ->
+                                onShareAmountChanged(participant.id, text)
                             },
                         )
                     }
@@ -776,8 +782,8 @@ private fun SplitModeSelector(
             Text(stringResource(Res.string.split_mode_equal))
         }
         SegmentedButton(
-            selected = mode == SplitMode.Weighted,
-            onClick = { onModeChange(SplitMode.Weighted) },
+            selected = mode == SplitMode.ByAmount,
+            onClick = { onModeChange(SplitMode.ByAmount) },
             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
             icon = {
                 Icon(
@@ -787,18 +793,69 @@ private fun SplitModeSelector(
                 )
             },
         ) {
-            Text(stringResource(Res.string.split_mode_weighted))
+            Text(stringResource(Res.string.split_mode_by_amount))
         }
     }
 }
 
 @Composable
-private fun WeightedParticipantCard(
-    participant: Participant,
-    weight: Int,
-    resultAmount: com.splitit.domain.value.Money?,
-    onWeightChange: (Int) -> Unit,
+private fun AmountDistributionIndicator(
+    remainder: Long,
+    expenseAmount: Long,
+    hasInteraction: Boolean,
+    currencyCode: String,
+    error: String?,
 ) {
+    if (!hasInteraction && expenseAmount > 0 && error == null) return
+
+    val spacing = LocalSplitItSpacing.current
+    val isComplete = remainder == 0L && expenseAmount > 0
+    val isOver = remainder < 0
+
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
+        when {
+            error != null -> Text(
+                text = error,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+            isComplete -> Text(
+                text = stringResource(Res.string.amount_distributed),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+            isOver -> Text(
+                text = stringResource(
+                    Res.string.amount_over_limit,
+                    formatMinorUnits(-remainder),
+                    currencyCode,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+            expenseAmount > 0 -> Text(
+                text = stringResource(
+                    Res.string.amount_remaining,
+                    formatMinorUnits(remainder),
+                    currencyCode,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AmountParticipantCard(
+    participant: Participant,
+    amountText: String,
+    currencyCode: String,
+    onAmountChange: (String) -> Unit,
+) {
+    val spacing = LocalSplitItSpacing.current
+    val moneyStyles = LocalSplitItMoneyStyles.current
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -823,10 +880,28 @@ private fun WeightedParticipantCard(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-            ShareWeightStepper(
-                value = weight,
-                onValueChange = onWeightChange,
-                resultAmount = resultAmount,
+            OutlinedTextField(
+                value = amountText,
+                onValueChange = onAmountChange,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = moneyStyles.moneyRow.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                placeholder = {
+                    Text(
+                        text = stringResource(Res.string.amount_per_participant_hint),
+                        style = moneyStyles.moneyRow.copy(color = MaterialTheme.colorScheme.outline),
+                    )
+                },
+                suffix = {
+                    Text(
+                        text = currencyCode,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
             )
         }
     }

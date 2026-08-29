@@ -56,8 +56,8 @@ class SqlDelightRepositoryTest {
         val bob = participant(ParticipantId("bob"))
         val expense = expense(
             shares = listOf(
-                ExpenseParticipantShare(ExpenseId("expense"), alice.id),
-                ExpenseParticipantShare(ExpenseId("expense"), bob.id),
+                ExpenseParticipantShare(ExpenseId("expense"), alice.id, 500L),
+                ExpenseParticipantShare(ExpenseId("expense"), bob.id, 500L),
             ),
         )
 
@@ -88,14 +88,14 @@ class SqlDelightRepositoryTest {
 
         val original = expense(
             shares = listOf(
-                ExpenseParticipantShare(ExpenseId("expense"), alice.id),
-                ExpenseParticipantShare(ExpenseId("expense"), bob.id),
+                ExpenseParticipantShare(ExpenseId("expense"), alice.id, 500L),
+                ExpenseParticipantShare(ExpenseId("expense"), bob.id, 500L),
             ),
         )
         val updated = original.copy(
             participantShares = listOf(
-                ExpenseParticipantShare(ExpenseId("expense"), alice.id),
-                ExpenseParticipantShare(ExpenseId("expense"), charlie.id),
+                ExpenseParticipantShare(ExpenseId("expense"), alice.id, 500L),
+                ExpenseParticipantShare(ExpenseId("expense"), charlie.id, 500L),
             ),
             updatedAtMillis = 2,
         )
@@ -152,7 +152,7 @@ class SqlDelightRepositoryTest {
             amount = Money(500, "USD"),
             payerId = bob.id,
             participantShares = listOf(
-                ExpenseParticipantShare(ExpenseId("payment"), alice.id),
+                ExpenseParticipantShare(ExpenseId("payment"), alice.id, 500L),
             ),
             dateMillis = 2,
             note = null,
@@ -195,8 +195,8 @@ class SqlDelightRepositoryTest {
         val bob = participant(ParticipantId("bob"))
         val savedExpense = expense(
             shares = listOf(
-                ExpenseParticipantShare(ExpenseId("expense"), alice.id),
-                ExpenseParticipantShare(ExpenseId("expense"), bob.id),
+                ExpenseParticipantShare(ExpenseId("expense"), alice.id, 500L),
+                ExpenseParticipantShare(ExpenseId("expense"), bob.id, 500L),
             ),
         )
         val savedSettlement = Settlement(

@@ -132,13 +132,13 @@ El dominio es independiente de Android, iOS, Compose y SQLDelight. Contiene enti
 
 ### 4.1 Entidades (`domain/model/`)
 
-| Clave                               | Descripción                                                                                                         |
-|-------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `ExpenseGroup`                      | Grupo de gastos con título, descripción, estado (Active/Archived), timestamps y referencias a participantes/gastos. |
-| `Participant`                       | Persona que pertenece a un grupo: nombre y color de avatar.                                                         |
-| `Expense` / `ExpenseType`           | Gasto individual: título, importe (`Money`), pagador, reparto (`ExpenseParticipantShare`), fecha, nota y tipo. `ExpenseType` distingue gastos normales (`EXPENSE`) de pagos de transferencia (`TRANSFER_PAYMENT`). |
-| `Settlement` / `SettlementTransfer` | Liquidación generada y las transferencias necesarias para saldar.                                                   |
-| `Balance` / `Debt`                  | Resultados intermedios del cálculo de balances.                                                                     |
+| Clave                               | Descripción                                                                                                                                                                                                                               |
+|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ExpenseGroup`                      | Grupo de gastos con título, descripción, estado (Active/Archived), timestamps y referencias a participantes/gastos.                                                                                                                       |
+| `Participant`                       | Persona que pertenece a un grupo: nombre y color de avatar.                                                                                                                                                                               |
+| `Expense` / `ExpenseType`           | Gasto individual: título, importe (`Money`), pagador, reparto (`ExpenseParticipantShare` con `amountMinorUnits`), fecha, nota y tipo. `ExpenseType` distingue gastos normales (`EXPENSE`) de pagos de transferencia (`TRANSFER_PAYMENT`). |
+| `Settlement` / `SettlementTransfer` | Liquidación generada y las transferencias necesarias para saldar.                                                                                                                                                                         |
+| `Balance` / `Debt`                  | Resultados intermedios del cálculo de balances.                                                                                                                                                                                           |
 
 Los constructores validan invariantes (título no vacío, importe positivo, al menos un participante, etc.).
 
@@ -152,14 +152,14 @@ Los constructores validan invariantes (título no vacío, importe positivo, al m
 
 ### 4.3 Reglas de negocio (`domain/service/` y `logic/`)
 
-| Componente                 | Responsabilidad                                                                                                                           |
-|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| `BalanceCalculator`        | Calcula balances netos por participante a partir de gastos y repartos ponderados. Genera deudas simplificadas deudor→acreedor.            |
-| `SourceRevisionCalculator` | Crea un *fingerprint* estable (FNV-1a) del estado actual de participantes y gastos para detectar si una liquidación quedó desactualizada. |
-| `PaymentOptimizerAdapter`  | Adapta las deudas del dominio al modelo `Payment`/`Participant` del optimizador heredado y devuelve `SettlementTransfer`s.                |
-| `ComposedOptimizer`        | Orquesta una lista de optimizadores de deuda hasta que ninguno pueda mejorar el resultado.                                                |
-| `CycleOptimizer`           | Elimina deudas mutuas (A→B y B→A) compensando importes.                                                                                   |
-| `TransitiveOptimizer`      | Reduce cadenas transitivas (A→B→C) a transferencias directas.                                                                             |
+| Componente                 | Responsabilidad                                                                                                                                            |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `BalanceCalculator`        | Calcula balances netos por participante a partir de gastos y repartos por monto directo (`amountMinorUnits`). Genera deudas simplificadas deudor→acreedor. |
+| `SourceRevisionCalculator` | Crea un *fingerprint* estable (FNV-1a) del estado actual de participantes y gastos para detectar si una liquidación quedó desactualizada.                  |
+| `PaymentOptimizerAdapter`  | Adapta las deudas del dominio al modelo `Payment`/`Participant` del optimizador heredado y devuelve `SettlementTransfer`s.                                 |
+| `ComposedOptimizer`        | Orquesta una lista de optimizadores de deuda hasta que ninguno pueda mejorar el resultado.                                                                 |
+| `CycleOptimizer`           | Elimina deudas mutuas (A→B y B→A) compensando importes.                                                                                                    |
+| `TransitiveOptimizer`      | Reduce cadenas transitivas (A→B→C) a transferencias directas.                                                                                              |
 
 > **Nota histórica:** los tipos `com.splitit.domain.Payment` y `com.splitit.domain.Participant` (optimizador) son un modelo interno más antiguo usado exclusivamente por los optimizadores de deuda. El resto del dominio utiliza los modelos en `domain/model/`.
 
@@ -198,7 +198,7 @@ El esquema (`composeApp/src/commonMain/sqldelight/com/splitit/data/database/Spli
 - `groups`
 - `participants`
 - `expenses`
-- `expense_participants` (reparto con `share_weight`)
+- `expense_participants` (reparto con `amount_minor`)
 - `settlements`
 - `settlement_transfers`
 - `settings`
@@ -448,12 +448,13 @@ El `Expense` creado usa como pagador al deudor (`fromParticipantId`) y como úni
 3. `isSettlementStale` compara ese fingerprint con `latestSettlement.sourceRevision`.
 4. Las pantallas muestran un banner ámbar cuando no coinciden.
 
-### 10.4 Reparto ponderado de gastos
+### 10.4 Reparto de gastos por monto
 
-`BalanceCalculator.splitExpense()` y `computeWeightedShares()` en `ExpensesViewModel` reparten un importe total según pesos enteros positivos (`shareWeight`), garantizando que:
+`BalanceCalculator.splitExpense()` utiliza los montos directos almacenados en `ExpenseParticipantShare.amountMinorUnits`, garantizando que:
 
-- La suma de las partes iguale exactamente el importe total.
-- El redondeo de unidades menores se aplique de forma determinista (mayor resto, luego ID ascendente).
+- La suma de los montos por participante iguale exactamente el importe total del gasto.
+- El modo "Partes iguales" calcula y almacena montos explícitos (división entera con distribución de resto).
+- El modo "Por monto" permite al usuario ingresar montos individuales por participante.
 
 ---
 

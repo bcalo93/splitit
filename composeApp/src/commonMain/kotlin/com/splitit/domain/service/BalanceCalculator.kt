@@ -94,46 +94,21 @@ class BalanceCalculator {
     }
 
     private fun splitExpense(expense: Expense): Map<ParticipantId, Money> {
-        val shares = expense.participantShares.sortedBy { it.participantId.value }
-        val totalWeight = shares.sumOf { it.shareWeight.toLong() }
-        val amount = expense.amount.minorUnits
-        val baseQuotient = amount / totalWeight
-        val amountRemainder = amount % totalWeight
-        val allocations = shares.map { share ->
-            val weightedRemainder = amountRemainder * share.shareWeight
-            Allocation(
-                participantId = share.participantId,
-                minorUnits = baseQuotient * share.shareWeight + weightedRemainder / totalWeight,
-                remainder = weightedRemainder % totalWeight,
-            )
+        val shares = expense.participantShares
+        val totalAmount = expense.amount.minorUnits
+        val sharesTotal = shares.sumOf { it.amountMinorUnits }
+
+        require(sharesTotal == totalAmount) {
+            "Share amounts ($sharesTotal) must equal the expense total ($totalAmount)."
         }
 
-        var remainingMinorUnits = amount - allocations.sumOf { it.minorUnits }
-        val roundedUpParticipantIds = allocations
-            .sortedWith(compareByDescending<Allocation> { it.remainder }.thenBy { it.participantId.value })
-            .map { it.participantId }
-        val roundedMinorUnits = allocations.associate { it.participantId to it.minorUnits }.toMutableMap()
-
-        for (participantId in roundedUpParticipantIds) {
-            if (remainingMinorUnits == 0L) break
-            roundedMinorUnits[participantId] = roundedMinorUnits.getValue(participantId) + 1
-            remainingMinorUnits--
-        }
-
-        check(remainingMinorUnits == 0L) { "Expense split failed to allocate all minor units." }
         return shares.associate { share ->
             share.participantId to Money(
-                minorUnits = roundedMinorUnits.getValue(share.participantId),
+                minorUnits = share.amountMinorUnits,
                 currencyCode = expense.amount.currencyCode,
             )
         }
     }
-
-    private data class Allocation(
-        val participantId: ParticipantId,
-        val minorUnits: Long,
-        val remainder: Long,
-    )
 
     private fun defaultCurrency(expenses: List<Expense>): String {
         return expenses.firstOrNull()?.amount?.currencyCode ?: DefaultCurrencyCode

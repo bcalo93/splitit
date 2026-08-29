@@ -8,7 +8,6 @@ import com.splitit.domain.usecase.DeleteExpenseUseCase
 import com.splitit.domain.usecase.GetSettingsUseCase
 import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.UpdateExpenseUseCase
-import com.splitit.domain.value.Money
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryParticipantRepository
 import com.splitit.testutils.InMemoryGroupRepository
@@ -26,63 +25,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ExpensesShareWeightTest {
+class ExpensesShareAmountTest {
     @Test
-    fun computeWeightedSharesSplitsProportionally() {
-        val shares = computeWeightedShares(
-            amountMinorUnits = 1_000L,
-            weights = mapOf(TestIds.alice to 1, TestIds.bob to 3),
-            currencyCode = "EUR",
-        )
-
-        assertEquals(Money(250L, "EUR"), shares[TestIds.alice])
-        assertEquals(Money(750L, "EUR"), shares[TestIds.bob])
-    }
-
-    @Test
-    fun computeWeightedSharesDistributesRemainderByLargestFraction() {
-        val shares = computeWeightedShares(
-            amountMinorUnits = 1_001L,
-            weights = mapOf(
-                TestIds.alice to 1,
-                TestIds.bob to 1,
-                TestIds.charlie to 1,
-            ),
-            currencyCode = "USD",
-        )
-
-        assertEquals(334L, shares.getValue(TestIds.alice).minorUnits)
-        assertEquals(334L, shares.getValue(TestIds.bob).minorUnits)
-        assertEquals(333L, shares.getValue(TestIds.charlie).minorUnits)
-    }
-
-    @Test
-    fun weightedModeComputesTotalPartsAndLiveAmounts() = runViewModelTest {
-        val viewModel = createViewModel()
-        advanceUntilIdle()
-
-        viewModel.onAmountChange("9.00")
-        viewModel.selectAllParticipants()
-        viewModel.onSplitModeChanged(SplitMode.Weighted)
-        viewModel.onShareWeightChanged(TestIds.bob, 2)
-
-        assertEquals(4, viewModel.state.value.totalParts)
-        assertEquals(
-            Money(225L, "EUR"),
-            viewModel.state.value.weightedShareAmounts?.get(TestIds.alice),
-        )
-        assertEquals(
-            Money(450L, "EUR"),
-            viewModel.state.value.weightedShareAmounts?.get(TestIds.bob),
-        )
-        assertEquals(
-            Money(225L, "EUR"),
-            viewModel.state.value.weightedShareAmounts?.get(TestIds.charlie),
-        )
-    }
-
-    @Test
-    fun weightedModePersistsShareWeightsOnSave() = runViewModelTest {
+    fun byAmountModePersistsAmountsOnSave() = runViewModelTest {
         val expenseRepository = InMemoryExpenseRepository()
         val viewModel = createViewModel(expenseRepository = expenseRepository)
         advanceUntilIdle()
@@ -90,20 +35,22 @@ class ExpensesShareWeightTest {
         viewModel.onTitleChange("Dinner")
         viewModel.onAmountChange("10.00")
         viewModel.selectAllParticipants()
-        viewModel.onSplitModeChanged(SplitMode.Weighted)
-        viewModel.onShareWeightChanged(TestIds.bob, 3)
+        viewModel.onSplitModeChanged(SplitMode.ByAmount)
+        viewModel.onShareAmountChanged(TestIds.alice, "3.00")
+        viewModel.onShareAmountChanged(TestIds.bob, "4.00")
+        viewModel.onShareAmountChanged(TestIds.charlie, "3.00")
         viewModel.save()
         advanceUntilIdle()
 
         val saved = expenseRepository.savedExpenses.single()
         assertEquals(3, saved.participantShares.size)
-        assertEquals(1, saved.participantShares.first { it.participantId == TestIds.alice }.shareWeight)
-        assertEquals(3, saved.participantShares.first { it.participantId == TestIds.bob }.shareWeight)
-        assertEquals(1, saved.participantShares.first { it.participantId == TestIds.charlie }.shareWeight)
+        assertEquals(300L, saved.participantShares.first { it.participantId == TestIds.alice }.amountMinorUnits)
+        assertEquals(400L, saved.participantShares.first { it.participantId == TestIds.bob }.amountMinorUnits)
+        assertEquals(300L, saved.participantShares.first { it.participantId == TestIds.charlie }.amountMinorUnits)
     }
 
     @Test
-    fun equalModePersistsDefaultWeights() = runViewModelTest {
+    fun equalModePersistsEqualAmountsOnSave() = runViewModelTest {
         val expenseRepository = InMemoryExpenseRepository()
         val viewModel = createViewModel(expenseRepository = expenseRepository)
         advanceUntilIdle()
@@ -115,7 +62,38 @@ class ExpensesShareWeightTest {
         advanceUntilIdle()
 
         val saved = expenseRepository.savedExpenses.single()
-        assertTrue(saved.participantShares.all { it.shareWeight == 1 })
+        assertEquals(2, saved.participantShares.size)
+        assertTrue(saved.participantShares.all { it.amountMinorUnits == 600L })
+    }
+
+    @Test
+    fun byAmountModeShowsErrorWhenSumExceedsTotal() = runViewModelTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAmountChange("10.00")
+        viewModel.selectAllParticipants()
+        viewModel.onSplitModeChanged(SplitMode.ByAmount)
+        viewModel.onShareAmountChanged(TestIds.alice, "5.00")
+        viewModel.onShareAmountChanged(TestIds.bob, "5.00")
+        viewModel.onShareAmountChanged(TestIds.charlie, "1.00")
+
+        val state = viewModel.state.value
+        assertEquals(-100L, state.shareAmountsRemainder)
+    }
+
+    @Test
+    fun byAmountModeShowsRemainder() = runViewModelTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onAmountChange("10.00")
+        viewModel.selectAllParticipants()
+        viewModel.onSplitModeChanged(SplitMode.ByAmount)
+        viewModel.onShareAmountChanged(TestIds.alice, "3.00")
+
+        val state = viewModel.state.value
+        assertEquals(700L, state.shareAmountsRemainder)
     }
 
     private fun createViewModel(

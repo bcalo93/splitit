@@ -27,6 +27,9 @@ import splitit.composeapp.generated.resources.error_enter_positive_amount
 import splitit.composeapp.generated.resources.error_enter_group_name
 import splitit.composeapp.generated.resources.error_invalid_currency
 import splitit.composeapp.generated.resources.error_participant_used_by_expenses
+import splitit.composeapp.generated.resources.error_share_amounts_remaining
+import splitit.composeapp.generated.resources.error_share_amounts_excess
+import splitit.composeapp.generated.resources.error_share_amounts_negative
 import splitit.composeapp.generated.resources.payment_title
 
 interface LocalizationService {
@@ -78,6 +81,9 @@ class DefaultLocalizationService : LocalizationService {
                 LocalizedString.ErrorCouldNotSaveSettings -> getString(Res.string.error_could_not_save_settings)
                 LocalizedString.PaymentTitle -> getString(Res.string.payment_title)
                 LocalizedString.ErrorCouldNotRecordPayment -> getString(Res.string.error_could_not_record_payment)
+                LocalizedString.ErrorShareAmountsRemaining -> getString(Res.string.error_share_amounts_remaining)
+                LocalizedString.ErrorShareAmountsExcess -> getString(Res.string.error_share_amounts_excess)
+                LocalizedString.ErrorShareAmountsNegative -> getString(Res.string.error_share_amounts_negative)
             }
         } catch (e: Exception) {
             key.key

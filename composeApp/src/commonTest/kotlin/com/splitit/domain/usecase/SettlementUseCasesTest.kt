@@ -124,8 +124,8 @@ class SettlementUseCasesTest {
             amount = Money(1000, "USD"),
             payerId = aliceId,
             participantShares = listOf(
-                ExpenseParticipantShare(expenseId, aliceId),
-                ExpenseParticipantShare(expenseId, bobId),
+                ExpenseParticipantShare(expenseId, aliceId, 500L),
+                ExpenseParticipantShare(expenseId, bobId, 500L),
             ),
             dateMillis = 1,
             note = null,
