@@ -31,6 +31,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
@@ -91,6 +92,7 @@ import splitit.composeapp.generated.resources.amount_distributed
 import splitit.composeapp.generated.resources.amount_over_limit
 import splitit.composeapp.generated.resources.amount_per_participant_hint
 import splitit.composeapp.generated.resources.amount_remaining
+import splitit.composeapp.generated.resources.cd_more_vert
 import splitit.composeapp.generated.resources.day_full_date
 import splitit.composeapp.generated.resources.day_today
 import splitit.composeapp.generated.resources.day_yesterday
@@ -387,50 +389,59 @@ private fun ExpenseRowItem(
         )
     }
 
-    Box(modifier = modifier.fillMaxWidth()) {
-        ExpenseCard(
-            title = expense.title,
-            payerName = payerName,
-            payerColorHex = payerColorHex,
-            metadata = metadata,
-            amount = expense.amount,
-            note = expense.note,
-            onMoreClick = { menuExpanded = true },
-        )
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false },
-        ) {
-            if (!expense.isTransferPayment) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(Res.string.edit)) },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(SplitItIcons.Edit),
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        onEdit()
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.delete)) },
-                leadingIcon = {
+    ExpenseCard(
+        title = expense.title,
+        payerName = payerName,
+        payerColorHex = payerColorHex,
+        metadata = metadata,
+        amount = expense.amount,
+        note = expense.note,
+        modifier = modifier,
+        trailingContent = {
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
                     Icon(
-                        painter = painterResource(SplitItIcons.Delete),
-                        contentDescription = null,
+                        painter = painterResource(SplitItIcons.MoreVert),
+                        contentDescription = stringResource(Res.string.cd_more_vert),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                },
-                onClick = {
-                    menuExpanded = false
-                    showDeleteConfirmation = true
-                },
-            )
-        }
-    }
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    if (!expense.isTransferPayment) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.edit)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(SplitItIcons.Edit),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit()
+                            },
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.delete)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(SplitItIcons.Delete),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            showDeleteConfirmation = true
+                        },
+                    )
+                }
+            }
+        },
+    )
 
     if (showDeleteConfirmation) {
         ConfirmDeleteDialog(

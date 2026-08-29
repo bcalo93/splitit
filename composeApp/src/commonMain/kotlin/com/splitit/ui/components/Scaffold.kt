@@ -13,12 +13,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.cd_back
+
+private const val BACK_DEBOUNCE_MS = 350L
 
 @Composable
 fun SplitItScaffold(
@@ -50,12 +57,22 @@ fun SplitItTopBar(
     navigationContentDescription: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
+    var backBlocked by remember { mutableStateOf(false) }
+
     TopAppBar(
         modifier = modifier,
         title = { Text(title, style = MaterialTheme.typography.headlineMedium) },
         navigationIcon = {
             if (onBack != null) {
-                IconButton(onClick = onBack) {
+                IconButton(
+                    onClick = {
+                        if (!backBlocked) {
+                            backBlocked = true
+                            onBack()
+                        }
+                    },
+                    enabled = !backBlocked,
+                ) {
                     Icon(
                         painter = painterResource(navigationIcon),
                         contentDescription = navigationContentDescription
@@ -69,6 +86,13 @@ fun SplitItTopBar(
             containerColor = MaterialTheme.colorScheme.background,
         ),
     )
+
+    if (backBlocked) {
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            delay(BACK_DEBOUNCE_MS)
+            backBlocked = false
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,12 +104,22 @@ fun SplitItLargeTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
+    var backBlocked by remember { mutableStateOf(false) }
+
     LargeTopAppBar(
         modifier = modifier,
         title = { Text(title, style = MaterialTheme.typography.headlineMedium) },
         navigationIcon = {
             if (onBack != null) {
-                IconButton(onClick = onBack) {
+                IconButton(
+                    onClick = {
+                        if (!backBlocked) {
+                            backBlocked = true
+                            onBack()
+                        }
+                    },
+                    enabled = !backBlocked,
+                ) {
                     Icon(
                         painter = painterResource(SplitItIcons.ArrowBack),
                         contentDescription = stringResource(Res.string.cd_back),
@@ -99,4 +133,11 @@ fun SplitItLargeTopBar(
             containerColor = MaterialTheme.colorScheme.background,
         ),
     )
+
+    if (backBlocked) {
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            delay(BACK_DEBOUNCE_MS)
+            backBlocked = false
+        }
+    }
 }

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,9 +29,6 @@ import com.splitit.domain.value.Money
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import splitit.composeapp.generated.resources.Res
-import splitit.composeapp.generated.resources.cd_delete
-import splitit.composeapp.generated.resources.cd_edit
-import splitit.composeapp.generated.resources.cd_more_vert
 import splitit.composeapp.generated.resources.mark_as_paid
 import splitit.composeapp.generated.resources.transfer_content_description
 
@@ -45,7 +41,7 @@ fun GroupCard(
     statusLabel: String,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    onMoreClick: (() -> Unit)? = null,
+    trailingContent: @Composable (() -> Unit)? = null,
 ) {
     SplitItCard(modifier = modifier, onClick = onClick) {
         Row(
@@ -72,15 +68,7 @@ fun GroupCard(
                 Spacer(Modifier.width(8.dp))
                 StatusChip(style = status, label = statusLabel)
             }
-            if (onMoreClick != null) {
-                IconButton(onClick = onMoreClick) {
-                    Icon(
-                        painter = painterResource(SplitItIcons.MoreVert),
-                        contentDescription = stringResource(Res.string.cd_more_vert),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            trailingContent?.invoke()
         }
     }
 }
@@ -94,7 +82,7 @@ fun ExpenseCard(
     amount: Money,
     modifier: Modifier = Modifier,
     note: String? = null,
-    onMoreClick: (() -> Unit)? = null,
+    trailingContent: @Composable (() -> Unit)? = null,
 ) {
     SplitItCard(modifier = modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -125,15 +113,7 @@ fun ExpenseCard(
                     variant = MoneyTextVariant.Row,
                     showCurrency = true,
                 )
-                if (onMoreClick != null) {
-                    IconButton(onClick = onMoreClick) {
-                        Icon(
-                            painter = painterResource(SplitItIcons.MoreVert),
-                            contentDescription = stringResource(Res.string.cd_more_vert),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                trailingContent?.invoke()
             }
             note?.let {
                 Text(
@@ -152,8 +132,8 @@ fun ExpenseCard(
 fun ParticipantRow(
     name: String,
     colorHex: String?,
-    onMoreClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    trailingContent: @Composable (() -> Unit)? = null,
 ) {
     SplitItCard(modifier = modifier) {
         Row(
@@ -174,15 +154,7 @@ fun ParticipantRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (onMoreClick != null) {
-                IconButton(onClick = onMoreClick) {
-                    Icon(
-                        painter = painterResource(SplitItIcons.MoreVert),
-                        contentDescription = stringResource(Res.string.cd_more_vert),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            trailingContent?.invoke()
         }
     }
 }
