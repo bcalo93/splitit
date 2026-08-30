@@ -109,7 +109,9 @@ fun SplitItTheme(
             LocalSplitItSemanticColors provides semanticColors,
             LocalSplitItMoneyStyles provides DefaultSplitItMoneyStyles,
             LocalSplitItDarkTheme provides useDarkTheme,
-            content = content,
-        )
+        ) {
+            SystemBarAppearance(useDarkTheme)
+            content()
+        }
     }
 }
