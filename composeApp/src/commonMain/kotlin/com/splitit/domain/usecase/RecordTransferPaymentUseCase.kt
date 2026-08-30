@@ -47,7 +47,9 @@ class RecordTransferPaymentUseCase(
         val now = clock.nowMillis()
         val expenseId = idGenerator.newExpenseId()
         val titlePattern = localization.getString(LocalizedString.PaymentTitle)
-        val title = String.format(titlePattern, fromParticipant.name, toParticipant.name)
+        val title = titlePattern
+            .replace("%1\$s", fromParticipant.name)
+            .replace("%2\$s", toParticipant.name)
 
         val expense = Expense(
             id = expenseId,

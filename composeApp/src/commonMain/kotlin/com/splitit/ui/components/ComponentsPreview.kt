@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,8 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.splitit.domain.repository.ThemeMode
 import com.splitit.domain.value.Money
 import com.splitit.ui.theme.SplitItTheme
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.cd_more_vert
 import splitit.composeapp.generated.resources.delete
 
 @Suppress("DEPRECATION")
@@ -145,7 +149,15 @@ private fun ComponentGallery() {
                 ),
                 status = StatusChipStyle.UpToDate,
                 statusLabel = "Al día",
-                onMoreClick = {},
+                trailingContent = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            painter = painterResource(SplitItIcons.MoreVert),
+                            contentDescription = stringResource(Res.string.cd_more_vert),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
             )
             GroupCard(
                 title = "Piso compartido",
@@ -157,7 +169,15 @@ private fun ComponentGallery() {
                 ),
                 status = StatusChipStyle.Pending,
                 statusLabel = "Pendiente",
-                onMoreClick = {},
+                trailingContent = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            painter = painterResource(SplitItIcons.MoreVert),
+                            contentDescription = stringResource(Res.string.cd_more_vert),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
             )
         }
 
@@ -169,7 +189,15 @@ private fun ComponentGallery() {
                 metadata = "Pagó Ana · entre 4",
                 amount = Money(8250, "EUR"),
                 note = "Incluye propina",
-                onMoreClick = {},
+                trailingContent = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            painter = painterResource(SplitItIcons.MoreVert),
+                            contentDescription = stringResource(Res.string.cd_more_vert),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
             )
         }
 
@@ -177,7 +205,15 @@ private fun ComponentGallery() {
             ParticipantRow(
                 name = "Ana García",
                 colorHex = "#E0533D",
-                onMoreClick = {},
+                trailingContent = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            painter = painterResource(SplitItIcons.MoreVert),
+                            contentDescription = stringResource(Res.string.cd_more_vert),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
             )
         }
 

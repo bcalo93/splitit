@@ -22,6 +22,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -62,6 +63,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.add
+import splitit.composeapp.generated.resources.cd_more_vert
 import splitit.composeapp.generated.resources.add_participant
 import splitit.composeapp.generated.resources.edit
 import splitit.composeapp.generated.resources.edit_participant
@@ -226,44 +228,53 @@ private fun ParticipantRowItem(
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier.fillMaxWidth()) {
-        ParticipantRow(
-            name = participant.name,
-            colorHex = participant.avatarColor,
-            onMoreClick = { menuExpanded = true },
-        )
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false },
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.edit)) },
-                leadingIcon = {
+    ParticipantRow(
+        name = participant.name,
+        colorHex = participant.avatarColor,
+        modifier = modifier,
+        trailingContent = {
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
                     Icon(
-                        painter = painterResource(SplitItIcons.Edit),
-                        contentDescription = null,
+                        painter = painterResource(SplitItIcons.MoreVert),
+                        contentDescription = stringResource(Res.string.cd_more_vert),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                },
-                onClick = {
-                    menuExpanded = false
-                    onEdit()
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.remove)) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(SplitItIcons.Delete),
-                        contentDescription = null,
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.edit)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(SplitItIcons.Edit),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onEdit()
+                        },
                     )
-                },
-                onClick = {
-                    menuExpanded = false
-                    onDelete()
-                },
-            )
-        }
-    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.remove)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(SplitItIcons.Delete),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onDelete()
+                        },
+                    )
+                }
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

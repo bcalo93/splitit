@@ -62,6 +62,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import splitit.composeapp.generated.resources.Res
+import splitit.composeapp.generated.resources.cd_more_vert
 import splitit.composeapp.generated.resources.cd_settings
 import splitit.composeapp.generated.resources.create_first_group
 import splitit.composeapp.generated.resources.delete
@@ -240,54 +241,63 @@ private fun GroupRow(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val avatarItems = participants.map { AvatarStackItem(name = it.name, colorHex = it.avatarColor) }
 
-    Box(modifier = modifier.fillMaxWidth()) {
-        GroupCard(
-            title = group.title,
-            subtitle = stringResource(
-                Res.string.group_summary,
-                group.participantIds.size,
-                group.expenseIds.size,
-            ),
-            avatarItems = avatarItems,
-            status = if (isPending) StatusChipStyle.Pending else StatusChipStyle.UpToDate,
-            statusLabel = stringResource(
-                if (isPending) Res.string.group_status_pending else Res.string.group_status_up_to_date,
-            ),
-            onClick = onOpen,
-            onMoreClick = { menuExpanded = true },
-        )
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false },
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.edit)) },
-                leadingIcon = {
+    GroupCard(
+        title = group.title,
+        subtitle = stringResource(
+            Res.string.group_summary,
+            group.participantIds.size,
+            group.expenseIds.size,
+        ),
+        avatarItems = avatarItems,
+        status = if (isPending) StatusChipStyle.Pending else StatusChipStyle.UpToDate,
+        statusLabel = stringResource(
+            if (isPending) Res.string.group_status_pending else Res.string.group_status_up_to_date,
+        ),
+        onClick = onOpen,
+        modifier = modifier,
+        trailingContent = {
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
                     Icon(
-                        painter = painterResource(SplitItIcons.Edit),
-                        contentDescription = null,
+                        painter = painterResource(SplitItIcons.MoreVert),
+                        contentDescription = stringResource(Res.string.cd_more_vert),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                },
-                onClick = {
-                    menuExpanded = false
-                    onEdit()
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.delete)) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(SplitItIcons.Delete),
-                        contentDescription = null,
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.edit)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(SplitItIcons.Edit),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onEdit()
+                        },
                     )
-                },
-                onClick = {
-                    menuExpanded = false
-                    showDeleteConfirmation = true
-                },
-            )
-        }
-    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.delete)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(SplitItIcons.Delete),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            showDeleteConfirmation = true
+                        },
+                    )
+                }
+            }
+        },
+    )
 
     if (showDeleteConfirmation) {
         ConfirmDeleteDialog(
