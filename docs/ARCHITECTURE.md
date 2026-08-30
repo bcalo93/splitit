@@ -341,11 +341,11 @@ flowchart LR
 
 Se utiliza **Koin** en `commonMain` con tres módulos:
 
-| Módulo               | Responsabilidad                                                                                                                                       |
-|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `dataModule`         | Provee `SplitItDatabase` y las implementaciones `SqlDelight*Repository`. Recibe `DatabaseDriverFactory` como parámetro de plataforma.                 |
+| Módulo               | Responsabilidad                                                                                                                                    |
+|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `dataModule`         | Provee `SplitItDatabase` y las implementaciones `SqlDelight*Repository`. Recibe `DatabaseDriverFactory` como parámetro de plataforma.              |
 | `domainModule`       | Provee casos de uso (factory), servicios singleton (`BalanceCalculator`, `DefaultLocalizationService`), `Optimizer<Debt>`, `Clock`, `IdGenerator`. |
-| `presentationModule` | Provee `ViewModel`s; los que necesitan `groupId` usan parámetros de Koin.                                                                             |
+| `presentationModule` | Provee `ViewModel`s; los que necesitan `groupId` usan parámetros de Koin.                                                                          |
 
 ### Wiring por plataforma
 
@@ -459,21 +459,21 @@ El `Expense` creado usa como pagador al deudor (`fromParticipantId`) y como úni
 
 ## 11. Patrones utilizados
 
-| Patrón                                | Dónde se aplica                                                                     |
-|---------------------------------------|-------------------------------------------------------------------------------------|
-| **Clean / Layered Architecture**      | Separación UI → Presentación → Dominio → Datos.                                     |
-| **Repository Pattern**                | Interfaces en dominio, implementaciones SQLDelight en datos.                        |
-| **Use Case / Command Pattern**        | Un caso de uso por operación de negocio.                                            |
-| **MVVM + Unidirectional Data Flow**   | `ViewModel` expone `StateFlow<UiState>`; la UI envía eventos.                       |
-| **Dependency Injection**              | Koin en todos los módulos.                                                          |
-| **Type-safe Navigation**              | Destinos `@Serializable` con `navigation-compose`.                                  |
-| **Value Classes**                     | IDs tipadas (`GroupId`, `ExpenseId`, etc.).                                         |
-| **Value Object**                      | `Money` encapsula importe y moneda.                                                 |
+| Patrón                                | Dónde se aplica                                                                          |
+|---------------------------------------|------------------------------------------------------------------------------------------|
+| **Clean / Layered Architecture**      | Separación UI → Presentación → Dominio → Datos.                                          |
+| **Repository Pattern**                | Interfaces en dominio, implementaciones SQLDelight en datos.                             |
+| **Use Case / Command Pattern**        | Un caso de uso por operación de negocio.                                                 |
+| **MVVM + Unidirectional Data Flow**   | `ViewModel` expone `StateFlow<UiState>`; la UI envía eventos.                            |
+| **Dependency Injection**              | Koin en todos los módulos.                                                               |
+| **Type-safe Navigation**              | Destinos `@Serializable` con `navigation-compose`.                                       |
+| **Value Classes**                     | IDs tipadas (`GroupId`, `ExpenseId`, etc.).                                              |
+| **Value Object**                      | `Money` encapsula importe y moneda.                                                      |
 | **Adapter**                           | `GenerateSettlementUseCase` transforma las `Debt`s optimizadas en `SettlementTransfer`s. |
-| **Chain of Responsibility**           | `ComposedOptimizer` aplica `CycleOptimizer` y `TransitiveOptimizer` iterativamente. |
-| **Anti-Corruption Layer**             | `DatabaseMappers.kt` aísla modelos de base de datos de modelos de dominio.          |
-| **CompositionLocal**                  | Tokens de diseño semánticos accesibles desde cualquier composable.                  |
-| **Factory Method / Abstract Factory** | `DatabaseDriverFactory` con implementaciones por plataforma.                        |
+| **Chain of Responsibility**           | `ComposedOptimizer` aplica `CycleOptimizer` y `TransitiveOptimizer` iterativamente.      |
+| **Anti-Corruption Layer**             | `DatabaseMappers.kt` aísla modelos de base de datos de modelos de dominio.               |
+| **CompositionLocal**                  | Tokens de diseño semánticos accesibles desde cualquier composable.                       |
+| **Factory Method / Abstract Factory** | `DatabaseDriverFactory` con implementaciones por plataforma.                             |
 
 ---
 
