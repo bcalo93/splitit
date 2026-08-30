@@ -1,19 +1,13 @@
-package com.splitit.logic.optimizers
+package com.splitit.domain.optimizer
 
-class ComposedOptimizer<T> : Optimizer<T> {
-    private val optimizers: List<Optimizer<T>>
-
-    // TODO DEPENDENCY INJECTION
-    constructor(optimizers: List<Optimizer<T>>) {
-        this.optimizers = optimizers
-    }
+class ComposedOptimizer<T>(private val optimizers: List<Optimizer<T>>) : Optimizer<T> {
 
     override fun optimize(elements: Set<T>): OptimizerResult<T> {
         var finished = false
         var optimized = false
         var accumulator = elements
 
-        while(!finished) {
+        while (!finished) {
             val optimizations = optimizers.map {
                 val currentResult = it.optimize(accumulator)
 
@@ -21,7 +15,7 @@ class ComposedOptimizer<T> : Optimizer<T> {
                 currentResult
             }
 
-            val hasOptimized = optimizations.any{ it.optimized }
+            val hasOptimized = optimizations.any { it.optimized }
 
             if (hasOptimized) {
                 optimized = true

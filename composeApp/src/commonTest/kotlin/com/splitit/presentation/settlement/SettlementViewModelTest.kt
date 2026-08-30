@@ -2,15 +2,14 @@
 
 package com.splitit.presentation.settlement
 
-import com.splitit.domain.optimizer.PaymentOptimizerAdapter
+import com.splitit.domain.optimizer.ComposedOptimizer
+import com.splitit.domain.optimizer.CycleOptimizer
+import com.splitit.domain.optimizer.TransitiveOptimizer
 import com.splitit.domain.service.BalanceCalculator
 import com.splitit.domain.usecase.CalculateGroupBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementUseCase
 import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.RecordTransferPaymentUseCase
-import com.splitit.logic.optimizers.ComposedOptimizer
-import com.splitit.logic.optimizers.debt.CycleOptimizer
-import com.splitit.logic.optimizers.debt.TransitiveOptimizer
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryParticipantRepository
 import com.splitit.testutils.InMemoryGroupRepository
@@ -125,10 +124,7 @@ class SettlementViewModelTest {
                 expenseRepository = expenseRepository,
                 settlementRepository = settlementRepository,
                 balanceCalculator = balanceCalculator,
-                optimizerAdapter = PaymentOptimizerAdapter(
-                    optimizer = ComposedOptimizer(listOf(CycleOptimizer(), TransitiveOptimizer())),
-                    idGenerator = idGenerator,
-                ),
+                optimizer = ComposedOptimizer(listOf(CycleOptimizer(), TransitiveOptimizer())),
                 idGenerator = idGenerator,
                 clock = clock,
             ),

@@ -1,4 +1,4 @@
-package com.splitit.logic.optimizers
+package com.splitit.domain.optimizer
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 
 class ComposedOptimizerTest {
 
-    val underTen= object : Optimizer<Int> {
+    val underTen = object : Optimizer<Int> {
         override fun optimize(elements: Set<Int>): OptimizerResult<Int> {
             val result = elements.filter { it < 10 }.toSet()
             return OptimizerResult(
@@ -31,7 +31,7 @@ class ComposedOptimizerTest {
     fun testOptimize() {
         val composedOptimizer = ComposedOptimizer(listOf(underTen, overThree))
 
-        val result = composedOptimizer.optimize(setOf(1,2, 3, 4, 5, 10))
+        val result = composedOptimizer.optimize(setOf(1, 2, 3, 4, 5, 10))
         assertTrue(result.optimized)
         assertEquals(setOf(4, 5), result.elements)
     }
@@ -40,7 +40,7 @@ class ComposedOptimizerTest {
     fun testOptimizeTwice() {
         val composedOptimizer = ComposedOptimizer(listOf(underTen, overThree))
 
-        val result = composedOptimizer.optimize(setOf(1,2, 3, 4, 5, 10))
+        val result = composedOptimizer.optimize(setOf(1, 2, 3, 4, 5, 10))
         assertTrue(result.optimized)
 
         val result2 = composedOptimizer.optimize(result.elements)
@@ -70,9 +70,8 @@ class ComposedOptimizerTest {
     fun testEmptyOptimizers() {
         val composedOptimizer = ComposedOptimizer(listOf<Optimizer<Int>>())
 
-        val result = composedOptimizer.optimize(setOf(1,2, 3, 4, 5, 10))
+        val result = composedOptimizer.optimize(setOf(1, 2, 3, 4, 5, 10))
         assertFalse(result.optimized)
-        assertEquals(setOf(1,2, 3, 4, 5, 10), result.elements)
-
+        assertEquals(setOf(1, 2, 3, 4, 5, 10), result.elements)
     }
 }

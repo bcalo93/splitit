@@ -150,18 +150,16 @@ Los constructores validan invariantes (título no vacío, importe positivo, al m
 | `GroupId`, `ParticipantId`, `ExpenseId`, `SettlementId`, `TransferId` | Inline/value classes que evitan mezclar identificadores y validan que no sean vacíos.                 |
 | `Clock` / `IdGenerator`                                               | Abstracciones de infraestructura usadas desde el dominio para fechas e IDs.                           |
 
-### 4.3 Reglas de negocio (`domain/service/` y `logic/`)
+### 4.3 Reglas de negocio (`domain/service/` y `domain.optimizer/`)
 
-| Componente                 | Responsabilidad                                                                                                                                            |
-|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `BalanceCalculator`        | Calcula balances netos por participante a partir de gastos y repartos por monto directo (`amountMinorUnits`). Genera deudas simplificadas deudor→acreedor. |
-| `SourceRevisionCalculator` | Crea un *fingerprint* estable (FNV-1a) del estado actual de participantes y gastos para detectar si una liquidación quedó desactualizada.                  |
-| `PaymentOptimizerAdapter`  | Adapta las deudas del dominio al modelo `Payment`/`Participant` del optimizador heredado y devuelve `SettlementTransfer`s.                                 |
-| `ComposedOptimizer`        | Orquesta una lista de optimizadores de deuda hasta que ninguno pueda mejorar el resultado.                                                                 |
-| `CycleOptimizer`           | Elimina deudas mutuas (A→B y B→A) compensando importes.                                                                                                    |
-| `TransitiveOptimizer`      | Reduce cadenas transitivas (A→B→C) a transferencias directas.                                                                                              |
-
-> **Nota histórica:** los tipos `com.splitit.domain.Payment` y `com.splitit.domain.Participant` (optimizador) son un modelo interno más antiguo usado exclusivamente por los optimizadores de deuda. El resto del dominio utiliza los modelos en `domain/model/`.
+| Componente                  | Responsabilidad                                                                                                                                            |
+|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `BalanceCalculator`         | Calcula balances netos por participante a partir de gastos y repartos por monto directo (`amountMinorUnits`). Genera deudas simplificadas deudor→acreedor. |
+| `SourceRevisionCalculator`  | Crea un *fingerprint* estable (FNV-1a) del estado actual de participantes y gastos para detectar si una liquidación quedó desactualizada.                  |
+| `ComposedOptimizer`         | Orquesta una lista de optimizadores de deuda hasta que ninguno pueda mejorar el resultado. Recibe la lista de optimizadores por constructor.               |
+| `CycleOptimizer`            | Elimina deudas mutuas (A→B y B→A) compensando importes. Opera directamente sobre `Debt`.                                                                   |
+| `TransitiveOptimizer`       | Reduce cadenas transitivas (A→B→C) a transferencias directas. Opera directamente sobre `Debt`.                                                             |
+| `GenerateSettlementUseCase` | Orquesta el cálculo de balances, aplica el optimizador sobre la lista de `Debt` y genera las `SettlementTransfer`s ordenadas.                              |
 
 ### 4.4 Contratos de repositorio (`domain/repository/`)
 
@@ -346,7 +344,7 @@ Se utiliza **Koin** en `commonMain` con tres módulos:
 | Módulo               | Responsabilidad                                                                                                                                       |
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `dataModule`         | Provee `SplitItDatabase` y las implementaciones `SqlDelight*Repository`. Recibe `DatabaseDriverFactory` como parámetro de plataforma.                 |
-| `domainModule`       | Provee casos de uso (factory), servicios singleton (`BalanceCalculator`, `DefaultLocalizationService`), `Optimizer<Payment>`, `Clock`, `IdGenerator`. |
+| `domainModule`       | Provee casos de uso (factory), servicios singleton (`BalanceCalculator`, `DefaultLocalizationService`), `Optimizer<Debt>`, `Clock`, `IdGenerator`. |
 | `presentationModule` | Provee `ViewModel`s; los que necesitan `groupId` usan parámetros de Koin.                                                                             |
 
 ### Wiring por plataforma
@@ -397,7 +395,7 @@ sequenceDiagram
     participant VM as SettlementViewModel
     participant UC as GenerateSettlementUseCase
     participant Calc as BalanceCalculator
-    participant Optimizer as PaymentOptimizerAdapter
+    participant Optimizer as Optimizer<Debt>
     participant Repo as SqlDelightSettlementRepository
 
     User->>VM: Solicita/entra a liquidación
@@ -407,8 +405,9 @@ sequenceDiagram
     Calc-->>UC: List<Balance>
     UC->>Calc: calculateDebts(balances)
     Calc-->>UC: List<Debt>
-    UC->>Optimizer: optimize(settlementId, debts)
-    Optimizer-->>UC: List<SettlementTransfer>
+    UC->>Optimizer: optimize(debts)
+    Optimizer-->>UC: Set<Debt>
+    UC->>UC: Genera SettlementTransfer ids y ordena
     UC->>UC: Crea Settlement con sourceRevision
     UC->>Repo: saveSettlement(settlement)
     Repo-->>UC: OK
@@ -470,7 +469,7 @@ El `Expense` creado usa como pagador al deudor (`fromParticipantId`) y como úni
 | **Type-safe Navigation**              | Destinos `@Serializable` con `navigation-compose`.                                  |
 | **Value Classes**                     | IDs tipadas (`GroupId`, `ExpenseId`, etc.).                                         |
 | **Value Object**                      | `Money` encapsula importe y moneda.                                                 |
-| **Adapter**                           | `PaymentOptimizerAdapter` entre modelo de dominio y modelo del optimizador.         |
+| **Adapter**                           | `GenerateSettlementUseCase` transforma las `Debt`s optimizadas en `SettlementTransfer`s. |
 | **Chain of Responsibility**           | `ComposedOptimizer` aplica `CycleOptimizer` y `TransitiveOptimizer` iterativamente. |
 | **Anti-Corruption Layer**             | `DatabaseMappers.kt` aísla modelos de base de datos de modelos de dominio.          |
 | **CompositionLocal**                  | Tokens de diseño semánticos accesibles desde cualquier composable.                  |
@@ -580,7 +579,6 @@ flowchart TB
 ## 14. Notas y advertencias conocidas
 
 - **Warning de SQLDelight en JDK 21:** `app.cash.sqldelight:compiler-env` emite un aviso sobre `sun.misc.Unsafe::objectFieldOffset`. Es inocuo y se silencia automáticamente en JDK 23+ con `--sun-misc-unsafe-memory-access=allow`.
-- **Límite del optimizador:** el modelo `Payment` heredado usa `Int` para el importe; `PaymentOptimizerAdapter` verifica que `minorUnits <= Int.MAX_VALUE` antes de convertir.
 - **Navegación type-safe:** los parámetros de ruta son `String` (por requisitos de serialización); se reconstruyen como value classes (`GroupId`) en el punto de entrada de cada Route.
 - **Recursos de plataforma:** `appVersion()` se implementa como `expect/actual` porque la versión se lee del `PackageManager` en Android y de `NSBundle` en iOS.
 

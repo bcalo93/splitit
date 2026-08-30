@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Balance
+import com.splitit.domain.model.Debt
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.model.SettlementTransfer
@@ -113,9 +114,11 @@ class SettlementViewModel(
             try {
                 recordTransferPaymentUseCase(
                     groupId = groupId,
-                    fromParticipantId = transfer.fromParticipantId,
-                    toParticipantId = transfer.toParticipantId,
-                    amount = transfer.amount,
+                    debt = Debt(
+                        fromParticipantId = transfer.fromParticipantId,
+                        toParticipantId = transfer.toParticipantId,
+                        amount = transfer.amount,
+                    ),
                 )
                 val snapshot = loadSnapshot()
                 _state.update {
