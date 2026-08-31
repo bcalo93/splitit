@@ -1,7 +1,10 @@
 package com.splitit.di
 
-import com.splitit.domain.Payment
-import com.splitit.domain.optimizer.PaymentOptimizerAdapter
+import com.splitit.domain.model.Debt
+import com.splitit.domain.optimizer.ComposedOptimizer
+import com.splitit.domain.optimizer.CycleOptimizer
+import com.splitit.domain.optimizer.Optimizer
+import com.splitit.domain.optimizer.TransitiveOptimizer
 import com.splitit.domain.service.BalanceCalculator
 import com.splitit.localization.DefaultLocalizationService
 import com.splitit.localization.LocalizationService
@@ -19,16 +22,12 @@ import com.splitit.domain.usecase.RecordTransferPaymentUseCase
 import com.splitit.domain.usecase.RemoveParticipantUseCase
 import com.splitit.domain.usecase.SaveSettingsUseCase
 import com.splitit.domain.usecase.UpdateExpenseUseCase
-import com.splitit.domain.usecase.UpdateParticipantUseCase
 import com.splitit.domain.usecase.UpdateGroupUseCase
+import com.splitit.domain.usecase.UpdateParticipantUseCase
 import com.splitit.domain.value.Clock
 import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.SystemClock
 import com.splitit.domain.value.UuidGenerator
-import com.splitit.logic.optimizers.ComposedOptimizer
-import com.splitit.logic.optimizers.Optimizer
-import com.splitit.logic.optimizers.debt.CycleOptimizer
-import com.splitit.logic.optimizers.debt.TransitiveOptimizer
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -38,7 +37,7 @@ val domainModule = module {
     single { DefaultLocalizationService() }
     single<LocalizationService> { get<DefaultLocalizationService>() }
 
-    single<Optimizer<Payment>> {
+    single<Optimizer<Debt>> {
         ComposedOptimizer(
             listOf(
                 CycleOptimizer(),
@@ -46,7 +45,6 @@ val domainModule = module {
             ),
         )
     }
-    single { PaymentOptimizerAdapter(get(), get()) }
 
     factory { CreateGroupUseCase(get(), get(), get()) }
     factory { UpdateGroupUseCase(get(), get()) }
@@ -63,7 +61,7 @@ val domainModule = module {
     factory { DeleteExpenseUseCase(get()) }
 
     factory { CalculateGroupBalancesUseCase(get(), get(), get()) }
-    factory { GenerateSettlementUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    factory { GenerateSettlementUseCase(get(), get(), get(), get(), get<Optimizer<Debt>>(), get(), get()) }
     factory { RecordTransferPaymentUseCase(get(), get(), get(), get(), get(), get()) }
 
     factory { GetSettingsUseCase(get()) }

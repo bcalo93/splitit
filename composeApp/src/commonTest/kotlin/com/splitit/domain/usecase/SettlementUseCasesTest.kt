@@ -6,7 +6,9 @@ import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.GroupStatus
 import com.splitit.domain.model.Settlement
-import com.splitit.domain.optimizer.PaymentOptimizerAdapter
+import com.splitit.domain.optimizer.ComposedOptimizer
+import com.splitit.domain.optimizer.CycleOptimizer
+import com.splitit.domain.optimizer.TransitiveOptimizer
 import com.splitit.domain.repository.ExpenseRepository
 import com.splitit.domain.repository.ParticipantRepository
 import com.splitit.domain.repository.GroupRepository
@@ -21,9 +23,6 @@ import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.SettlementId
 import com.splitit.domain.value.TransferId
-import com.splitit.logic.optimizers.ComposedOptimizer
-import com.splitit.logic.optimizers.debt.CycleOptimizer
-import com.splitit.logic.optimizers.debt.TransitiveOptimizer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
@@ -85,10 +84,7 @@ class SettlementUseCasesTest {
             expenseRepository = InMemoryExpenseRepository(expenses),
             settlementRepository = settlementRepository,
             balanceCalculator = BalanceCalculator(),
-            optimizerAdapter = PaymentOptimizerAdapter(
-                optimizer = ComposedOptimizer(listOf(CycleOptimizer(), TransitiveOptimizer())),
-                idGenerator = TestIdGenerator,
-            ),
+            optimizer = ComposedOptimizer(listOf(CycleOptimizer(), TransitiveOptimizer())),
             idGenerator = TestIdGenerator,
             clock = FixedClock,
         )

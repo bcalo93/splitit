@@ -1,5 +1,6 @@
 package com.splitit.domain.usecase
 
+import com.splitit.domain.model.Debt
 import com.splitit.domain.model.ExpenseType
 import com.splitit.testutils.InMemoryExpenseRepository
 import com.splitit.testutils.InMemoryGroupRepository
@@ -35,9 +36,11 @@ class RecordTransferPaymentUseCaseTest {
 
         val result = useCase(
             groupId = TestIds.group,
-            fromParticipantId = TestIds.bob,
-            toParticipantId = TestIds.alice,
-            amount = Money(500, "USD"),
+            debt = Debt(
+                fromParticipantId = TestIds.bob,
+                toParticipantId = TestIds.alice,
+                amount = Money(500, "USD"),
+            ),
         )
 
         assertEquals(TestIds.secondExpense, result.id)
