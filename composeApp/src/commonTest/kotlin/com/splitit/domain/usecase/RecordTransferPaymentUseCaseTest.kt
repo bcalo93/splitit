@@ -34,12 +34,14 @@ class RecordTransferPaymentUseCaseTest {
             localization = testLocalizationService,
         )
 
-        val result = useCase(
-            groupId = TestIds.group,
-            debt = Debt(
-                fromParticipantId = TestIds.bob,
-                toParticipantId = TestIds.alice,
-                amount = Money(500, "USD"),
+        val result = useCase.invoke(
+            RecordTransferPaymentParams(
+                groupId = TestIds.group,
+                debt = Debt(
+                    fromParticipantId = TestIds.bob,
+                    toParticipantId = TestIds.alice,
+                    amount = Money(500, "USD"),
+                ),
             ),
         )
 

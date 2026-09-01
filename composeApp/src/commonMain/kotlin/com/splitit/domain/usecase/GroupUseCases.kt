@@ -5,28 +5,30 @@ import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.repository.ExpenseRepository
-import com.splitit.domain.repository.ParticipantRepository
 import com.splitit.domain.repository.GroupRepository
+import com.splitit.domain.repository.ParticipantRepository
 import com.splitit.domain.repository.SettlementRepository
 import com.splitit.domain.service.SourceRevisionCalculator
 import com.splitit.domain.value.Clock
-import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.GroupId
+import com.splitit.domain.value.IdGenerator
+
+data class CreateGroupParams(
+    val title: String,
+    val description: String?,
+)
 
 class CreateGroupUseCase(
     private val groupRepository: GroupRepository,
     private val idGenerator: IdGenerator,
     private val clock: Clock,
-) {
-    suspend operator fun invoke(
-        title: String,
-        description: String?,
-    ): ExpenseGroup {
+) : UseCase<CreateGroupParams, ExpenseGroup> {
+    override suspend fun invoke(params: CreateGroupParams): ExpenseGroup {
         val now = clock.nowMillis()
         val group = ExpenseGroup(
             id = idGenerator.newGroupId(),
-            title = title.trim(),
-            description = description?.trim()?.takeIf { it.isNotEmpty() },
+            title = params.title.trim(),
+            description = params.description?.trim()?.takeIf { it.isNotEmpty() },
             createdAtMillis = now,
             updatedAtMillis = now,
         )
@@ -36,21 +38,23 @@ class CreateGroupUseCase(
     }
 }
 
+data class UpdateGroupParams(
+    val groupId: GroupId,
+    val title: String,
+    val description: String?,
+)
+
 class UpdateGroupUseCase(
     private val groupRepository: GroupRepository,
     private val clock: Clock,
-) {
-    suspend operator fun invoke(
-        groupId: GroupId,
-        title: String,
-        description: String?,
-    ): ExpenseGroup {
-        val current = requireNotNull(groupRepository.getGroup(groupId)) {
-            "Group ${groupId.value} was not found."
+) : UseCase<UpdateGroupParams, ExpenseGroup> {
+    override suspend fun invoke(params: UpdateGroupParams): ExpenseGroup {
+        val current = requireNotNull(groupRepository.getGroup(params.groupId)) {
+            "Group ${params.groupId.value} was not found."
         }
         val updated = current.copy(
-            title = title.trim(),
-            description = description?.trim()?.takeIf { it.isNotEmpty() },
+            title = params.title.trim(),
+            description = params.description?.trim()?.takeIf { it.isNotEmpty() },
             updatedAtMillis = clock.nowMillis(),
         )
 
@@ -59,35 +63,45 @@ class UpdateGroupUseCase(
     }
 }
 
+data class DeleteGroupParams(
+    val groupId: GroupId,
+)
+
 class DeleteGroupUseCase(
     private val groupRepository: GroupRepository,
-) {
-    suspend operator fun invoke(groupId: GroupId) {
-        groupRepository.deleteGroup(groupId)
+) : UseCase<DeleteGroupParams, Unit> {
+    override suspend fun invoke(params: DeleteGroupParams) {
+        groupRepository.deleteGroup(params.groupId)
     }
 }
 
+object ObserveGroupsParams
+
 class ObserveGroupsUseCase(
     private val groupRepository: GroupRepository,
-) {
-    suspend operator fun invoke(): List<ExpenseGroup> {
+) : UseCase<ObserveGroupsParams, List<ExpenseGroup>> {
+    override suspend fun invoke(params: ObserveGroupsParams): List<ExpenseGroup> {
         return groupRepository.getGroups()
     }
 }
+
+data class ObserveGroupDetailsParams(
+    val groupId: GroupId,
+)
 
 class ObserveGroupDetailsUseCase(
     private val groupRepository: GroupRepository,
     private val participantRepository: ParticipantRepository,
     private val expenseRepository: ExpenseRepository,
     private val settlementRepository: SettlementRepository,
-) {
-    suspend operator fun invoke(groupId: GroupId): GroupDetails {
-        val group = requireNotNull(groupRepository.getGroup(groupId)) {
-            "Group ${groupId.value} was not found."
+) : UseCase<ObserveGroupDetailsParams, GroupDetails> {
+    override suspend fun invoke(params: ObserveGroupDetailsParams): GroupDetails {
+        val group = requireNotNull(groupRepository.getGroup(params.groupId)) {
+            "Group ${params.groupId.value} was not found."
         }
-        val participants = participantRepository.getParticipants(groupId)
-        val expenses = expenseRepository.getExpenses(groupId)
-        val latestSettlement = settlementRepository.getLatestSettlement(groupId)
+        val participants = participantRepository.getParticipants(params.groupId)
+        val expenses = expenseRepository.getExpenses(params.groupId)
+        val latestSettlement = settlementRepository.getLatestSettlement(params.groupId)
 
         return GroupDetails(
             group = group,

@@ -173,7 +173,37 @@ Las interfaces definen el contrato de persistencia sin acoplar a SQLDelight:
 
 ### 4.5 Casos de uso (`domain/usecase/`)
 
-Cada caso de uso representa una operación de negocio atómica. Se definen como clases con `operator fun invoke(...)`.
+Cada caso de uso representa una operación de negocio atómica y se define como clase que implementa la interfaz genérica `UseCase<P, R>`:
+
+```kotlin
+interface UseCase<in P, out R> {
+    suspend operator fun invoke(params: P): R
+}
+```
+
+- `P` es un DTO inmutable (`data class` con argumentos nombrados) que describe la entrada del caso de uso.
+- `R` es el tipo de retorno (entidad de dominio o `Unit`).
+- Los use cases sin parámetros usan `Unit` como DTO (p.ej. `ObserveGroupsUseCase`, `GetSettingsUseCase`).
+
+Ejemplo:
+
+```kotlin
+data class CreateExpenseParams(
+    val groupId: GroupId,
+    val title: String,
+    val amount: Money,
+    val payerId: ParticipantId,
+    val participantIds: List<ParticipantId>,
+    val dateMillis: Long,
+    val note: String?,
+    val shareAmounts: Map<ParticipantId, Long> = emptyMap(),
+    val type: ExpenseType = ExpenseType.EXPENSE,
+)
+
+class CreateExpenseUseCase(/* ... */) : UseCase<CreateExpenseParams, Expense> {
+    override suspend fun invoke(params: CreateExpenseParams): Expense { /* ... */ }
+}
+```
 
 | Grupo         | Casos de uso                                                                                                           |
 |---------------|------------------------------------------------------------------------------------------------------------------------|
@@ -184,6 +214,13 @@ Cada caso de uso representa una operación de negocio atómica. Se definen como 
 | Ajustes       | `GetSettingsUseCase`, `SaveSettingsUseCase`                                                                            |
 
 `ObserveGroupDetailsUseCase` devuelve `GroupDetails`, un agregado de lectura que expone `currentSourceRevision` e `isSettlementStale`.
+
+**Por qué `UseCase<P, R>`:**
+
+- Contrato uniforme (`invoke(params)`) — todos los casos de uso se invocan de la misma manera.
+- Testeable: los ViewModels pueden depender de la abstracción o del mock de la misma.
+- Permite decoradores genéricos (`LoggingUseCase<P, R>`, `MetricsUseCase<P, R>`) reutilizables.
+- DI binding por interfaz para `ObserveGroupDetailsUseCase` (consumido por 6 ViewModels) habilita decoradores sin tocar los call sites. El resto se inyecta por clase concreta.
 
 ---
 
@@ -347,6 +384,16 @@ Se utiliza **Koin** en `commonMain` con tres módulos:
 | `domainModule`       | Provee casos de uso (factory), servicios singleton (`BalanceCalculator`, `DefaultLocalizationService`), `Optimizer<Debt>`, `Clock`, `IdGenerator`. |
 | `presentationModule` | Provee `ViewModel`s; los que necesitan `groupId` usan parámetros de Koin.                                                                          |
 
+**Binding mixto en `domainModule`:** los casos de uso que justifican polimorfismo (consumidos por múltiples ViewModels o candidatos a decoradores) se inyectan vía la interfaz `UseCase<P, R>`. El resto se inyectan por clase concreta. Hoy sólo `ObserveGroupDetailsUseCase` usa binding por interfaz (consumido por `GroupListViewModel`, `GroupFormViewModel`, `GroupDetailsViewModel`, `ExpensesViewModel`, `ParticipantsViewModel`, `SettlementViewModel`).
+
+```kotlin
+factory<UseCase<ObserveGroupDetailsParams, GroupDetails>> {
+    ObserveGroupDetailsUseCase(get(), get(), get(), get())
+}
+factory { CreateGroupUseCase(get(), get(), get()) }
+// ...
+```
+
 ### Wiring por plataforma
 
 ```mermaid
@@ -463,17 +510,18 @@ El `Expense` creado usa como pagador al deudor (`fromParticipantId`) y como úni
 |---------------------------------------|------------------------------------------------------------------------------------------|
 | **Clean / Layered Architecture**      | Separación UI → Presentación → Dominio → Datos.                                          |
 | **Repository Pattern**                | Interfaces en dominio, implementaciones SQLDelight en datos.                             |
-| **Use Case / Command Pattern**        | Un caso de uso por operación de negocio.                                                 |
+| **Use Case / Command Pattern**        | Un caso de uso por operación de negocio, todos implementan `UseCase<P, R>`.              |
 | **MVVM + Unidirectional Data Flow**   | `ViewModel` expone `StateFlow<UiState>`; la UI envía eventos.                            |
-| **Dependency Injection**              | Koin en todos los módulos.                                                               |
+| **Dependency Injection**              | Koin en todos los módulos; binding mixto (interfaz o clase concreta) por caso de uso.    |
 | **Type-safe Navigation**              | Destinos `@Serializable` con `navigation-compose`.                                       |
 | **Value Classes**                     | IDs tipadas (`GroupId`, `ExpenseId`, etc.).                                              |
-| **Value Object**                      | `Money` encapsula importe y moneda.                                                      |
+| **Value Object**                      | `Money` encapsula importe y moneda.                                                     |
 | **Adapter**                           | `GenerateSettlementUseCase` transforma las `Debt`s optimizadas en `SettlementTransfer`s. |
 | **Chain of Responsibility**           | `ComposedOptimizer` aplica `CycleOptimizer` y `TransitiveOptimizer` iterativamente.      |
 | **Anti-Corruption Layer**             | `DatabaseMappers.kt` aísla modelos de base de datos de modelos de dominio.               |
-| **CompositionLocal**                  | Tokens de diseño semánticos accesibles desde cualquier composable.                       |
-| **Factory Method / Abstract Factory** | `DatabaseDriverFactory` con implementaciones por plataforma.                             |
+| **CompositionLocal**                  | Tokens de diseño semánticos accesibles desde cualquier composable.                      |
+| **Factory Method / Abstract Factory** | `DatabaseDriverFactory` con implementaciones por plataforma.                            |
+| **Generic Command Pattern**           | `UseCase<in P, out R>` con DTOs de entrada — base para decoradores transversales.        |
 
 ---
 
@@ -570,9 +618,17 @@ flowchart TB
 
 `commonTest/kotlin/com/splitit/testutils/` incluye:
 
-- `InMemoryRepositories`: implementaciones en memoria de todos los repositorios.
-- `TestFixtures`: datos de prueba reutilizables.
+- `InMemoryRepositories`: implementaciones en memoria de todos los repositorios. Se usan en los tests de use cases y de servicios de dominio.
+- `TestFixtures`: datos de prueba reutilizables (`TestIds`, `TestClock`, `TestIdGenerator`, factories de `ExpenseGroup`/`Participant`/`Expense`/`Settlement`).
 - `TestLocalization`, `CoroutineTestSupport`, `Comparators`: utilidades de test.
+
+**Mocks de ViewModels:** los tests de `presentation/*/` usan **[MockK](https://mockk.io)** (`io.mockk:mockk`) para generar dobles de los casos de uso. La interfaz `UseCase<P, R>` y la genericidad del contrato facilitan `coEvery { useCase.invoke(any()) } returns ...` y `coVerify { ... }`. Los mocks funcionan tanto con clases concretas como con la interfaz, así que los tests pueden:
+
+- Stubbear respuestas (`coEvery { ... } returns ...`) y excepciones (`coEvery { ... } throws ...`).
+- Verificar interacciones (`coVerify(exactly = N) { ... }`).
+- Devolver secuencias distintas en cada llamada (`coEvery { ... } returnsMany listOf(...)`).
+
+MockK está limitado al target JVM (la suite `commonTest` corre en JVM). Si en el futuro se agregan tests iOS-Native, esos deberán usar sólo fakes hand-rolled.
 
 ---
 

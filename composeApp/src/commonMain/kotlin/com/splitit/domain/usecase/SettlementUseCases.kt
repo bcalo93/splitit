@@ -16,18 +16,26 @@ import com.splitit.domain.value.IdGenerator
 import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.SettlementId
 
+data class CalculateGroupBalancesParams(
+    val groupId: GroupId,
+)
+
 class CalculateGroupBalancesUseCase(
     private val participantRepository: ParticipantRepository,
     private val expenseRepository: ExpenseRepository,
     private val balanceCalculator: BalanceCalculator,
-) {
-    suspend operator fun invoke(groupId: GroupId): List<Balance> {
+) : UseCase<CalculateGroupBalancesParams, List<Balance>> {
+    override suspend fun invoke(params: CalculateGroupBalancesParams): List<Balance> {
         return balanceCalculator.calculateBalances(
-            participants = participantRepository.getParticipants(groupId),
-            expenses = expenseRepository.getExpenses(groupId),
+            participants = participantRepository.getParticipants(params.groupId),
+            expenses = expenseRepository.getExpenses(params.groupId),
         )
     }
 }
+
+data class GenerateSettlementParams(
+    val groupId: GroupId,
+)
 
 class GenerateSettlementUseCase(
     private val participantRepository: ParticipantRepository,
@@ -37,8 +45,9 @@ class GenerateSettlementUseCase(
     private val optimizer: Optimizer<Debt>,
     private val idGenerator: IdGenerator,
     private val clock: Clock,
-) {
-    suspend operator fun invoke(groupId: GroupId): Settlement {
+) : UseCase<GenerateSettlementParams, Settlement> {
+    override suspend fun invoke(params: GenerateSettlementParams): Settlement {
+        val groupId = params.groupId
         val participants = participantRepository.getParticipants(groupId)
         val expenses = expenseRepository.getExpenses(groupId)
         val balances = balanceCalculator.calculateBalances(participants, expenses)

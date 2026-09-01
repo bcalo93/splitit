@@ -13,6 +13,11 @@ import com.splitit.domain.value.IdGenerator
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
 
+data class RecordTransferPaymentParams(
+    val groupId: GroupId,
+    val debt: Debt,
+)
+
 class RecordTransferPaymentUseCase(
     private val groupRepository: GroupRepository,
     private val participantRepository: ParticipantRepository,
@@ -20,11 +25,11 @@ class RecordTransferPaymentUseCase(
     private val idGenerator: IdGenerator,
     private val clock: Clock,
     private val localization: LocalizationService,
-) {
-    suspend operator fun invoke(
-        groupId: GroupId,
-        debt: Debt,
-    ): Expense {
+) : UseCase<RecordTransferPaymentParams, Expense> {
+    override suspend fun invoke(params: RecordTransferPaymentParams): Expense {
+        val groupId = params.groupId
+        val debt = params.debt
+
         requireNotNull(groupRepository.getGroup(groupId)) {
             "Group ${groupId.value} was not found."
         }

@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.repository.AppSettings
 import com.splitit.domain.repository.ThemeMode
+import com.splitit.domain.usecase.GetSettingsParams
 import com.splitit.domain.usecase.GetSettingsUseCase
+import com.splitit.domain.usecase.SaveSettingsParams
 import com.splitit.domain.usecase.SaveSettingsUseCase
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
@@ -41,7 +43,7 @@ class SettingsViewModel(
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching { getSettings() }
+            runCatching { getSettings(GetSettingsParams) }
                 .onSuccess { settings ->
                     _state.update {
                         it.copy(
@@ -108,7 +110,7 @@ class SettingsViewModel(
                     saveCompleted = false,
                 )
             }
-            runCatching { saveSettings(settings) }
+            runCatching { saveSettings(SaveSettingsParams(settings)) }
                 .onSuccess {
                     _state.update {
                         it.copy(

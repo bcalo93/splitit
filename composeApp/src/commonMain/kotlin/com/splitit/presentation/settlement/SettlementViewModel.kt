@@ -8,10 +8,15 @@ import com.splitit.domain.model.Debt
 import com.splitit.domain.model.Participant
 import com.splitit.domain.model.Settlement
 import com.splitit.domain.model.SettlementTransfer
+import com.splitit.domain.usecase.CalculateGroupBalancesParams
 import com.splitit.domain.usecase.CalculateGroupBalancesUseCase
+import com.splitit.domain.usecase.GenerateSettlementParams
 import com.splitit.domain.usecase.GenerateSettlementUseCase
-import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.RecordTransferPaymentParams
 import com.splitit.domain.usecase.RecordTransferPaymentUseCase
+import com.splitit.domain.usecase.UseCase
 import com.splitit.domain.value.GroupId
 import com.splitit.domain.value.TransferId
 import com.splitit.localization.LocalizedString
@@ -40,7 +45,7 @@ data class SettlementUiState(
 
 class SettlementViewModel(
     private val groupId: GroupId,
-    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val observeGroupDetails: UseCase<ObserveGroupDetailsParams, GroupDetails>,
     private val calculateGroupBalances: CalculateGroupBalancesUseCase,
     private val generateSettlement: GenerateSettlementUseCase,
     private val recordTransferPaymentUseCase: RecordTransferPaymentUseCase,
@@ -89,7 +94,7 @@ class SettlementViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isGenerating = true, errorMessage = null) }
             try {
-                generateSettlement(groupId)
+                generateSettlement(GenerateSettlementParams(groupId))
                 val snapshot = loadSnapshot()
                 _state.update { it.apply(snapshot).copy(isGenerating = false, isLoading = false) }
             } catch (exception: CancellationException) {
@@ -113,11 +118,13 @@ class SettlementViewModel(
             _state.update { it.copy(recordingTransferId = transfer.id, errorMessage = null) }
             try {
                 recordTransferPaymentUseCase(
-                    groupId = groupId,
-                    debt = Debt(
-                        fromParticipantId = transfer.fromParticipantId,
-                        toParticipantId = transfer.toParticipantId,
-                        amount = transfer.amount,
+                    RecordTransferPaymentParams(
+                        groupId = groupId,
+                        debt = Debt(
+                            fromParticipantId = transfer.fromParticipantId,
+                            toParticipantId = transfer.toParticipantId,
+                            amount = transfer.amount,
+                        ),
                     ),
                 )
                 val snapshot = loadSnapshot()
@@ -142,20 +149,20 @@ class SettlementViewModel(
     }
 
     private suspend fun loadSnapshot(): SettlementSnapshot {
-        var details = observeGroupDetails(groupId)
+        var details = observeGroupDetails(ObserveGroupDetailsParams(groupId))
         val canGenerateSettlement = details.participants.size >= 2 && details.expenses.isNotEmpty()
         val shouldGenerateSettlement = canGenerateSettlement &&
             (details.latestSettlement == null || details.isSettlementStale)
 
         if (shouldGenerateSettlement) {
             _state.update { it.copy(isGenerating = true) }
-            generateSettlement(groupId)
-            details = observeGroupDetails(groupId)
+            generateSettlement(GenerateSettlementParams(groupId))
+            details = observeGroupDetails(ObserveGroupDetailsParams(groupId))
         }
 
         return SettlementSnapshot(
             participants = details.participants,
-            balances = calculateGroupBalances(groupId),
+            balances = calculateGroupBalances(CalculateGroupBalancesParams(groupId)),
             settlement = details.latestSettlement,
             currentSourceRevision = details.currentSourceRevision,
             isSettlementStale = details.isSettlementStale,

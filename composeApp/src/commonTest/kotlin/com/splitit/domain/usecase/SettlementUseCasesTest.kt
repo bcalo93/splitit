@@ -44,7 +44,7 @@ class SettlementUseCasesTest {
         val settlementRepository = InMemorySettlementRepository()
         val useCase = generateUseCase(settlementRepository)
 
-        val settlement = useCase(groupId)
+        val settlement = useCase.invoke(GenerateSettlementParams(groupId))
 
         assertEquals(settlement, settlementRepository.saved)
         assertEquals(
@@ -61,7 +61,7 @@ class SettlementUseCasesTest {
     fun detailsMarkSettlementStaleWhenSourceChangesWithoutTimestampChange() = runSuspendingTest {
         val settlementRepository = InMemorySettlementRepository()
         val useCase = generateUseCase(settlementRepository)
-        useCase(groupId)
+        useCase.invoke(GenerateSettlementParams(groupId))
 
         val groupRepository = InMemoryGroupRepository(group())
         val observeDetails = ObserveGroupDetailsUseCase(
@@ -71,11 +71,11 @@ class SettlementUseCasesTest {
             settlementRepository = settlementRepository,
         )
 
-        assertFalse(observeDetails(groupId).isSettlementStale)
+        assertFalse(observeDetails.invoke(ObserveGroupDetailsParams(groupId)).isSettlementStale)
 
         expenses[0] = expenses[0].copy(title = "Updated dinner", updatedAtMillis = 1)
 
-        assertTrue(observeDetails(groupId).isSettlementStale)
+        assertTrue(observeDetails.invoke(ObserveGroupDetailsParams(groupId)).isSettlementStale)
     }
 
     private fun generateUseCase(settlementRepository: InMemorySettlementRepository): GenerateSettlementUseCase {
