@@ -69,13 +69,13 @@ import splitit.composeapp.generated.resources.delete
 import splitit.composeapp.generated.resources.delete_group_message
 import splitit.composeapp.generated.resources.delete_group_title
 import splitit.composeapp.generated.resources.edit
-import splitit.composeapp.generated.resources.entity_groups
 import splitit.composeapp.generated.resources.group_status_pending
 import splitit.composeapp.generated.resources.group_status_up_to_date
 import splitit.composeapp.generated.resources.group_summary
 import splitit.composeapp.generated.resources.groups_title
 import splitit.composeapp.generated.resources.new_group
 import splitit.composeapp.generated.resources.no_groups_yet
+import splitit.composeapp.generated.resources.no_search_results_groups
 import splitit.composeapp.generated.resources.search_groups
 
 @Composable
@@ -186,8 +186,7 @@ private fun GroupsScreen(
                             modifier = Modifier.weight(1f),
                         )
                         state.visibleGroups.isEmpty() -> NoSearchResultsState(
-                            query = state.searchQuery,
-                            entityName = stringResource(Res.string.entity_groups),
+                            title = stringResource(Res.string.no_search_results_groups),
                             onClear = { onSearchQueryChange("") },
                             modifier = Modifier.weight(1f),
                         )

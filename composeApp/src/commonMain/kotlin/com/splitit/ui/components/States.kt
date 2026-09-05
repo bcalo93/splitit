@@ -1,6 +1,7 @@
 package com.splitit.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,7 +17,6 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import splitit.composeapp.generated.resources.Res
 import splitit.composeapp.generated.resources.clear_search
-import splitit.composeapp.generated.resources.no_results_match
 import splitit.composeapp.generated.resources.retry
 import com.splitit.ui.theme.LocalSplitItSpacing
 
@@ -76,16 +76,21 @@ fun ErrorState(
 
 @Composable
 fun NoSearchResultsState(
-    query: String,
-    entityName: String,
+    title: String,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    EmptyState(
-        title = stringResource(Res.string.no_results_match, entityName, query),
-        icon = SplitItIcons.SearchOff,
-        ctaText = stringResource(Res.string.clear_search),
-        onCtaClick = onClear,
-        modifier = modifier,
-    )
+    val spacing = LocalSplitItSpacing.current
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        EmptyState(
+            title = title,
+            icon = SplitItIcons.SearchOff,
+            ctaText = stringResource(Res.string.clear_search),
+            onCtaClick = onClear,
+            modifier = Modifier.padding(horizontal = spacing.xl),
+        )
+    }
 }

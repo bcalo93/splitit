@@ -21,12 +21,11 @@
     <string name="settings">Configuración</string>
     <string name="new_action">Nuevo</string>
 
-    <string name="no_results_match">Ningún %1$s coincide con \"%2$s\".</string>
+    <string name="no_search_results_groups">No encontramos ningún grupo.</string>
 
     <string name="groups_title">Tus grupos</string>
     <string name="new_group">Nuevo grupo</string>
     <string name="search_groups">Buscar grupos</string>
-    <string name="entity_groups">grupos</string>
     <string name="no_groups_yet">Aún no tienes grupos</string>
     <string name="create_first_group">Crea tu primer grupo</string>
     <string name="group_status_up_to_date">Al día</string>
@@ -98,7 +97,7 @@
     <string name="add_first_participant">Agrega la primera persona para empezar a dividir gastos.</string>
 
     <string name="search_expenses">Buscar gastos</string>
-    <string name="entity_expenses">gastos</string>
+    <string name="no_search_results_expenses">No encontramos gastos.</string>
     <string name="add_expense">Agregar gasto</string>
     <string name="edit_expense">Editar gasto</string>
     <string name="amount_label">Monto (%s)</string>
