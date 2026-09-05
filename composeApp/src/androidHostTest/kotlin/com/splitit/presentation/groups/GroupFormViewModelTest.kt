@@ -3,9 +3,13 @@
 package com.splitit.presentation.groups
 
 import com.splitit.domain.usecase.CreateGroupParams
+import com.splitit.domain.usecase.CreateGroupUseCase
 import com.splitit.domain.usecase.GroupDetails
 import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.UpdateGroupParams
+import com.splitit.domain.usecase.UpdateGroupUseCase
+import com.splitit.domain.value.GroupId
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.group
 import com.splitit.testutils.runViewModelTest
@@ -22,13 +26,13 @@ import kotlin.test.assertNull
 class GroupFormViewModelTest {
     @Test
     fun validatesTitleBeforeLaunchingSave() = runViewModelTest {
-        val createGroup = mockk<com.splitit.domain.usecase.CreateGroupUseCase>()
+        val createGroup = mockk<CreateGroupUseCase>()
         val viewModel = createViewModel(createGroup = createGroup)
 
         viewModel.save()
 
         assertEquals("Enter a group name.", viewModel.state.value.titleError)
-        coVerify(exactly = 0) { createGroup.invoke(any()) }
+        coVerify(exactly = 0) { createGroup(any()) }
     }
 
     @Test
@@ -52,8 +56,8 @@ class GroupFormViewModelTest {
 
     @Test
     fun createsGroupAndExposesSavedId() = runViewModelTest {
-        val createGroup = mockk<com.splitit.domain.usecase.CreateGroupUseCase>()
-        coEvery { createGroup.invoke(any()) } returns group(id = TestIds.group, title = "Weekend", description = "Notes")
+        val createGroup = mockk<CreateGroupUseCase>()
+        coEvery { createGroup(any()) } returns group(id = TestIds.group, title = "Weekend", description = "Notes")
 
         val viewModel = createViewModel(createGroup = createGroup)
 
@@ -65,7 +69,7 @@ class GroupFormViewModelTest {
         assertEquals(TestIds.group, viewModel.state.value.savedGroupId)
         assertFalse(viewModel.state.value.isSaving)
         coVerify(exactly = 1) {
-            createGroup.invoke(CreateGroupParams(title = "  Weekend  ", description = "  Notes  "))
+            createGroup(CreateGroupParams(title = "  Weekend  ", description = "  Notes  "))
         }
 
         viewModel.consumeSavedGroup()
@@ -75,15 +79,15 @@ class GroupFormViewModelTest {
     @Test
     fun loadsAndUpdatesExistingGroup() = runViewModelTest {
         val original = group(title = "Old title", description = "Old description")
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns GroupDetails(
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns GroupDetails(
             group = original,
             participants = emptyList(),
             expenses = emptyList(),
             latestSettlement = null,
         )
-        val updateGroup = mockk<com.splitit.domain.usecase.UpdateGroupUseCase>()
-        coEvery { updateGroup.invoke(any()) } returns original.copy(title = "New title")
+        val updateGroup = mockk<UpdateGroupUseCase>()
+        coEvery { updateGroup(any()) } returns original.copy(title = "New title")
 
         val viewModel = createViewModel(
             observeGroupDetails = observeGroupDetails,
@@ -94,7 +98,7 @@ class GroupFormViewModelTest {
 
         assertEquals("Old title", viewModel.state.value.title)
         assertEquals("Old description", viewModel.state.value.description)
-        coVerify(exactly = 1) { observeGroupDetails.invoke(ObserveGroupDetailsParams(original.id)) }
+        coVerify(exactly = 1) { observeGroupDetails(ObserveGroupDetailsParams(original.id)) }
 
         viewModel.onTitleChange("New title")
         viewModel.save()
@@ -102,15 +106,15 @@ class GroupFormViewModelTest {
 
         assertEquals(original.id, viewModel.state.value.savedGroupId)
         coVerify(exactly = 1) {
-            updateGroup.invoke(UpdateGroupParams(original.id, "New title", "Old description"))
+            updateGroup(UpdateGroupParams(original.id, "New title", "Old description"))
         }
     }
 
     private fun createViewModel(
-        createGroup: com.splitit.domain.usecase.CreateGroupUseCase = mockk<com.splitit.domain.usecase.CreateGroupUseCase>(),
-        updateGroup: com.splitit.domain.usecase.UpdateGroupUseCase = mockk<com.splitit.domain.usecase.UpdateGroupUseCase>(),
-        observeGroupDetails: com.splitit.domain.usecase.ObserveGroupDetailsUseCase = stubObserveGroupDetails(),
-        initialGroupId: com.splitit.domain.value.GroupId? = null,
+        createGroup: CreateGroupUseCase = mockk<CreateGroupUseCase>(),
+        updateGroup: UpdateGroupUseCase = mockk<UpdateGroupUseCase>(),
+        observeGroupDetails: ObserveGroupDetailsUseCase = stubObserveGroupDetails(),
+        initialGroupId: GroupId? = null,
     ): GroupFormViewModel {
         return GroupFormViewModel(
             groupId = initialGroupId,
@@ -121,9 +125,9 @@ class GroupFormViewModelTest {
         )
     }
 
-    private fun stubObserveGroupDetails(): com.splitit.domain.usecase.ObserveGroupDetailsUseCase {
-        val mock = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { mock.invoke(any()) } returns GroupDetails(
+    private fun stubObserveGroupDetails(): ObserveGroupDetailsUseCase {
+        val mock = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { mock(any()) } returns GroupDetails(
             group = group(),
             participants = emptyList(),
             expenses = emptyList(),

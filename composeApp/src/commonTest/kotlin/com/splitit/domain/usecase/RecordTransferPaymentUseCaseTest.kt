@@ -34,7 +34,7 @@ class RecordTransferPaymentUseCaseTest {
             localization = testLocalizationService,
         )
 
-        val result = useCase.invoke(
+        val result = useCase(
             RecordTransferPaymentParams(
                 groupId = TestIds.group,
                 debt = Debt(

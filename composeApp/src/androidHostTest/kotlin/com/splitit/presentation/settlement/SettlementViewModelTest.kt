@@ -2,14 +2,22 @@
 
 package com.splitit.presentation.settlement
 
+import com.splitit.domain.model.Debt
+import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseGroup
+import com.splitit.domain.model.ExpenseType
 import com.splitit.domain.model.Participant
+import com.splitit.domain.model.Settlement
 import com.splitit.domain.service.SourceRevisionCalculator
 import com.splitit.domain.usecase.CalculateGroupBalancesParams
+import com.splitit.domain.usecase.CalculateGroupBalancesUseCase
 import com.splitit.domain.usecase.GenerateSettlementParams
+import com.splitit.domain.usecase.GenerateSettlementUseCase
 import com.splitit.domain.usecase.GroupDetails
 import com.splitit.domain.usecase.ObserveGroupDetailsParams
 import com.splitit.domain.usecase.RecordTransferPaymentParams
+import com.splitit.domain.usecase.RecordTransferPaymentUseCase
+import com.splitit.domain.usecase.UseCase
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
 import com.splitit.testutils.group
@@ -48,19 +56,19 @@ class SettlementViewModelTest {
             latestSettlement = settlement(transfers = listOf(transfer()), sourceRevision = editedRevision),
         )
 
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returnsMany listOf(
+        val observeGroupDetails = mockk<UseCase<ObserveGroupDetailsParams, GroupDetails>>()
+        coEvery { observeGroupDetails(any()) } returnsMany listOf(
             initialDetails,
             settledDetails,
             detailsAfterEdit,
             settledAfterEditDetails,
         )
 
-        val generateSettlement = mockk<com.splitit.domain.usecase.GenerateSettlementUseCase>()
-        coEvery { generateSettlement.invoke(any()) } returns settlement(transfers = listOf(transfer()))
-        val calculateGroupBalances = mockk<com.splitit.domain.usecase.CalculateGroupBalancesUseCase>()
-        coEvery { calculateGroupBalances.invoke(any()) } returns emptyList()
-        val recordTransferPayment = mockk<com.splitit.domain.usecase.RecordTransferPaymentUseCase>()
+        val generateSettlement = mockk<GenerateSettlementUseCase>()
+        coEvery { generateSettlement(any()) } returns settlement(transfers = listOf(transfer()))
+        val calculateGroupBalances = mockk<CalculateGroupBalancesUseCase>()
+        coEvery { calculateGroupBalances(any()) } returns emptyList()
+        val recordTransferPayment = mockk<RecordTransferPaymentUseCase>()
 
         val viewModel = SettlementViewModel(
             groupId = TestIds.group,
@@ -79,9 +87,9 @@ class SettlementViewModelTest {
         viewModel.refresh()
         advanceUntilIdle()
 
-        coVerify(exactly = 4) { observeGroupDetails.invoke(ObserveGroupDetailsParams(TestIds.group)) }
-        coVerify(exactly = 2) { generateSettlement.invoke(GenerateSettlementParams(TestIds.group)) }
-        coVerify(exactly = 2) { calculateGroupBalances.invoke(CalculateGroupBalancesParams(TestIds.group)) }
+        coVerify(exactly = 4) { observeGroupDetails(ObserveGroupDetailsParams(TestIds.group)) }
+        coVerify(exactly = 2) { generateSettlement(GenerateSettlementParams(TestIds.group)) }
+        coVerify(exactly = 2) { calculateGroupBalances(CalculateGroupBalancesParams(TestIds.group)) }
     }
 
     @Test
@@ -96,21 +104,19 @@ class SettlementViewModelTest {
         val emptySettlement = settlement(transfers = emptyList(), sourceRevision = initialRevision)
         val detailsAfterPayment = initialDetails.copy(latestSettlement = emptySettlement)
 
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returnsMany listOf(
+        val observeGroupDetails = mockk<UseCase<ObserveGroupDetailsParams, GroupDetails>>()
+        coEvery { observeGroupDetails(any()) } returnsMany listOf(
             initialDetails,
             settledDetails,
             detailsAfterPayment,
         )
 
-        val generateSettlement = mockk<com.splitit.domain.usecase.GenerateSettlementUseCase>()
-        coEvery { generateSettlement.invoke(any()) } returns settlementWithTransfer
-        val calculateGroupBalances = mockk<com.splitit.domain.usecase.CalculateGroupBalancesUseCase>()
-        coEvery { calculateGroupBalances.invoke(any()) } returns emptyList()
-        val recordTransferPayment = mockk<com.splitit.domain.usecase.RecordTransferPaymentUseCase>()
-        coEvery { recordTransferPayment.invoke(any()) } returns expense(
-            type = com.splitit.domain.model.ExpenseType.TRANSFER_PAYMENT,
-        )
+        val generateSettlement = mockk<GenerateSettlementUseCase>()
+        coEvery { generateSettlement(any()) } returns settlementWithTransfer
+        val calculateGroupBalances = mockk<CalculateGroupBalancesUseCase>()
+        coEvery { calculateGroupBalances(any()) } returns emptyList()
+        val recordTransferPayment = mockk<RecordTransferPaymentUseCase>()
+        coEvery { recordTransferPayment(any()) } returns expense(type = ExpenseType.TRANSFER_PAYMENT)
 
         val viewModel = SettlementViewModel(
             groupId = TestIds.group,
@@ -129,10 +135,10 @@ class SettlementViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            recordTransferPayment.invoke(
+            recordTransferPayment(
                 RecordTransferPaymentParams(
                     groupId = TestIds.group,
-                    debt = com.splitit.domain.model.Debt(
+                    debt = Debt(
                         fromParticipantId = recordedTransfer.fromParticipantId,
                         toParticipantId = recordedTransfer.toParticipantId,
                         amount = recordedTransfer.amount,
@@ -148,13 +154,13 @@ class SettlementViewModelTest {
             participants = listOf(participant()),
             expenses = emptyList(),
         )
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns detailsWithoutEnoughData
+        val observeGroupDetails = mockk<UseCase<ObserveGroupDetailsParams, GroupDetails>>()
+        coEvery { observeGroupDetails(any()) } returns detailsWithoutEnoughData
 
-        val calculateGroupBalances = mockk<com.splitit.domain.usecase.CalculateGroupBalancesUseCase>()
-        coEvery { calculateGroupBalances.invoke(any()) } returns emptyList()
-        val generateSettlement = mockk<com.splitit.domain.usecase.GenerateSettlementUseCase>()
-        val recordTransferPayment = mockk<com.splitit.domain.usecase.RecordTransferPaymentUseCase>()
+        val calculateGroupBalances = mockk<CalculateGroupBalancesUseCase>()
+        coEvery { calculateGroupBalances(any()) } returns emptyList()
+        val generateSettlement = mockk<GenerateSettlementUseCase>()
+        val recordTransferPayment = mockk<RecordTransferPaymentUseCase>()
 
         val viewModel = SettlementViewModel(
             groupId = TestIds.group,
@@ -173,14 +179,14 @@ class SettlementViewModelTest {
             "Add at least two participants and an expense first.",
             viewModel.state.value.errorMessage,
         )
-        coVerify(exactly = 0) { generateSettlement.invoke(any()) }
+        coVerify(exactly = 0) { generateSettlement(any()) }
     }
 
     private fun groupDetails(
         group: ExpenseGroup = group(),
         participants: List<Participant>,
-        expenses: List<com.splitit.domain.model.Expense>,
-        latestSettlement: com.splitit.domain.model.Settlement? = null,
+        expenses: List<Expense>,
+        latestSettlement: Settlement? = null,
     ): GroupDetails = GroupDetails(
         group = group,
         participants = participants,

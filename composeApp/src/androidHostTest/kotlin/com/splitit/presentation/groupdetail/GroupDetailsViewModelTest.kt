@@ -2,10 +2,13 @@
 
 package com.splitit.presentation.groupdetail
 
+import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
+import com.splitit.domain.model.Settlement
 import com.splitit.domain.usecase.GroupDetails
 import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.value.Money
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
@@ -25,8 +28,8 @@ import kotlin.test.assertNull
 class GroupDetailsViewModelTest {
     @Test
     fun loadsDetailsAndCanRefresh() = runViewModelTest {
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns groupDetailsFixture()
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns groupDetailsFixture()
 
         val viewModel = GroupDetailsViewModel(
             groupId = TestIds.group,
@@ -38,18 +41,18 @@ class GroupDetailsViewModelTest {
         assertFalse(viewModel.state.value.isLoading)
         assertEquals(TestIds.group, viewModel.state.value.details?.group?.id)
         assertEquals(1, viewModel.state.value.details?.participants?.size)
-        coVerify(exactly = 1) { observeGroupDetails.invoke(ObserveGroupDetailsParams(TestIds.group)) }
+        coVerify(exactly = 1) { observeGroupDetails(ObserveGroupDetailsParams(TestIds.group)) }
 
         viewModel.refresh()
         advanceUntilIdle()
         assertFalse(viewModel.state.value.isLoading)
-        coVerify(exactly = 2) { observeGroupDetails.invoke(ObserveGroupDetailsParams(TestIds.group)) }
+        coVerify(exactly = 2) { observeGroupDetails(ObserveGroupDetailsParams(TestIds.group)) }
     }
 
     @Test
     fun aggregatesTotalSpentAcrossExpenses() = runViewModelTest {
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns groupDetailsFixture(
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns groupDetailsFixture(
             expenses = listOf(
                 expense(amount = Money(1_000L, "USD")),
                 expense(id = TestIds.secondExpense, amount = Money(2_500L, "USD")),
@@ -68,8 +71,8 @@ class GroupDetailsViewModelTest {
 
     @Test
     fun exposesNullTotalSpentWithoutExpenses() = runViewModelTest {
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns groupDetailsFixture(expenses = emptyList())
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns groupDetailsFixture(expenses = emptyList())
 
         val viewModel = GroupDetailsViewModel(
             groupId = TestIds.group,
@@ -83,8 +86,8 @@ class GroupDetailsViewModelTest {
 
     @Test
     fun exposesMissingGroupError() = runViewModelTest {
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } throws IllegalArgumentException("Group ${TestIds.group.value} was not found.")
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } throws IllegalArgumentException("Group ${TestIds.group.value} was not found.")
 
         val viewModel = GroupDetailsViewModel(
             groupId = TestIds.group,
@@ -95,14 +98,14 @@ class GroupDetailsViewModelTest {
 
         assertFalse(viewModel.state.value.isLoading)
         assertEquals("Group group was not found.", viewModel.state.value.errorMessage)
-        coVerify(exactly = 1) { observeGroupDetails.invoke(ObserveGroupDetailsParams(TestIds.group)) }
+        coVerify(exactly = 1) { observeGroupDetails(ObserveGroupDetailsParams(TestIds.group)) }
     }
 
     private fun groupDetailsFixture(
         group: ExpenseGroup = group(),
         participants: List<Participant> = listOf(participant()),
-        expenses: List<com.splitit.domain.model.Expense> = emptyList(),
-        latestSettlement: com.splitit.domain.model.Settlement? = null,
+        expenses: List<Expense> = emptyList(),
+        latestSettlement: Settlement? = null,
     ): GroupDetails = GroupDetails(
         group = group,
         participants = participants,

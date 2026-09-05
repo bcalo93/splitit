@@ -5,7 +5,10 @@ package com.splitit.presentation.groups
 import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
 import com.splitit.domain.usecase.DeleteGroupParams
+import com.splitit.domain.usecase.DeleteGroupUseCase
 import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupsUseCase
 import com.splitit.domain.value.Money
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
@@ -26,11 +29,11 @@ import kotlin.test.assertTrue
 class GroupListViewModelTest {
     @Test
     fun loadsEmptyStateAfterInitialRefresh() = runViewModelTest {
-        val observeGroups = mockk<com.splitit.domain.usecase.ObserveGroupsUseCase>()
-        coEvery { observeGroups.invoke(any()) } returns emptyList()
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns emptyGroupDetails()
-        val deleteGroup = mockk<com.splitit.domain.usecase.DeleteGroupUseCase>()
+        val observeGroups = mockk<ObserveGroupsUseCase>()
+        coEvery { observeGroups(any()) } returns emptyList()
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns emptyGroupDetails()
+        val deleteGroup = mockk<DeleteGroupUseCase>()
 
         val viewModel = GroupListViewModel(
             observeGroups = observeGroups,
@@ -49,13 +52,13 @@ class GroupListViewModelTest {
 
     @Test
     fun exposesLoadErrors() = runViewModelTest {
-        val observeGroups = mockk<com.splitit.domain.usecase.ObserveGroupsUseCase>()
-        coEvery { observeGroups.invoke(any()) } throws IllegalStateException("database unavailable")
+        val observeGroups = mockk<ObserveGroupsUseCase>()
+        coEvery { observeGroups(any()) } throws IllegalStateException("database unavailable")
 
         val viewModel = GroupListViewModel(
             observeGroups = observeGroups,
-            observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>(),
-            deleteGroup = mockk<com.splitit.domain.usecase.DeleteGroupUseCase>(),
+            observeGroupDetails = mockk(),
+            deleteGroup = mockk(),
             localization = testLocalizationService,
         )
 
@@ -67,12 +70,12 @@ class GroupListViewModelTest {
 
     @Test
     fun deletesGroupAndRefreshesList() = runViewModelTest {
-        val observeGroups = mockk<com.splitit.domain.usecase.ObserveGroupsUseCase>()
-        coEvery { observeGroups.invoke(any()) } returnsMany listOf(listOf(group()), emptyList())
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns emptyGroupDetails()
-        val deleteGroup = mockk<com.splitit.domain.usecase.DeleteGroupUseCase>()
-        coEvery { deleteGroup.invoke(any()) } returns Unit
+        val observeGroups = mockk<ObserveGroupsUseCase>()
+        coEvery { observeGroups(any()) } returnsMany listOf(listOf(group()), emptyList())
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns emptyGroupDetails()
+        val deleteGroup = mockk<DeleteGroupUseCase>()
+        coEvery { deleteGroup(any()) } returns Unit
 
         val viewModel = GroupListViewModel(
             observeGroups = observeGroups,
@@ -86,7 +89,7 @@ class GroupListViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.state.value.groups.isEmpty())
-        coVerify(exactly = 1) { deleteGroup.invoke(DeleteGroupParams(TestIds.group)) }
+        coVerify(exactly = 1) { deleteGroup(DeleteGroupParams(TestIds.group)) }
     }
 
     @Test
@@ -99,16 +102,16 @@ class GroupListViewModelTest {
                 description = "Shared home expenses",
             ),
         )
-        val observeGroups = mockk<com.splitit.domain.usecase.ObserveGroupsUseCase>()
-        coEvery { observeGroups.invoke(any()) } returns groups
+        val observeGroups = mockk<ObserveGroupsUseCase>()
+        coEvery { observeGroups(any()) } returns groups
 
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns emptyGroupDetails()
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns emptyGroupDetails()
 
         val viewModel = GroupListViewModel(
             observeGroups = observeGroups,
             observeGroupDetails = observeGroupDetails,
-            deleteGroup = mockk<com.splitit.domain.usecase.DeleteGroupUseCase>(),
+            deleteGroup = mockk(),
             localization = testLocalizationService,
         )
         advanceUntilIdle()
@@ -127,10 +130,10 @@ class GroupListViewModelTest {
     fun marksGroupPendingWhenItHasUnsettledExpenses() = runViewModelTest {
         val alice = participant(TestIds.alice)
         val expenseFixture = expense(amount = Money(2_000L, "USD"))
-        val observeGroups = mockk<com.splitit.domain.usecase.ObserveGroupsUseCase>()
-        coEvery { observeGroups.invoke(any()) } returns listOf(group())
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns GroupDetails(
+        val observeGroups = mockk<ObserveGroupsUseCase>()
+        coEvery { observeGroups(any()) } returns listOf(group())
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns GroupDetails(
             group = group(),
             participants = listOf(alice),
             expenses = listOf(expenseFixture),
@@ -140,7 +143,7 @@ class GroupListViewModelTest {
         val viewModel = GroupListViewModel(
             observeGroups = observeGroups,
             observeGroupDetails = observeGroupDetails,
-            deleteGroup = mockk<com.splitit.domain.usecase.DeleteGroupUseCase>(),
+            deleteGroup = mockk(),
             localization = testLocalizationService,
         )
         advanceUntilIdle()

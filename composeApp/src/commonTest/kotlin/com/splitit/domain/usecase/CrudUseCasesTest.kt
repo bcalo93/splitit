@@ -27,7 +27,7 @@ class CrudUseCasesTest {
             groupRepository = repository,
             idGenerator = TestIdGenerator(),
             clock = TestClock(20L),
-        ).invoke(
+        )(
             CreateGroupParams(
                 title = "  Weekend trip  ",
                 description = "  Shared costs  ",
@@ -49,7 +49,7 @@ class CrudUseCasesTest {
         )
         val repository = InMemoryGroupRepository(listOf(original))
 
-        val updated = UpdateGroupUseCase(repository, TestClock(20L)).invoke(
+        val updated = UpdateGroupUseCase(repository, TestClock(20L))(
             UpdateGroupParams(
                 groupId = original.id,
                 title = "  New title ",
@@ -70,7 +70,7 @@ class CrudUseCasesTest {
         val repository = InMemoryGroupRepository()
 
         assertFailsWith<IllegalArgumentException> {
-            UpdateGroupUseCase(repository, TestClock()).invoke(
+            UpdateGroupUseCase(repository, TestClock())(
                 UpdateGroupParams(
                     groupId = TestIds.group,
                     title = "Trip",
@@ -93,7 +93,7 @@ class CrudUseCasesTest {
             clock = TestClock(30L),
         )
 
-        val participant = useCase.invoke(
+        val participant = useCase(
             AddParticipantParams(
                 groupId = TestIds.group,
                 name = "  Charlie  ",
@@ -112,7 +112,7 @@ class CrudUseCasesTest {
                 participantRepository = missingGroupRepository,
                 idGenerator = TestIdGenerator(),
                 clock = TestClock(),
-            ).invoke(
+            )(
                 AddParticipantParams(
                     groupId = TestIds.group,
                     name = "Alice",
@@ -129,12 +129,12 @@ class CrudUseCasesTest {
         repository.usedParticipantIds += TestIds.alice
 
         assertFailsWith<IllegalArgumentException> {
-            RemoveParticipantUseCase(repository).invoke(RemoveParticipantParams(TestIds.alice))
+            RemoveParticipantUseCase(repository)(RemoveParticipantParams(TestIds.alice))
         }
         assertEquals(0, repository.deleteCalls)
 
         repository.usedParticipantIds.clear()
-        RemoveParticipantUseCase(repository).invoke(RemoveParticipantParams(TestIds.alice))
+        RemoveParticipantUseCase(repository)(RemoveParticipantParams(TestIds.alice))
         assertEquals(1, repository.deleteCalls)
         assertEquals(emptyList(), repository.savedParticipants)
     }
@@ -153,7 +153,7 @@ class CrudUseCasesTest {
             expenseRepository = expenseRepository,
             idGenerator = TestIdGenerator(),
             clock = TestClock(40L),
-        ).invoke(
+        )(
             CreateExpenseParams(
                 groupId = TestIds.group,
                 title = "  Dinner ",
@@ -187,7 +187,7 @@ class CrudUseCasesTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            useCase.invoke(
+            useCase(
                 CreateExpenseParams(
                     groupId = TestIds.group,
                     title = "Dinner",
@@ -200,7 +200,7 @@ class CrudUseCasesTest {
             )
         }
         assertFailsWith<IllegalArgumentException> {
-            useCase.invoke(
+            useCase(
                 CreateExpenseParams(
                     groupId = TestIds.group,
                     title = "Dinner",
@@ -227,7 +227,7 @@ class CrudUseCasesTest {
             participantRepository = participantRepository,
             expenseRepository = expenseRepository,
             clock = TestClock(50L),
-        ).invoke(
+        )(
             UpdateExpenseParams(
                 expenseId = original.id,
                 title = "  Lunch ",
@@ -253,10 +253,10 @@ class CrudUseCasesTest {
         val repository = InMemorySettingsRepository()
         val settings = AppSettings(defaultCurrencyCode = "EUR", themeMode = ThemeMode.Dark)
 
-        assertEquals(AppSettings(), GetSettingsUseCase(repository).invoke(GetSettingsParams))
-        SaveSettingsUseCase(repository).invoke(SaveSettingsParams(settings))
+        assertEquals(AppSettings(), GetSettingsUseCase(repository)(GetSettingsParams))
+        SaveSettingsUseCase(repository)(SaveSettingsParams(settings))
 
-        assertEquals(settings, GetSettingsUseCase(repository).invoke(GetSettingsParams))
+        assertEquals(settings, GetSettingsUseCase(repository)(GetSettingsParams))
         assertEquals(1, repository.saveCalls)
     }
 }

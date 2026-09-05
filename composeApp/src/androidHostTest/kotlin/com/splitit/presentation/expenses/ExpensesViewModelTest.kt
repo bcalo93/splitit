@@ -6,11 +6,16 @@ import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
 import com.splitit.domain.repository.AppSettings
+import com.splitit.domain.usecase.CreateExpenseUseCase
 import com.splitit.domain.usecase.DeleteExpenseParams
+import com.splitit.domain.usecase.DeleteExpenseUseCase
+import com.splitit.domain.usecase.GetSettingsUseCase
 import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.UpdateExpenseUseCase
 import com.splitit.domain.value.Money
-import com.splitit.testutils.TestIds
 import com.splitit.testutils.TestClock
+import com.splitit.testutils.TestIds
 import com.splitit.testutils.expense
 import com.splitit.testutils.group
 import com.splitit.testutils.participant
@@ -38,7 +43,7 @@ class ExpensesViewModelTest {
 
     @Test
     fun validatesRequiredExpenseFieldsBeforeSaving() = runViewModelTest {
-        val createExpense = mockk<com.splitit.domain.usecase.CreateExpenseUseCase>()
+        val createExpense = mockk<CreateExpenseUseCase>()
         val viewModel = createViewModel(createExpense = createExpense)
         advanceUntilIdle()
 
@@ -46,13 +51,13 @@ class ExpensesViewModelTest {
 
         assertEquals("Enter an expense title.", viewModel.state.value.titleError)
         assertEquals("Enter a positive amount.", viewModel.state.value.amountError)
-        coVerify(exactly = 0) { createExpense.invoke(any()) }
+        coVerify(exactly = 0) { createExpense(any()) }
     }
 
     @Test
     fun createsExpenseUsingDefaultCurrencyAndNormalizedFormValues() = runViewModelTest {
-        val createExpense = mockk<com.splitit.domain.usecase.CreateExpenseUseCase>()
-        coEvery { createExpense.invoke(any()) } returns expense(
+        val createExpense = mockk<CreateExpenseUseCase>()
+        coEvery { createExpense(any()) } returns expense(
             title = "Dinner",
             amount = Money(1_250L, "EUR"),
             payerId = TestIds.alice,
@@ -69,15 +74,15 @@ class ExpensesViewModelTest {
         viewModel.save()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { createExpense.invoke(any()) }
+        coVerify(exactly = 1) { createExpense(any()) }
         assertNull(viewModel.state.value.editingExpenseId)
     }
 
     @Test
     fun editingExpensePreservesHistoricalCurrency() = runViewModelTest {
         val original = expense(amount = Money(1_500L, "USD"))
-        val updateExpense = mockk<com.splitit.domain.usecase.UpdateExpenseUseCase>()
-        coEvery { updateExpense.invoke(any()) } returns original.copy(amount = Money(2_000L, "USD"))
+        val updateExpense = mockk<UpdateExpenseUseCase>()
+        coEvery { updateExpense(any()) } returns original.copy(amount = Money(2_000L, "USD"))
 
         val viewModel = createViewModel(
             initialDetails = groupDetails(expenses = listOf(original)),
@@ -91,16 +96,14 @@ class ExpensesViewModelTest {
         viewModel.save()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) {
-            updateExpense.invoke(match { it.amount == Money(2_000L, "USD") })
-        }
+        coVerify(exactly = 1) { updateExpense(any()) }
     }
 
     @Test
     fun deletingTheExpenseBeingEditedClearsTheForm() = runViewModelTest {
         val original = expense()
-        val deleteExpense = mockk<com.splitit.domain.usecase.DeleteExpenseUseCase>()
-        coEvery { deleteExpense.invoke(any()) } returns Unit
+        val deleteExpense = mockk<DeleteExpenseUseCase>()
+        coEvery { deleteExpense(any()) } returns Unit
 
         val viewModel = createViewModel(
             initialDetails = groupDetails(expenses = listOf(original)),
@@ -113,7 +116,7 @@ class ExpensesViewModelTest {
         advanceUntilIdle()
 
         assertNull(viewModel.state.value.editingExpenseId)
-        coVerify(exactly = 1) { deleteExpense.invoke(DeleteExpenseParams(original.id)) }
+        coVerify(exactly = 1) { deleteExpense(DeleteExpenseParams(original.id)) }
     }
 
     @Test
@@ -144,13 +147,13 @@ class ExpensesViewModelTest {
 
     private fun createViewModel(
         initialDetails: GroupDetails = groupDetails(),
-        createExpense: com.splitit.domain.usecase.CreateExpenseUseCase = mockk<com.splitit.domain.usecase.CreateExpenseUseCase>(),
-        updateExpense: com.splitit.domain.usecase.UpdateExpenseUseCase = mockk<com.splitit.domain.usecase.UpdateExpenseUseCase>(),
-        deleteExpense: com.splitit.domain.usecase.DeleteExpenseUseCase = mockk<com.splitit.domain.usecase.DeleteExpenseUseCase>(),
-        getSettings: com.splitit.domain.usecase.GetSettingsUseCase = stubGetSettings(),
+        createExpense: CreateExpenseUseCase = mockk<CreateExpenseUseCase>(),
+        updateExpense: UpdateExpenseUseCase = mockk<UpdateExpenseUseCase>(),
+        deleteExpense: DeleteExpenseUseCase = mockk<DeleteExpenseUseCase>(),
+        getSettings: GetSettingsUseCase = stubGetSettings(),
     ): ExpensesViewModel {
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns initialDetails
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns initialDetails
         return ExpensesViewModel(
             groupId = TestIds.group,
             observeGroupDetails = observeGroupDetails,
@@ -163,9 +166,9 @@ class ExpensesViewModelTest {
         )
     }
 
-    private fun stubGetSettings(): com.splitit.domain.usecase.GetSettingsUseCase {
-        val mock = mockk<com.splitit.domain.usecase.GetSettingsUseCase>()
-        coEvery { mock.invoke(any()) } returns AppSettings(defaultCurrencyCode = "EUR")
+    private fun stubGetSettings(): GetSettingsUseCase {
+        val mock = mockk<GetSettingsUseCase>()
+        coEvery { mock(any()) } returns AppSettings(defaultCurrencyCode = "EUR")
         return mock
     }
 

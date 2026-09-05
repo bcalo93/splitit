@@ -3,10 +3,12 @@
 package com.splitit.presentation.participants
 
 import com.splitit.domain.model.Participant
-import com.splitit.domain.usecase.AddParticipantParams
+import com.splitit.domain.usecase.AddParticipantUseCase
 import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
 import com.splitit.domain.usecase.RemoveParticipantParams
-import com.splitit.domain.usecase.UpdateParticipantParams
+import com.splitit.domain.usecase.RemoveParticipantUseCase
+import com.splitit.domain.usecase.UpdateParticipantUseCase
 import com.splitit.testutils.TestIds
 import com.splitit.testutils.group
 import com.splitit.testutils.participant
@@ -41,8 +43,8 @@ class ParticipantsViewModelTest {
 
     @Test
     fun validatesAndAddsParticipant() = runViewModelTest {
-        val addParticipant = mockk<com.splitit.domain.usecase.AddParticipantUseCase>()
-        coEvery { addParticipant.invoke(any()) } returns participant(TestIds.charlie, name = "Charlie", avatarColor = "#ABCDEF")
+        val addParticipant = mockk<AddParticipantUseCase>()
+        coEvery { addParticipant(any()) } returns participant(TestIds.charlie, name = "Charlie", avatarColor = "#ABCDEF")
 
         val viewModel = createViewModel(addParticipant = addParticipant)
         advanceUntilIdle()
@@ -55,7 +57,7 @@ class ParticipantsViewModelTest {
         viewModel.save()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { addParticipant.invoke(any()) }
+        coVerify(exactly = 1) { addParticipant(any()) }
         assertEquals("", viewModel.state.value.name)
         assertNull(viewModel.state.value.editingParticipantId)
         assertTrue(viewModel.state.value.saveSucceeded)
@@ -65,8 +67,8 @@ class ParticipantsViewModelTest {
 
     @Test
     fun showsSpecificErrorWhenDeletingUsedParticipant() = runViewModelTest {
-        val removeParticipant = mockk<com.splitit.domain.usecase.RemoveParticipantUseCase>()
-        coEvery { removeParticipant.invoke(any()) } throws IllegalArgumentException(
+        val removeParticipant = mockk<RemoveParticipantUseCase>()
+        coEvery { removeParticipant(any()) } throws IllegalArgumentException(
             "Participant ${TestIds.alice.value} cannot be removed because it is used by expenses.",
         )
 
@@ -80,14 +82,14 @@ class ParticipantsViewModelTest {
             "Participant cannot be removed because it is used by expenses.",
             viewModel.state.value.errorMessage,
         )
-        coVerify(exactly = 1) { removeParticipant.invoke(RemoveParticipantParams(TestIds.alice)) }
+        coVerify(exactly = 1) { removeParticipant(RemoveParticipantParams(TestIds.alice)) }
     }
 
     @Test
     fun updatesParticipantWhenEditing() = runViewModelTest {
         val alice = participant(TestIds.alice, name = "Alice")
-        val updateParticipant = mockk<com.splitit.domain.usecase.UpdateParticipantUseCase>()
-        coEvery { updateParticipant.invoke(any()) } returns alice.copy(name = "Alice Updated")
+        val updateParticipant = mockk<UpdateParticipantUseCase>()
+        coEvery { updateParticipant(any()) } returns alice.copy(name = "Alice Updated")
 
         val viewModel = createViewModel(
             participants = listOf(alice),
@@ -100,17 +102,17 @@ class ParticipantsViewModelTest {
         viewModel.save()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { updateParticipant.invoke(any()) }
+        coVerify(exactly = 1) { updateParticipant(any()) }
     }
 
     private fun createViewModel(
         participants: List<Participant> = listOf(participant()),
-        addParticipant: com.splitit.domain.usecase.AddParticipantUseCase = mockk<com.splitit.domain.usecase.AddParticipantUseCase>(),
-        updateParticipant: com.splitit.domain.usecase.UpdateParticipantUseCase = mockk<com.splitit.domain.usecase.UpdateParticipantUseCase>(),
-        removeParticipant: com.splitit.domain.usecase.RemoveParticipantUseCase = mockk<com.splitit.domain.usecase.RemoveParticipantUseCase>(),
+        addParticipant: AddParticipantUseCase = mockk<AddParticipantUseCase>(),
+        updateParticipant: UpdateParticipantUseCase = mockk<UpdateParticipantUseCase>(),
+        removeParticipant: RemoveParticipantUseCase = mockk<RemoveParticipantUseCase>(),
     ): ParticipantsViewModel {
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns GroupDetails(
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns GroupDetails(
             group = group(),
             participants = participants,
             expenses = emptyList(),

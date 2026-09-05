@@ -6,7 +6,12 @@ import com.splitit.domain.model.Expense
 import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
 import com.splitit.domain.repository.AppSettings
+import com.splitit.domain.usecase.CreateExpenseUseCase
+import com.splitit.domain.usecase.GetSettingsUseCase
 import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.UpdateExpenseUseCase
+import com.splitit.domain.usecase.DeleteExpenseUseCase
 import com.splitit.domain.value.Money
 import com.splitit.testutils.TestClock
 import com.splitit.testutils.TestIds
@@ -21,13 +26,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class ExpensesShareAmountTest {
     @Test
     fun byAmountModePersistsAmountsOnSave() = runViewModelTest {
-        val createExpense = mockk<com.splitit.domain.usecase.CreateExpenseUseCase>()
-        coEvery { createExpense.invoke(any()) } returns expense(
+        val createExpense = mockk<CreateExpenseUseCase>()
+        coEvery { createExpense(any()) } returns expense(
             amount = Money(1_000L, "EUR"),
             payerId = TestIds.alice,
             participantIds = listOf(TestIds.alice, TestIds.bob, TestIds.charlie),
@@ -52,7 +56,7 @@ class ExpensesShareAmountTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            createExpense.invoke(
+            createExpense(
                 match {
                     it.shareAmounts[TestIds.alice] == 300L &&
                         it.shareAmounts[TestIds.bob] == 400L &&
@@ -65,8 +69,8 @@ class ExpensesShareAmountTest {
 
     @Test
     fun equalModePersistsEqualAmountsOnSave() = runViewModelTest {
-        val createExpense = mockk<com.splitit.domain.usecase.CreateExpenseUseCase>()
-        coEvery { createExpense.invoke(any()) } returns expense(
+        val createExpense = mockk<CreateExpenseUseCase>()
+        coEvery { createExpense(any()) } returns expense(
             amount = Money(1_200L, "EUR"),
             participantIds = listOf(TestIds.alice, TestIds.bob),
         )
@@ -81,7 +85,7 @@ class ExpensesShareAmountTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            createExpense.invoke(
+            createExpense(
                 match {
                     it.participantIds.size == 2 && it.shareAmounts.values.all { amount -> amount == 600L }
                 },
@@ -120,30 +124,30 @@ class ExpensesShareAmountTest {
     }
 
     private fun createViewModel(
-        createExpense: com.splitit.domain.usecase.CreateExpenseUseCase = mockk<com.splitit.domain.usecase.CreateExpenseUseCase>(),
+        createExpense: CreateExpenseUseCase = mockk<CreateExpenseUseCase>(),
     ): ExpensesViewModel {
         val participants = listOf(
             participant(TestIds.alice),
             participant(TestIds.bob),
             participant(TestIds.charlie),
         )
-        val observeGroupDetails = mockk<com.splitit.domain.usecase.ObserveGroupDetailsUseCase>()
-        coEvery { observeGroupDetails.invoke(any()) } returns groupDetails(participants = participants)
+        val observeGroupDetails = mockk<ObserveGroupDetailsUseCase>()
+        coEvery { observeGroupDetails(any()) } returns groupDetails(participants = participants)
         return ExpensesViewModel(
             groupId = TestIds.group,
             observeGroupDetails = observeGroupDetails,
             createExpense = createExpense,
-            updateExpense = mockk<com.splitit.domain.usecase.UpdateExpenseUseCase>(),
-            deleteExpense = mockk<com.splitit.domain.usecase.DeleteExpenseUseCase>(),
+            updateExpense = mockk<UpdateExpenseUseCase>(),
+            deleteExpense = mockk<DeleteExpenseUseCase>(),
             clock = TestClock(20L),
             getSettings = stubGetSettings(),
             localization = testLocalizationService,
         )
     }
 
-    private fun stubGetSettings(): com.splitit.domain.usecase.GetSettingsUseCase {
-        val mock = mockk<com.splitit.domain.usecase.GetSettingsUseCase>()
-        coEvery { mock.invoke(any()) } returns AppSettings(defaultCurrencyCode = "EUR")
+    private fun stubGetSettings(): GetSettingsUseCase {
+        val mock = mockk<GetSettingsUseCase>()
+        coEvery { mock(any()) } returns AppSettings(defaultCurrencyCode = "EUR")
         return mock
     }
 
