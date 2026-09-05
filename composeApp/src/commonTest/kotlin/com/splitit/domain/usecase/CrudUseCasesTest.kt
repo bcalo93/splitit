@@ -28,8 +28,10 @@ class CrudUseCasesTest {
             idGenerator = TestIdGenerator(),
             clock = TestClock(20L),
         )(
-            title = "  Weekend trip  ",
-            description = "  Shared costs  ",
+            CreateGroupParams(
+                title = "  Weekend trip  ",
+                description = "  Shared costs  ",
+            ),
         )
 
         assertEquals("Weekend trip", group.title)
@@ -48,9 +50,11 @@ class CrudUseCasesTest {
         val repository = InMemoryGroupRepository(listOf(original))
 
         val updated = UpdateGroupUseCase(repository, TestClock(20L))(
-            groupId = original.id,
-            title = "  New title ",
-            description = " ",
+            UpdateGroupParams(
+                groupId = original.id,
+                title = "  New title ",
+                description = " ",
+            ),
         )
 
         assertEquals(original.id, updated.id)
@@ -67,9 +71,11 @@ class CrudUseCasesTest {
 
         assertFailsWith<IllegalArgumentException> {
             UpdateGroupUseCase(repository, TestClock())(
-                groupId = TestIds.group,
-                title = "Trip",
-                description = null,
+                UpdateGroupParams(
+                    groupId = TestIds.group,
+                    title = "Trip",
+                    description = null,
+                ),
             )
         }
 
@@ -87,7 +93,13 @@ class CrudUseCasesTest {
             clock = TestClock(30L),
         )
 
-        val participant = useCase(TestIds.group, "  Charlie  ", "#123456")
+        val participant = useCase(
+            AddParticipantParams(
+                groupId = TestIds.group,
+                name = "  Charlie  ",
+                avatarColor = "#123456",
+            ),
+        )
 
         assertEquals("Charlie", participant.name)
         assertEquals(30L, participant.createdAtMillis)
@@ -100,7 +112,13 @@ class CrudUseCasesTest {
                 participantRepository = missingGroupRepository,
                 idGenerator = TestIdGenerator(),
                 clock = TestClock(),
-            )(TestIds.group, "Alice", null)
+            )(
+                AddParticipantParams(
+                    groupId = TestIds.group,
+                    name = "Alice",
+                    avatarColor = null,
+                ),
+            )
         }
         assertEquals(0, missingGroupRepository.saveCalls)
     }
@@ -111,12 +129,12 @@ class CrudUseCasesTest {
         repository.usedParticipantIds += TestIds.alice
 
         assertFailsWith<IllegalArgumentException> {
-            RemoveParticipantUseCase(repository)(TestIds.alice)
+            RemoveParticipantUseCase(repository)(RemoveParticipantParams(TestIds.alice))
         }
         assertEquals(0, repository.deleteCalls)
 
         repository.usedParticipantIds.clear()
-        RemoveParticipantUseCase(repository)(TestIds.alice)
+        RemoveParticipantUseCase(repository)(RemoveParticipantParams(TestIds.alice))
         assertEquals(1, repository.deleteCalls)
         assertEquals(emptyList(), repository.savedParticipants)
     }
@@ -136,13 +154,15 @@ class CrudUseCasesTest {
             idGenerator = TestIdGenerator(),
             clock = TestClock(40L),
         )(
-            groupId = TestIds.group,
-            title = "  Dinner ",
-            amount = Money(1_250L, "EUR"),
-            payerId = TestIds.alice,
-            participantIds = listOf(TestIds.alice, TestIds.bob, TestIds.alice),
-            dateMillis = 2L,
-            note = "  With dessert  ",
+            CreateExpenseParams(
+                groupId = TestIds.group,
+                title = "  Dinner ",
+                amount = Money(1_250L, "EUR"),
+                payerId = TestIds.alice,
+                participantIds = listOf(TestIds.alice, TestIds.bob, TestIds.alice),
+                dateMillis = 2L,
+                note = "  With dessert  ",
+            ),
         )
 
         assertEquals("Dinner", created.title)
@@ -168,24 +188,28 @@ class CrudUseCasesTest {
 
         assertFailsWith<IllegalArgumentException> {
             useCase(
-                groupId = TestIds.group,
-                title = "Dinner",
-                amount = Money(100L, "USD"),
-                payerId = TestIds.bob,
-                participantIds = listOf(TestIds.alice),
-                dateMillis = 1L,
-                note = null,
+                CreateExpenseParams(
+                    groupId = TestIds.group,
+                    title = "Dinner",
+                    amount = Money(100L, "USD"),
+                    payerId = TestIds.bob,
+                    participantIds = listOf(TestIds.alice),
+                    dateMillis = 1L,
+                    note = null,
+                ),
             )
         }
         assertFailsWith<IllegalArgumentException> {
             useCase(
-                groupId = TestIds.group,
-                title = "Dinner",
-                amount = Money(100L, "USD"),
-                payerId = TestIds.alice,
-                participantIds = emptyList(),
-                dateMillis = 1L,
-                note = null,
+                CreateExpenseParams(
+                    groupId = TestIds.group,
+                    title = "Dinner",
+                    amount = Money(100L, "USD"),
+                    payerId = TestIds.alice,
+                    participantIds = emptyList(),
+                    dateMillis = 1L,
+                    note = null,
+                ),
             )
         }
         assertEquals(0, repository.saveCalls)
@@ -204,13 +228,15 @@ class CrudUseCasesTest {
             expenseRepository = expenseRepository,
             clock = TestClock(50L),
         )(
-            expenseId = original.id,
-            title = "  Lunch ",
-            amount = Money(2_000L, "USD"),
-            payerId = TestIds.bob,
-            participantIds = listOf(TestIds.bob, TestIds.charlie),
-            dateMillis = 8L,
-            note = "  Office  ",
+            UpdateExpenseParams(
+                expenseId = original.id,
+                title = "  Lunch ",
+                amount = Money(2_000L, "USD"),
+                payerId = TestIds.bob,
+                participantIds = listOf(TestIds.bob, TestIds.charlie),
+                dateMillis = 8L,
+                note = "  Office  ",
+            ),
         )
 
         assertEquals(original.id, updated.id)
@@ -227,10 +253,10 @@ class CrudUseCasesTest {
         val repository = InMemorySettingsRepository()
         val settings = AppSettings(defaultCurrencyCode = "EUR", themeMode = ThemeMode.Dark)
 
-        assertEquals(AppSettings(), GetSettingsUseCase(repository)())
-        SaveSettingsUseCase(repository)(settings)
+        assertEquals(AppSettings(), GetSettingsUseCase(repository)(GetSettingsParams))
+        SaveSettingsUseCase(repository)(SaveSettingsParams(settings))
 
-        assertEquals(settings, GetSettingsUseCase(repository)())
+        assertEquals(settings, GetSettingsUseCase(repository)(GetSettingsParams))
         assertEquals(1, repository.saveCalls)
     }
 }

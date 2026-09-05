@@ -35,11 +35,13 @@ class RecordTransferPaymentUseCaseTest {
         )
 
         val result = useCase(
-            groupId = TestIds.group,
-            debt = Debt(
-                fromParticipantId = TestIds.bob,
-                toParticipantId = TestIds.alice,
-                amount = Money(500, "USD"),
+            RecordTransferPaymentParams(
+                groupId = TestIds.group,
+                debt = Debt(
+                    fromParticipantId = TestIds.bob,
+                    toParticipantId = TestIds.alice,
+                    amount = Money(500, "USD"),
+                ),
             ),
         )
 

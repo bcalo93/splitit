@@ -36,6 +36,14 @@ The visual system and component inventory are fully documented in `docs/DESIGN.m
 - **Visible copy** (UI strings) uses "Groups"/"Grupos" vocabulary. All user-facing strings live in `composeApp/src/commonMain/composeResources/values/strings.xml` (EN) and `values-es/strings.xml` (ES); every new string must be added to both.
 - The domain and data layer use the "Group" vocabulary (`ExpenseGroup`, `GroupId`, `GroupDetails`, the SQLDelight `groups` table, and route classes `Groups`/`GroupDetails`/`GroupForm`). Legacy "Session" names have been removed from the codebase; do not reintroduce them.
 
+## UseCase abstraction
+
+Todos los casos de uso implementan `UseCase<in P, out R>` (`composeApp/src/commonMain/kotlin/com/splitit/domain/usecase/UseCase.kt`) con un único `suspend operator fun invoke(params: P): R`. La entrada es un DTO `data class` (o `Unit` para los sin args, p.ej. `ObserveGroupsParams`). Cada caso de uso vive con su DTO en el mismo archivo (`GroupUseCases.kt`, `ExpenseUseCases.kt`, etc.).
+
+- En `domainModule` (Koin) el binding es mixto: `ObserveGroupDetailsUseCase` se inyecta por interfaz `UseCase<ObserveGroupDetailsParams, GroupDetails>` (consumido por 6 ViewModels); los demás, por clase concreta.
+- Los ViewModels de `presentation/*/` invocan `useCase(XxxParams(...))` en lugar de `useCase(arg1, arg2, ...)`.
+- Los tests de ViewModel viven en `composeApp/src/androidHostTest/kotlin/...` (no en `commonTest`) porque **MockK es JVM-only** — agregarlo a `commonTest` rompe la compilación iOS-Native. La dependencia se declara en `named("androidHostTest") { dependencies { implementation(libs.mockk) } }`. Los tests usan `coEvery { useCase.invoke(any()) } returns ...` y `coVerify { ... }`. Los tests de use case unitarios (en `commonTest`) siguen usando `InMemoryRepositories`.
+
 ## Commands
 
 - Use the checked-in Gradle wrapper (`./gradlew`); it uses Gradle 9.7.0 and the project compiles Kotlin/Java for JVM 11.

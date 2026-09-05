@@ -52,6 +52,7 @@ kotlin {
         named("androidHostTest") {
             dependencies {
                 implementation(libs.sqldelight.sqlite.driver)
+                implementation(libs.mockk)
             }
         }
         commonMain.dependencies {

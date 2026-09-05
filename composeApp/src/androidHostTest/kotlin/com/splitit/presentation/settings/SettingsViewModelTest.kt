@@ -4,23 +4,32 @@ package com.splitit.presentation.settings
 
 import com.splitit.domain.repository.AppSettings
 import com.splitit.domain.repository.ThemeMode
+import com.splitit.domain.usecase.GetSettingsParams
 import com.splitit.domain.usecase.GetSettingsUseCase
+import com.splitit.domain.usecase.SaveSettingsParams
 import com.splitit.domain.usecase.SaveSettingsUseCase
-import com.splitit.testutils.InMemorySettingsRepository
 import com.splitit.testutils.runViewModelTest
 import com.splitit.testutils.testLocalizationService
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SettingsViewModelTest {
     @Test
     fun loadsAndSavesNormalizedCurrencyAndTheme() = runViewModelTest {
-        val repository = InMemorySettingsRepository()
+        val getSettings = mockk<GetSettingsUseCase>()
+        coEvery { getSettings(GetSettingsParams) } returns AppSettings()
+        val saveSettings = mockk<SaveSettingsUseCase>()
+        coEvery { saveSettings(any()) } returns Unit
+
         val viewModel = SettingsViewModel(
-            getSettings = GetSettingsUseCase(repository),
-            saveSettings = SaveSettingsUseCase(repository),
+            getSettings = getSettings,
+            saveSettings = saveSettings,
             localization = testLocalizationService,
         )
         advanceUntilIdle()
@@ -32,18 +41,22 @@ class SettingsViewModelTest {
         viewModel.save()
         advanceUntilIdle()
 
-        assertEquals(AppSettings("EUR", ThemeMode.Dark), repository.settings)
+        coVerify(exactly = 1) {
+            saveSettings(SaveSettingsParams(AppSettings("EUR", ThemeMode.Dark)))
+        }
         assertTrue(viewModel.state.value.saveCompleted)
         viewModel.consumeSaveCompleted()
-        assertEquals(false, viewModel.state.value.saveCompleted)
+        assertFalse(viewModel.state.value.saveCompleted)
     }
 
     @Test
     fun rejectsInvalidCurrencyWithoutSaving() = runViewModelTest {
-        val repository = InMemorySettingsRepository()
+        val saveSettings = mockk<SaveSettingsUseCase>()
+        val getSettings = mockk<GetSettingsUseCase>()
+        coEvery { getSettings(any()) } returns AppSettings()
         val viewModel = SettingsViewModel(
-            getSettings = GetSettingsUseCase(repository),
-            saveSettings = SaveSettingsUseCase(repository),
+            getSettings = getSettings,
+            saveSettings = saveSettings,
             localization = testLocalizationService,
         )
         advanceUntilIdle()
@@ -51,17 +64,23 @@ class SettingsViewModelTest {
         viewModel.onCurrencyCodeChange("US")
         viewModel.save()
 
-        assertEquals("Use a 3-letter currency code, such as USD or EUR.", viewModel.state.value.currencyError)
-        assertEquals(0, repository.saveCalls)
+        assertEquals(
+            "Use a 3-letter currency code, such as USD or EUR.",
+            viewModel.state.value.currencyError,
+        )
+        coVerify(exactly = 0) { saveSettings(any()) }
     }
 
     @Test
     fun exposesSaveErrors() = runViewModelTest {
-        val repository = InMemorySettingsRepository()
-        repository.saveError = IllegalStateException("settings unavailable")
+        val saveSettings = mockk<SaveSettingsUseCase>()
+        coEvery { saveSettings(any()) } throws IllegalStateException("settings unavailable")
+        val getSettings = mockk<GetSettingsUseCase>()
+        coEvery { getSettings(any()) } returns AppSettings()
+
         val viewModel = SettingsViewModel(
-            getSettings = GetSettingsUseCase(repository),
-            saveSettings = SaveSettingsUseCase(repository),
+            getSettings = getSettings,
+            saveSettings = saveSettings,
             localization = testLocalizationService,
         )
         advanceUntilIdle()
@@ -71,6 +90,6 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals("settings unavailable", viewModel.state.value.errorMessage)
-        assertEquals(false, viewModel.state.value.saveCompleted)
+        assertFalse(viewModel.state.value.saveCompleted)
     }
 }

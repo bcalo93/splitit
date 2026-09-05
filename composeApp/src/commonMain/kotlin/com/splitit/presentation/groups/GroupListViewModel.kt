@@ -5,9 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.ExpenseGroup
 import com.splitit.domain.model.Participant
+import com.splitit.domain.usecase.DeleteGroupParams
 import com.splitit.domain.usecase.DeleteGroupUseCase
-import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.ObserveGroupsParams
 import com.splitit.domain.usecase.ObserveGroupsUseCase
+import com.splitit.domain.usecase.UseCase
 import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
@@ -32,7 +36,7 @@ data class GroupListUiState(
 
 class GroupListViewModel(
     private val observeGroups: ObserveGroupsUseCase,
-    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val observeGroupDetails: UseCase<ObserveGroupDetailsParams, GroupDetails>,
     private val deleteGroup: DeleteGroupUseCase,
     private val localization: LocalizationService,
 ) : ViewModel() {
@@ -50,12 +54,12 @@ class GroupListViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val groups = observeGroups()
+                val groups = observeGroups(ObserveGroupsParams)
                 val participantsByGroup = mutableMapOf<GroupId, List<Participant>>()
                 val pendingGroupIds = mutableSetOf<GroupId>()
                 groups.forEach { group ->
                     try {
-                        val details = observeGroupDetails(group.id)
+                        val details = observeGroupDetails(ObserveGroupDetailsParams(group.id))
                         participantsByGroup[group.id] = details.participants
                         val pending = details.isSettlementStale ||
                             (details.latestSettlement == null && details.expenses.isNotEmpty())
@@ -104,7 +108,7 @@ class GroupListViewModel(
     fun delete(groupId: GroupId) {
         viewModelScope.launch {
             try {
-                deleteGroup(groupId)
+                deleteGroup(DeleteGroupParams(groupId))
                 refresh()
             } catch (exception: CancellationException) {
                 throw exception

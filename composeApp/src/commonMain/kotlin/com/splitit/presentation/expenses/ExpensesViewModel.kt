@@ -6,11 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Expense
 import com.splitit.domain.model.Participant
 import com.splitit.domain.repository.DefaultCurrencyCode
+import com.splitit.domain.usecase.CreateExpenseParams
 import com.splitit.domain.usecase.CreateExpenseUseCase
+import com.splitit.domain.usecase.DeleteExpenseParams
 import com.splitit.domain.usecase.DeleteExpenseUseCase
+import com.splitit.domain.usecase.GetSettingsParams
 import com.splitit.domain.usecase.GetSettingsUseCase
-import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.UpdateExpenseParams
 import com.splitit.domain.usecase.UpdateExpenseUseCase
+import com.splitit.domain.usecase.UseCase
 import com.splitit.domain.value.Clock
 import com.splitit.domain.value.ExpenseId
 import com.splitit.domain.value.Money
@@ -75,7 +81,7 @@ data class ExpensesUiState(
 
 class ExpensesViewModel(
     private val groupId: GroupId,
-    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val observeGroupDetails: UseCase<ObserveGroupDetailsParams, GroupDetails>,
     private val createExpense: CreateExpenseUseCase,
     private val updateExpense: UpdateExpenseUseCase,
     private val deleteExpense: DeleteExpenseUseCase,
@@ -97,7 +103,7 @@ class ExpensesViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val (details, settings) = observeGroupDetails(groupId) to getSettings()
+                val (details, settings) = observeGroupDetails(ObserveGroupDetailsParams(groupId)) to getSettings(GetSettingsParams)
                 _state.update {
                     val current = it
                     val defaultPayer = current.payerId ?: details.participants.firstOrNull()?.id
@@ -305,7 +311,7 @@ class ExpensesViewModel(
             val result = runCatching {
                 val editingId = current.editingExpenseId
                 val currencyCode = if (editingId == null) {
-                    getSettings().defaultCurrencyCode
+                    getSettings(GetSettingsParams).defaultCurrencyCode
                 } else {
                     current.editingCurrencyCode
                         ?: current.expenses.firstOrNull { it.id == editingId }?.amount?.currencyCode
@@ -313,25 +319,29 @@ class ExpensesViewModel(
                 }
                 if (editingId == null) {
                     createExpense(
-                        groupId = groupId,
-                        title = current.title,
-                        amount = Money(parsedAmount, currencyCode),
-                        payerId = payerId,
-                        participantIds = current.selectedParticipantIds.toList(),
-                        dateMillis = clock.nowMillis(),
-                        note = current.note,
-                        shareAmounts = shareAmounts,
+                        CreateExpenseParams(
+                            groupId = groupId,
+                            title = current.title,
+                            amount = Money(parsedAmount, currencyCode),
+                            payerId = payerId,
+                            participantIds = current.selectedParticipantIds.toList(),
+                            dateMillis = clock.nowMillis(),
+                            note = current.note,
+                            shareAmounts = shareAmounts,
+                        ),
                     )
                 } else {
                     updateExpense(
-                        expenseId = editingId,
-                        title = current.title,
-                        amount = Money(parsedAmount, currencyCode),
-                        payerId = payerId,
-                        participantIds = current.selectedParticipantIds.toList(),
-                        dateMillis = current.expenses.first { it.id == editingId }.dateMillis,
-                        note = current.note,
-                        shareAmounts = shareAmounts,
+                        UpdateExpenseParams(
+                            expenseId = editingId,
+                            title = current.title,
+                            amount = Money(parsedAmount, currencyCode),
+                            payerId = payerId,
+                            participantIds = current.selectedParticipantIds.toList(),
+                            dateMillis = current.expenses.first { it.id == editingId }.dateMillis,
+                            note = current.note,
+                            shareAmounts = shareAmounts,
+                        ),
                     )
                 }
             }
@@ -408,7 +418,7 @@ class ExpensesViewModel(
 
     fun delete(expenseId: ExpenseId) {
         viewModelScope.launch {
-            runCatching { deleteExpense(expenseId) }
+            runCatching { deleteExpense(DeleteExpenseParams(expenseId)) }
                 .onSuccess {
                     if (_state.value.editingExpenseId == expenseId) {
                         _state.update { it.emptyForm() }

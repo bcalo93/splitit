@@ -4,10 +4,15 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Participant
+import com.splitit.domain.usecase.AddParticipantParams
 import com.splitit.domain.usecase.AddParticipantUseCase
-import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.RemoveParticipantParams
 import com.splitit.domain.usecase.RemoveParticipantUseCase
+import com.splitit.domain.usecase.UpdateParticipantParams
 import com.splitit.domain.usecase.UpdateParticipantUseCase
+import com.splitit.domain.usecase.UseCase
 import com.splitit.domain.value.ParticipantId
 import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
@@ -38,7 +43,7 @@ val ParticipantColors: List<String> = SplitItAvatarColorHexes
 
 class ParticipantsViewModel(
     private val groupId: GroupId,
-    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val observeGroupDetails: UseCase<ObserveGroupDetailsParams, GroupDetails>,
     private val addParticipant: AddParticipantUseCase,
     private val updateParticipant: UpdateParticipantUseCase,
     private val removeParticipant: RemoveParticipantUseCase,
@@ -58,7 +63,7 @@ class ParticipantsViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val participants = observeGroupDetails(groupId).participants
+                val participants = observeGroupDetails(ObserveGroupDetailsParams(groupId)).participants
                 _state.update {
                     it.copy(
                         participants = participants,
@@ -129,9 +134,9 @@ class ParticipantsViewModel(
             val result = runCatching {
                 val editingId = current.editingParticipantId
                 if (editingId == null) {
-                    addParticipant(groupId, current.name, current.selectedColor)
+                    addParticipant(AddParticipantParams(groupId, current.name, current.selectedColor))
                 } else {
-                    updateParticipant(editingId, current.name, current.selectedColor)
+                    updateParticipant(UpdateParticipantParams(editingId, current.name, current.selectedColor))
                 }
             }
 
@@ -153,7 +158,7 @@ class ParticipantsViewModel(
 
     fun delete(participantId: ParticipantId) {
         viewModelScope.launch {
-            runCatching { removeParticipant(participantId) }
+            runCatching { removeParticipant(RemoveParticipantParams(participantId)) }
                 .onSuccess { refresh() }
                 .onFailure { throwable ->
                     _state.update {

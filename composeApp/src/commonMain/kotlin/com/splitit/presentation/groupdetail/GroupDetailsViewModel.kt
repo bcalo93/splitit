@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.splitit.domain.model.Expense
 import com.splitit.domain.usecase.GroupDetails
-import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.UseCase
 import com.splitit.domain.value.Money
 import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
@@ -38,7 +39,7 @@ private fun List<Expense>.totalSpent(): Money? {
 
 class GroupDetailsViewModel(
     private val groupId: GroupId,
-    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val observeGroupDetails: UseCase<ObserveGroupDetailsParams, GroupDetails>,
     private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(GroupDetailsUiState())
@@ -55,7 +56,7 @@ class GroupDetailsViewModel(
         refreshJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val details = observeGroupDetails(groupId)
+                val details = observeGroupDetails(ObserveGroupDetailsParams(groupId))
                 _state.update {
                     it.copy(
                         details = details,

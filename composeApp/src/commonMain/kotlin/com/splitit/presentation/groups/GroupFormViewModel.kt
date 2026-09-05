@@ -3,9 +3,13 @@ package com.splitit.presentation.groups
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.splitit.domain.usecase.CreateGroupParams
 import com.splitit.domain.usecase.CreateGroupUseCase
-import com.splitit.domain.usecase.ObserveGroupDetailsUseCase
+import com.splitit.domain.usecase.GroupDetails
+import com.splitit.domain.usecase.ObserveGroupDetailsParams
+import com.splitit.domain.usecase.UpdateGroupParams
 import com.splitit.domain.usecase.UpdateGroupUseCase
+import com.splitit.domain.usecase.UseCase
 import com.splitit.domain.value.GroupId
 import com.splitit.localization.LocalizedString
 import com.splitit.localization.LocalizationService
@@ -30,7 +34,7 @@ class GroupFormViewModel(
     private val groupId: GroupId?,
     private val createGroup: CreateGroupUseCase,
     private val updateGroup: UpdateGroupUseCase,
-    private val observeGroupDetails: ObserveGroupDetailsUseCase,
+    private val observeGroupDetails: UseCase<ObserveGroupDetailsParams, GroupDetails>,
     private val localization: LocalizationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(GroupFormUiState(isLoading = groupId != null))
@@ -73,9 +77,9 @@ class GroupFormViewModel(
             _state.update { it.copy(isSaving = true, errorMessage = null) }
             val result = runCatching {
                 if (groupId == null) {
-                    createGroup(current.title, current.description)
+                    createGroup(CreateGroupParams(current.title, current.description))
                 } else {
-                    updateGroup(groupId, current.title, current.description)
+                    updateGroup(UpdateGroupParams(groupId, current.title, current.description))
                 }
             }
 
@@ -106,7 +110,7 @@ class GroupFormViewModel(
 
     private fun load(groupId: GroupId) {
         viewModelScope.launch {
-            runCatching { observeGroupDetails(groupId).group }
+            runCatching { observeGroupDetails(ObserveGroupDetailsParams(groupId)).group }
                 .onSuccess { group ->
                     _state.update {
                         it.copy(
