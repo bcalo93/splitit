@@ -101,7 +101,6 @@ import splitit.composeapp.generated.resources.delete_expense_message
 import splitit.composeapp.generated.resources.delete_expense_title
 import splitit.composeapp.generated.resources.edit
 import splitit.composeapp.generated.resources.edit_expense
-import splitit.composeapp.generated.resources.entity_expenses
 import splitit.composeapp.generated.resources.expense_metadata
 import splitit.composeapp.generated.resources.expenses
 import splitit.composeapp.generated.resources.expenses_empty_title
@@ -119,6 +118,7 @@ import splitit.composeapp.generated.resources.month_short_11
 import splitit.composeapp.generated.resources.month_short_12
 import splitit.composeapp.generated.resources.new_expense
 import splitit.composeapp.generated.resources.no_participants_yet
+import splitit.composeapp.generated.resources.no_search_results_expenses
 import splitit.composeapp.generated.resources.note
 import splitit.composeapp.generated.resources.paid_by
 import splitit.composeapp.generated.resources.payment_metadata
@@ -268,8 +268,7 @@ private fun ExpensesScreen(
                             modifier = Modifier.weight(1f),
                         )
                         state.visibleExpenses.isEmpty() -> NoSearchResultsState(
-                            query = state.searchQuery,
-                            entityName = stringResource(Res.string.entity_expenses),
+                            title = stringResource(Res.string.no_search_results_expenses),
                             onClear = { onSearchQueryChange("") },
                             modifier = Modifier.weight(1f),
                         )

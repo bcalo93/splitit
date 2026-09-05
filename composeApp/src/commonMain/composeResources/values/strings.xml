@@ -21,12 +21,11 @@
     <string name="settings">Settings</string>
     <string name="new_action">New</string>
 
-    <string name="no_results_match">No %1$s match \"%2$s\".</string>
+    <string name="no_search_results_groups">We didn\'t find any groups.</string>
 
     <string name="groups_title">Your groups</string>
     <string name="new_group">New group</string>
     <string name="search_groups">Search groups</string>
-    <string name="entity_groups">groups</string>
     <string name="no_groups_yet">No groups yet</string>
     <string name="create_first_group">Create your first group</string>
     <string name="group_status_up_to_date">Up to date</string>
@@ -98,7 +97,7 @@
     <string name="add_first_participant">Add the first person to start splitting expenses.</string>
 
     <string name="search_expenses">Search expenses</string>
-    <string name="entity_expenses">expenses</string>
+    <string name="no_search_results_expenses">We didn\'t find any expenses.</string>
     <string name="add_expense">Add expense</string>
     <string name="edit_expense">Edit expense</string>
     <string name="amount_label">Amount (%s)</string>
