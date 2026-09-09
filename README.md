@@ -85,7 +85,7 @@ Release APKs are signed with a personal keystore, never committed to the repo.
   keyPassword=<key password>
   ```
 
-  `storeFile` is resolved relative to the `androidApp/` module, so place the keystore at the repo root and use the path above.
+  `storeFile` is resolved relative to the repo root, so place the keystore at the repo root and use the path above.
 
 - **CI builds**: the following GitHub Actions secrets must be set on the repository:
   - `KEYSTORE_BASE64` — `base64 < splitit-release.jks | pbpaste` (the encoded keystore).
@@ -115,6 +115,54 @@ Download the APK from the release page and install it, or use ADB:
 ```shell
 adb install app-release.apk
 ```
+
+### Installing on an emulator (step by step)
+
+1. **Build the signed release APK locally** (requires `keystore.properties`, see [Signing setup](#signing-setup)):
+
+   ```shell
+   ./gradlew :androidApp:assembleRelease
+   ```
+
+   The signed APK is produced at `androidApp/build/outputs/apk/release/androidApp-release.apk`.
+
+2. **Start an emulator.** List your available AVDs and launch one:
+
+   ```shell
+   emulator -list-avds          # e.g. Medium_Phone_API_36.1
+   emulator -avd <AVD_NAME> &   # replace with your AVD name
+   ```
+
+   Or start it from Android Studio's Device Manager.
+
+3. **Verify the emulator is running**:
+
+   ```shell
+   adb devices
+   # List of devices attached
+   # emulator-5554   device
+   ```
+
+4. **Install the APK**:
+
+   ```shell
+   adb install androidApp/build/outputs/apk/release/androidApp-release.apk
+   ```
+
+   If you get `INSTALL_FAILED_UPDATE_INCOMPATIBLE: Existing package com.splitit signatures do not match`, a previous build is signed with a different key (e.g. the debug keystore). Uninstall it first and retry:
+
+   ```shell
+   adb uninstall com.splitit
+   adb install androidApp/build/outputs/apk/release/androidApp-release.apk
+   ```
+
+5. **Launch the app**:
+
+   ```shell
+   adb shell monkey -p com.splitit -c android.intent.category.LAUNCHER 1
+   ```
+
+> **Note:** debug (`assembleDebug`) and release builds use different signing keys. Alternating between them on the same emulator/device requires `adb uninstall com.splitit` before installing the other flavor.
 
 ---
 
