@@ -48,10 +48,18 @@ Todos los casos de uso implementan `UseCase<in P, out R>` (`composeApp/src/commo
 
 - Use the checked-in Gradle wrapper (`./gradlew`); it uses Gradle 9.7.0 and the project compiles Kotlin/Java for JVM 11.
 - Build the Android debug app with `./gradlew :androidApp:assembleDebug`.
+- Build the signed release APK with `./gradlew :androidApp:assembleRelease` (requires a release keystore — see `README.md` → "Release").
 - Run the JVM-backed Android/common unit tests with `./gradlew :composeApp:testAndroidHostTest`.
 - Run one test class with `./gradlew :composeApp:testAndroidHostTest --tests 'com.splitit.domain.service.BalanceCalculatorTest'`; replace the class name as needed.
 - Run Android lint with `./gradlew :androidApp:lint :composeApp:lint`; use `./gradlew :androidApp:check :composeApp:check` for the full Gradle verification task.
 - Run the iOS app from `iosApp/iosApp.xcodeproj` in Xcode; the Kotlin framework is embedded through the generated Xcode/Gradle integration rather than a separate root app task.
+
+## Release
+
+- Releases are driven by **SemVer git tags** `vX.Y.Z` (annotated). The version is derived from the tag in CI, so releases never touch `main` (which is protected) with a version-bump commit.
+- `gradle.properties` holds the default version (`appVersionName`/`appVersionCode`) for local builds; CI overrides both via `-PappVersionName`/`-PappVersionCode`.
+- The GitHub Actions workflow (`.github/workflows/release.yml`) runs on `push` of a `v*` tag **and** on `release: published`, builds a signed APK and publishes it as a GitHub Release. Signing secrets (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) must be configured on the repo; the keystore itself is never committed (`*.jks`, `*.keystore`, `keystore.properties` are ignored).
+- Full instructions live in `README.md` → "Release".
 
 ## Data And Tests
 
