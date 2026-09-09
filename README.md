@@ -68,4 +68,54 @@ Open the [`/iosApp`](./iosApp) directory in Xcode and run it from there, or use 
 
 ---
 
+## 📦 Release
+
+SplitIt uses **SemVer** (`MAJOR.MINOR.PATCH`) with annotated git tags `vX.Y.Z`. Each release is built and signed by a GitHub Actions workflow (`.github/workflows/release.yml`) and published as a GitHub Release with the signed APK attached. The version comes from the tag, so no version-bump commit is required (and `main` stays protected).
+
+### Signing setup
+
+Release APKs are signed with a personal keystore, never committed to the repo.
+
+- **Local builds**: create `keystore.properties` at the repo root (git-ignored):
+
+  ```properties
+  storeFile=splitit-release.jks
+  storePassword=<store password>
+  keyAlias=<key alias>
+  keyPassword=<key password>
+  ```
+
+  `storeFile` is resolved relative to the `androidApp/` module, so place the keystore at the repo root and use the path above.
+
+- **CI builds**: the following GitHub Actions secrets must be set on the repository:
+  - `KEYSTORE_BASE64` — `base64 < splitit-release.jks | pbpaste` (the encoded keystore).
+  - `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+
+### Releasing
+
+Both paths produce the same result: a tagged GitHub Release with the signed APK.
+
+**A. Push a tag**
+
+```shell
+git tag -a v1.0.0 -m "Release 1.0.0"
+git push origin v1.0.0
+```
+
+The workflow builds, signs and publishes the APK to the release `v1.0.0`.
+
+**B. Create a release from the web UI**
+
+Go to GitHub → *Releases* → *Draft a new release*, set the tag to `v1.0.0`, and publish. The workflow builds, signs and attaches the APK to that release.
+
+### Installing on your device
+
+Download the APK from the release page and install it, or use ADB:
+
+```shell
+adb install app-release.apk
+```
+
+---
+
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…

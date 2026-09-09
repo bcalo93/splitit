@@ -1,8 +1,33 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
+
+val appVersionName: String = providers.gradleProperty("appVersionName").get()
+val appVersionCode: Int = providers.gradleProperty("appVersionCode").get().toInt()
+
+fun loadReleaseKeystoreProperties(): Properties? {
+    val localFile = rootProject.file("keystore.properties")
+    if (localFile.exists()) {
+        return Properties().apply { localFile.inputStream().use { load(it) } }
+    }
+    val envFile = System.getenv("KEYSTORE_FILE")
+    if (!envFile.isNullOrBlank()) {
+        return Properties().apply {
+            setProperty("storeFile", envFile)
+            setProperty("storePassword", System.getenv("KEYSTORE_PASSWORD").orEmpty())
+            setProperty("keyAlias", System.getenv("KEY_ALIAS").orEmpty())
+            setProperty("keyPassword", System.getenv("KEY_PASSWORD").orEmpty())
+        }
+    }
+    return null
+}
+
+val releaseKeystoreProperties = loadReleaseKeystoreProperties()
 
 android {
     namespace = "com.splitit"
@@ -12,8 +37,19 @@ android {
         applicationId = "com.splitit"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
+    }
+
+    signingConfigs {
+        if (releaseKeystoreProperties != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseKeystoreProperties.getProperty("storeFile"))
+                storePassword = releaseKeystoreProperties.getProperty("storePassword")
+                keyAlias = releaseKeystoreProperties.getProperty("keyAlias")
+                keyPassword = releaseKeystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     packaging {
@@ -28,6 +64,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 

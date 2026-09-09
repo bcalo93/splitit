@@ -19,3 +19,8 @@ captures
 node_modules/
 skills-lock.json
 .agents
+
+# Release signing
+*.jks
+*.keystore
+keystore.properties
